@@ -1,0 +1,68 @@
+# Painel da SP Store (Decap CMS)
+backend:
+  name: github
+  repo: brunonsousa1-stack/lojaspstore
+  branch: main
+
+locale: pt
+site_url: https://lojaspstore.com.br
+logo_url: https://lojaspstore.com.br/img/logo.png
+media_folder: img
+public_folder: /img
+
+collections:
+  - name: loja
+    label: Minha loja
+    editor: { preview: false }
+    files:
+      - name: produtos
+        label: Produtos
+        file: data/produtos.json
+        fields:
+          - label: Produtos
+            name: produtos
+            widget: list
+            summary: "{{fields.nome}} — R$ {{fields.preco}}"
+            fields:
+              - { label: Nome do produto, name: nome, widget: string }
+              - label: Categoria
+                name: categoria
+                widget: select
+                options:
+                  - { label: Óculos de sol, value: oculos }
+                  - { label: Relógios, value: relogios }
+              - { label: Preço (ex. 29.99), name: preco, widget: number, value_type: float, step: 0.01, min: 0 }
+              - { label: Descrição curta, name: descricao, widget: text, required: false }
+              - { label: Selos (ex. Novo, Mais vendido), name: selos, widget: list, required: false }
+              - { label: Mostrar no site, name: ativo, widget: boolean, default: true }
+              - label: Desenho usado quando não há foto
+                name: desenho
+                widget: select
+                required: false
+                default: hex
+                options:
+                  - { label: Óculos hexagonal, value: hex }
+                  - { label: Óculos aviador, value: avi }
+                  - { label: Relógio redondo, value: round }
+                  - { label: Relógio gota, value: drop }
+                  - { label: Relógio digital, value: digital }
+              - label: Cores / versões
+                name: variantes
+                widget: list
+                summary: "{{fields.nome}}"
+                fields:
+                  - { label: Nome da cor, name: nome, widget: string }
+                  - { label: Foto, name: foto, widget: image, required: false }
+                  - { label: Cor principal (bolinha), name: cor_principal, widget: color, required: false }
+                  - { label: Cor de detalhe (bolinha), name: cor_detalhe, widget: color, required: false }
+      - name: config
+        label: Textos e contato
+        file: data/loja.json
+        fields:
+          - { label: WhatsApp (só números, com 55 e DDD), name: whatsapp, widget: string }
+          - { label: WhatsApp como aparece no site, name: whatsapp_exibicao, widget: string }
+          - { label: Preço destaque do banner, name: preco_destaque, widget: number, value_type: float, step: 0.01 }
+          - { label: Preço do kit óculos + relógio, name: preco_kit, widget: number, value_type: float, step: 0.01 }
+          - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
+          - { label: Título do banner, name: banner_titulo, widget: string }
+          - { label: Texto do banner, name: banner_texto, widget: text }

@@ -1,0 +1,153 @@
+{
+  "produtos": [
+    {
+      "nome": "Óculos de Sol Feminino Hexagonal",
+      "categoria": "oculos",
+      "preco": 29.99,
+      "descricao": "",
+      "selos": [
+        "Mais vendido"
+      ],
+      "desenho": "hex",
+      "ativo": true,
+      "variantes": [
+        {
+          "nome": "Dourado com lente marrom",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#6b4423"
+        },
+        {
+          "nome": "Dourado com lente preta",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#222"
+        },
+        {
+          "nome": "Dourado com lente verde",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#3f5a3a"
+        },
+        {
+          "nome": "Preto",
+          "foto": "",
+          "cor_principal": "#1d1d1d",
+          "cor_detalhe": "#2a2a2a"
+        }
+      ]
+    },
+    {
+      "nome": "Óculos de Sol Aviador",
+      "categoria": "oculos",
+      "preco": 29.99,
+      "descricao": "",
+      "selos": [
+        "Clássico"
+      ],
+      "desenho": "avi",
+      "ativo": true,
+      "variantes": [
+        {
+          "nome": "Preto",
+          "foto": "",
+          "cor_principal": "#1d1d1d",
+          "cor_detalhe": "#2a2a2a"
+        },
+        {
+          "nome": "Dourado com lente marrom",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#6b4423"
+        },
+        {
+          "nome": "Dourado com lente preta",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#222"
+        }
+      ]
+    },
+    {
+      "nome": "Relógio Feminino DK Original",
+      "categoria": "relogios",
+      "preco": 29.99,
+      "descricao": "",
+      "selos": [
+        "Quartz"
+      ],
+      "desenho": "round",
+      "ativo": true,
+      "variantes": [
+        {
+          "nome": "Dourado, mostrador creme",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#f1e6cf"
+        },
+        {
+          "nome": "Dourado, mostrador preto",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#1d1d1d"
+        },
+        {
+          "nome": "Prateado, mostrador creme",
+          "foto": "",
+          "cor_principal": "#b9bcc0",
+          "cor_detalhe": "#f1e6cf"
+        },
+        {
+          "nome": "Prateado, mostrador preto",
+          "foto": "",
+          "cor_principal": "#b9bcc0",
+          "cor_detalhe": "#1d1d1d"
+        }
+      ]
+    },
+    {
+      "nome": "Relógio Feminino DK Original Gota",
+      "categoria": "relogios",
+      "preco": 29.99,
+      "descricao": "",
+      "selos": [
+        "Novo"
+      ],
+      "desenho": "drop",
+      "ativo": true,
+      "variantes": [
+        {
+          "nome": "Dourado, mostrador branco",
+          "foto": "",
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#fafafa"
+        },
+        {
+          "nome": "Prateado, mostrador branco",
+          "foto": "",
+          "cor_principal": "#b9bcc0",
+          "cor_detalhe": "#fafafa"
+        }
+      ]
+    },
+    {
+      "nome": "Relógio Unissex DK Original Digital",
+      "categoria": "relogios",
+      "preco": 29.99,
+      "descricao": "",
+      "selos": [
+        "Unissex"
+      ],
+      "desenho": "digital",
+      "ativo": true,
+      "variantes": [
+        {
+          "nome": "Preto",
+          "foto": "",
+          "cor_principal": "#1d1d1d",
+          "cor_detalhe": "#9fb39a"
+        }
+      ]
+    }
+  ]
+}
