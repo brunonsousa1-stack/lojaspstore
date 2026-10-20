@@ -52,7 +52,12 @@ collections:
                 summary: "{{fields.nome}}"
                 fields:
                   - { label: Nome da cor, name: nome, widget: string }
-                  - { label: Foto, name: foto, widget: image, required: false }
+                  - { label: Foto principal, name: foto, widget: image, required: false }
+                  - label: Mais fotos desta cor
+                    name: fotos_extras
+                    widget: list
+                    required: false
+                    field: { label: Foto, name: foto, widget: image }
                   - { label: Cor principal (bolinha), name: cor_principal, widget: color, required: false }
                   - { label: Cor de detalhe (bolinha), name: cor_detalhe, widget: color, required: false }
       - name: config

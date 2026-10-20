@@ -83,6 +83,11 @@ section.shop{padding-block:48px}
 .media{position:relative;aspect-ratio:1;max-width:100%;display:grid;place-items:center;background:linear-gradient(160deg,var(--bg),var(--surface))}
 .media svg{width:72%;height:auto}
 .media img{width:100%;height:100%;object-fit:cover}
+.gal-btn{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:rgba(251,250,247,.9);color:#1b1a17;font:700 18px var(--body);cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.gal-prev{left:8px}.gal-next{right:8px}
+.gal-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:6px}
+.gal-dots i{width:7px;height:7px;border-radius:50%;background:rgba(27,26,23,.3)}
+.gal-dots i.on{background:#1b1a17}
 .badges{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap}
 .badge{background:var(--dark);color:var(--on-dark);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
 .badge.gold{background:var(--gold);color:#1b1a17}
@@ -276,6 +281,7 @@ function art(kind,v){
   return `<svg viewBox="0 0 120 160"><path d="M38 0 h44 v42 h-44z M38 160 h44 v-42 h-44z" fill="${x.c}"/><rect x="22" y="40" width="76" height="80" rx="16" fill="${x.c}"/><rect x="32" y="56" width="56" height="48" rx="6" fill="${x.d}"/><text x="60" y="88" text-anchor="middle" font-family="monospace" font-size="20" font-weight="700" fill="#1d1d1d">12:45</text><rect x="98" y="62" width="5" height="10" rx="2" fill="${x.c}"/><rect x="98" y="88" width="5" height="10" rx="2" fill="${x.c}"/></svg>`;
 }
 const sel = {};
+const gal = {};
 const brl=n=>"R$ "+Number(n).toFixed(2).replace(".",",");
 const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function link(p,v){return `https://wa.me/${WA}?text=${encodeURIComponent(`Olá! Quero comprar: ${p.nome} - ${v.nome} (${brl(p.preco)}).`)}`}
@@ -286,7 +292,9 @@ function render(f){
   g.innerHTML = list.map(p=>{
     const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
     const i=Math.min(sel[p.id]||0,vs.length-1), v=vs[i];
-    const media=v.foto?`<img src="${esc(v.foto)}" alt="${esc(p.nome)} - ${esc(v.nome)}" loading="lazy">`:art(p.desenho||"hex",v);
+    const fotos=[v.foto,...(v.fotos_extras||[])].filter(Boolean);
+    const gk=p.id+"-"+i, gi=fotos.length?((gal[gk]||0)%fotos.length):0;
+    const media=fotos.length?`<img src="${esc(fotos[gi])}" alt="${esc(p.nome)} - ${esc(v.nome)}" loading="lazy">`+(fotos.length>1?`<button class="gal-btn gal-prev" id="gp-${gk}" data-g="${gk}" data-d="-1" data-n="${fotos.length}" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" id="gn-${gk}" data-g="${gk}" data-d="1" data-n="${fotos.length}" aria-label="Próxima foto">›</button><div class="gal-dots">${fotos.map((_,k)=>`<i class="${k===gi?'on':''}"></i>`).join("")}</div>`:""):art(p.desenho||"hex",v);
     return `<article class="card">
       <div class="media"><div class="badges">${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}</div>
       <div class="info">
@@ -316,7 +324,7 @@ let current="todos";
 function setFilter(f){current=f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===f));render(f)}
 document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setFilter(c.dataset.f)));
 document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=>setFilter(a.dataset.go)));
-document.getElementById("grid").addEventListener("click",e=>{const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
+document.getElementById("grid").addEventListener("click",e=>{const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
 document.getElementById("copy-wa").addEventListener("click",function(){
   const t=document.getElementById("wa-text").textContent, btn=this;
   navigator.clipboard.writeText(t).then(()=>{btn.textContent="Copiado"}).catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("wa-text"));const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Selecionado"});
