@@ -12,28 +12,8 @@
       "ativo": true,
       "variantes": [
         {
-          "nome": "Dourado com lente marrom",
-          "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#6b4423"
-        },
-        {
-          "nome": "Dourado com lente preta",
-          "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#222"
-        },
-        {
-          "nome": "Dourado com lente verde",
-          "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#3f5a3a"
-        },
-        {
-          "nome": "Preto",
-          "foto": "",
-          "cor_principal": "#1d1d1d",
-          "cor_detalhe": "#2a2a2a"
+          "nome": "Marrom",
+          "foto": "/img/oculos-feminino-de-sol-hexagonal-3-.png"
         }
       ]
     },
