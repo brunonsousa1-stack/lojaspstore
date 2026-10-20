@@ -8,16 +8,20 @@
       "selos": [
         "Mais vendido"
       ],
+      "desenho": "hex",
       "ativo": true,
       "variantes": [
         {
           "nome": "Marrom",
-          "foto": "/img/oculos-feminino-de-sol-hexagonal-3-.png"
+          "foto": "/img/oculos-de-sol-femininno-hexagonal-1-.jpg",
+          "fotos_extras": [
+            "/img/oculos-de-sol-femininno-hexagonal.jpg",
+            "/img/oculos-feminino-de-sol-hexagonal-3-.png",
+            "/img/oculos-feminino-de-sol-hexagonal-4-.png",
+            "/img/oculos-feminino-de-sol-hexagonal-1-.png"
+          ]
         }
-      ],
-      "avancado": {
-        "desenho": "hex"
-      }
+      ]
     },
     {
       "nome": "Óculos de Sol Aviador",
@@ -27,36 +31,28 @@
       "selos": [
         "Clássico"
       ],
+      "desenho": "avi",
       "ativo": true,
       "variantes": [
         {
           "nome": "Preto",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#1d1d1d",
-            "cor_detalhe": "#2a2a2a"
-          }
+          "cor_principal": "#1d1d1d",
+          "cor_detalhe": "#2a2a2a"
         },
         {
           "nome": "Dourado com lente marrom",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#c9a24f",
-            "cor_detalhe": "#6b4423"
-          }
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#6b4423"
         },
         {
           "nome": "Dourado com lente preta",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#c9a24f",
-            "cor_detalhe": "#222"
-          }
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#222"
         }
-      ],
-      "avancado": {
-        "desenho": "avi"
-      }
+      ]
     },
     {
       "nome": "Relógio Feminino DK Original",
@@ -66,44 +62,34 @@
       "selos": [
         "Quartz"
       ],
+      "desenho": "round",
       "ativo": true,
       "variantes": [
         {
           "nome": "Dourado, mostrador creme",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#c9a24f",
-            "cor_detalhe": "#f1e6cf"
-          }
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#f1e6cf"
         },
         {
           "nome": "Dourado, mostrador preto",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#c9a24f",
-            "cor_detalhe": "#1d1d1d"
-          }
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#1d1d1d"
         },
         {
           "nome": "Prateado, mostrador creme",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#b9bcc0",
-            "cor_detalhe": "#f1e6cf"
-          }
+          "cor_principal": "#b9bcc0",
+          "cor_detalhe": "#f1e6cf"
         },
         {
           "nome": "Prateado, mostrador preto",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#b9bcc0",
-            "cor_detalhe": "#1d1d1d"
-          }
+          "cor_principal": "#b9bcc0",
+          "cor_detalhe": "#1d1d1d"
         }
-      ],
-      "avancado": {
-        "desenho": "round"
-      }
+      ]
     },
     {
       "nome": "Relógio Feminino DK Original Gota",
@@ -113,28 +99,22 @@
       "selos": [
         "Novo"
       ],
+      "desenho": "drop",
       "ativo": true,
       "variantes": [
         {
           "nome": "Dourado, mostrador branco",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#c9a24f",
-            "cor_detalhe": "#fafafa"
-          }
+          "cor_principal": "#c9a24f",
+          "cor_detalhe": "#fafafa"
         },
         {
           "nome": "Prateado, mostrador branco",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#b9bcc0",
-            "cor_detalhe": "#fafafa"
-          }
+          "cor_principal": "#b9bcc0",
+          "cor_detalhe": "#fafafa"
         }
-      ],
-      "avancado": {
-        "desenho": "drop"
-      }
+      ]
     },
     {
       "nome": "Relógio Unissex DK Original Digital",
@@ -144,20 +124,16 @@
       "selos": [
         "Unissex"
       ],
+      "desenho": "digital",
       "ativo": true,
       "variantes": [
         {
           "nome": "Preto",
           "foto": "",
-          "avancado": {
-            "cor_principal": "#1d1d1d",
-            "cor_detalhe": "#9fb39a"
-          }
+          "cor_principal": "#1d1d1d",
+          "cor_detalhe": "#9fb39a"
         }
-      ],
-      "avancado": {
-        "desenho": "digital"
-      }
+      ]
     }
   ]
 }
