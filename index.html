@@ -148,6 +148,43 @@ footer a{text-decoration:none}
 .mbar div{flex:1;font-size:13px;line-height:1.2}.mbar b{display:block;font-family:var(--display);font-size:18px;color:#d1ab5e}
 body{padding-bottom:72px}}
 @media (min-width:721px){.mbar{display:none}}
+
+/* abrir produto */
+.media{cursor:pointer}
+.open{border:0;padding:0;margin:0;font:inherit;color:inherit;background:none;text-align:inherit;cursor:pointer}
+.open:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.info h3 .open:hover{color:var(--gold)}
+.see{position:absolute;right:10px;top:10px;font:700 12px var(--body);color:#1b1a17;background:rgba(251,250,247,.92);border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer}
+
+/* janela do produto */
+dialog.pd{border:0;padding:0;margin:auto;width:min(900px,calc(100% - 24px));max-height:calc(100dvh - 24px);border-radius:20px;background:var(--surface);color:var(--ink);overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+dialog.pd::backdrop{background:rgba(12,12,11,.6)}
+.pd-in{display:grid;grid-template-columns:1.05fr 1fr}
+.pd-gal{min-width:0;display:flex;flex-direction:column}
+.pd-art{position:relative;aspect-ratio:1;background:linear-gradient(160deg,var(--bg),var(--surface));display:grid;place-items:center;overflow:hidden}
+.pd-art img{width:100%;height:100%;object-fit:cover;display:block}
+.pd-art svg{width:70%;height:auto}
+.pd-thumbs{display:flex;gap:8px;padding:10px 12px;overflow-x:auto}
+.pd-thumbs button{flex:none;width:58px;height:58px;border-radius:10px;border:2px solid transparent;padding:0;overflow:hidden;cursor:pointer;background:var(--bg)}
+.pd-thumbs button[aria-pressed="true"]{border-color:var(--ink)}
+.pd-thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.pd-body{padding:28px 26px 24px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pd-body h2{font-size:clamp(24px,3vw,32px);font-weight:400;line-height:1.15;padding-right:40px}
+.pd-desc{margin:0;color:var(--muted);font-size:15px;white-space:pre-line}
+.pd-label{font-size:13px;font-weight:700}
+.pd-label span{font-weight:400;color:var(--muted)}
+.pd .sw{width:36px;height:36px}
+.pd .price strong{font-size:30px}
+.pd .buy{padding:14px 18px;font-size:16px;margin-top:4px}
+.pd-close{position:absolute;right:12px;top:12px;z-index:3;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.pd-share{border:0;padding:0;background:none;font:600 13px var(--body);color:var(--muted);text-decoration:underline;cursor:pointer;align-self:flex-start}
+@media (max-width:720px){
+  dialog.pd{width:100%;max-width:100%;max-height:94dvh;margin:auto 0 0;border-radius:20px 20px 0 0}
+  .pd-in{grid-template-columns:1fr}
+  .pd-art svg{width:56%}
+  .pd-body{padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+}
+body.locked{overflow:hidden}
 </style>
 
 <div class="ticker"><div class="wrap">
@@ -265,6 +302,11 @@ body{padding-bottom:72px}}
   <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .6l-.4.6-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
 </a>
 
+<dialog class="pd" id="pd" aria-labelledby="pd-name">
+  <button class="pd-close" id="pd-close" type="button" aria-label="Fechar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="pd-in" id="pd-in"></div>
+</dialog>
+
 <script>
 let WA = "5511947523834";
 // cores: frame (armação), lens (lente) | case, dial (mostrador), strap
@@ -296,9 +338,9 @@ function render(f){
     const gk=p.id+"-"+i, gi=fotos.length?((gal[gk]||0)%fotos.length):0;
     const media=fotos.length?`<img src="${esc(fotos[gi])}" alt="${esc(p.nome)} - ${esc(v.nome)}" loading="lazy">`+(fotos.length>1?`<button class="gal-btn gal-prev" id="gp-${gk}" data-g="${gk}" data-d="-1" data-n="${fotos.length}" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" id="gn-${gk}" data-g="${gk}" data-d="1" data-n="${fotos.length}" aria-label="Próxima foto">›</button><div class="gal-dots">${fotos.map((_,k)=>`<i class="${k===gi?'on':''}"></i>`).join("")}</div>`:""):art(p.desenho||"hex",v);
     return `<article class="card">
-      <div class="media"><div class="badges">${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}</div>
+      <div class="media" data-open="${p.id}"><div class="badges">${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}<button class="see" type="button" data-open="${p.id}" aria-label="Ver detalhes: ${esc(p.nome)}">Ver detalhes</button></div>
       <div class="info">
-        <h3>${esc(p.nome)}</h3>
+        <h3><button class="open" type="button" data-open="${p.id}">${esc(p.nome)}</button></h3>
         ${p.descricao?`<p style="margin:0;font-size:14px;color:var(--muted)">${esc(p.descricao)}</p>`:""}
         <div class="variant">${esc(v.nome)}</div>
         ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" id="sw-${p.id}-${k}" data-p="${p.id}" data-i="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
@@ -326,14 +368,85 @@ let current="todos";
 function setFilter(f){current=f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===f));render(f)}
 document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setFilter(c.dataset.f)));
 document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=>setFilter(a.dataset.go)));
-document.getElementById("grid").addEventListener("click",e=>{const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
+document.getElementById("grid").addEventListener("click",e=>{const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const o=e.target.closest("[data-open]");if(o){openProduct(o.dataset.open);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
+
+// ---------- janela do produto ----------
+const dlg=document.getElementById("pd"), pdIn=document.getElementById("pd-in");
+let openId=null, pushed=false;
+const slug=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+function prodById(id){const idx=+String(id).slice(1);const p=P[idx];return p?{...p,id:"p"+idx}:null}
+function prodBySlug(sl){const idx=P.findIndex(p=>slug(p.nome)===sl);return idx<0?null:{...P[idx],id:"p"+idx}}
+function fillProduct(p){
+  const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
+  const i=Math.min(sel[p.id]||0,vs.length-1), v=vs[i];
+  const fotos=[v.foto,...(v.fotos_extras||[])].filter(Boolean);
+  const gk=p.id+"-"+i, gi=fotos.length?((gal[gk]||0)%fotos.length):0;
+  const main=fotos.length?`<img src="${esc(fotos[gi])}" alt="${esc(p.nome)} - ${esc(v.nome)}">`+(fotos.length>1?`<button class="gal-btn gal-prev" type="button" data-pg="-1" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" type="button" data-pg="1" aria-label="Próxima foto">›</button>`:""):art(p.desenho||"hex",v);
+  pdIn.innerHTML=`<div class="pd-gal">
+    <div class="pd-art"><div class="badges">${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${main}</div>
+    ${fotos.length>1?`<div class="pd-thumbs">${fotos.map((f,k)=>`<button type="button" data-pt="${k}" aria-pressed="${k===gi}" aria-label="Foto ${k+1}"><img src="${esc(f)}" alt="" loading="lazy"></button>`).join("")}</div>`:""}
+  </div>
+  <div class="pd-body">
+    <div class="eyebrow" style="color:var(--gold)">${p.categoria==="relogios"?"Relógio":"Óculos de sol"}</div>
+    <h2 id="pd-name">${esc(p.nome)}</h2>
+    ${p.descricao?`<p class="pd-desc">${esc(p.descricao)}</p>`:""}
+    <div class="pd-label">Cor: <span>${esc(v.nome)}</span></div>
+    ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" type="button" data-pi="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
+    <div class="stock">● Pronta entrega</div>
+    <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
+    <a class="btn buy" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
+    <button class="pd-share" type="button" id="pd-share">Copiar link deste produto</button>
+  </div>`;
+}
+function openProduct(id,fromHash){
+  const p=prodById(id); if(!p) return;
+  openId=p.id; fillProduct(p);
+  if(!dlg.open){ if(dlg.showModal) dlg.showModal(); else dlg.setAttribute("open",""); }
+  document.body.classList.add("locked");
+  const h="#produto-"+slug(p.nome);
+  if(!fromHash && location.hash!==h){ try{history.pushState(null,"",h);pushed=true}catch(e){} }
+}
+function closeProduct(){ if(dlg.open){ if(dlg.close) dlg.close(); else dlg.removeAttribute("open"); } }
+dlg.addEventListener("close",()=>{
+  document.body.classList.remove("locked"); openId=null;
+  if(location.hash.startsWith("#produto-")){
+    if(pushed){pushed=false;try{history.back()}catch(e){}}
+    else{ try{history.replaceState(null,"",location.pathname+location.search)}catch(e){} }
+  }
+  render(current);
+});
+dlg.addEventListener("click",e=>{
+  if(e.target===dlg){closeProduct();return}
+  if(!openId) return;
+  const p=prodById(openId), vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
+  const i=Math.min(sel[p.id]||0,vs.length-1), v=vs[i], gk=p.id+"-"+i;
+  const n=[v.foto,...(v.fotos_extras||[])].filter(Boolean).length;
+  const sw=e.target.closest("[data-pi]"); if(sw){sel[p.id]=+sw.dataset.pi;fillProduct(p);return}
+  const pg=e.target.closest("[data-pg]"); if(pg&&n){gal[gk]=((gal[gk]||0)+(+pg.dataset.pg)+n)%n;fillProduct(p);return}
+  const pt=e.target.closest("[data-pt]"); if(pt){gal[gk]=+pt.dataset.pt;fillProduct(p);return}
+  const sh=e.target.closest("#pd-share");
+  if(sh){
+    const url=location.origin+location.pathname+"#produto-"+slug(p.nome);
+    if(navigator.share){navigator.share({title:p.nome,url}).catch(()=>{})}
+    else if(navigator.clipboard){navigator.clipboard.writeText(url).then(()=>{sh.textContent="Link copiado"}).catch(()=>{sh.textContent=url})}
+    else sh.textContent=url;
+  }
+});
+document.getElementById("pd-close").addEventListener("click",closeProduct);
+function fromHash(){
+  const m=location.hash.match(/^#produto-([a-z0-9-]+)/);
+  if(m){const p=prodBySlug(m[1]); if(p) openProduct(p.id,true);}
+  else { pushed=false; if(dlg.open) closeProduct(); }
+}
+window.addEventListener("popstate",fromHash);
+window.addEventListener("hashchange",fromHash);
 document.getElementById("copy-wa").addEventListener("click",function(){
   const t=document.getElementById("wa-text").textContent, btn=this;
   navigator.clipboard.writeText(t).then(()=>{btn.textContent="Copiado"}).catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("wa-text"));const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Selecionado"});
 });
 render("todos");
 Promise.all([fetch("data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
-  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)) P=norm(d.produtos); applyLoja(L); render(current);})
-  .catch(()=>{});
+  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)) P=norm(d.produtos); applyLoja(L); render(current); fromHash();})
+  .catch(()=>{fromHash()});
 </script>
 </html>
