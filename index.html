@@ -308,6 +308,8 @@ function render(f){
       </div></article>`;
   }).join("") || '<p style="color:var(--muted)">Nenhum produto nesta categoria.</p>';
 }
+function norm(list){return (list||[]).map(p=>({...p,desenho:p.desenho||(p.avancado&&p.avancado.desenho)||"hex",
+  variantes:(p.variantes||[]).map(v=>({...v,cor_principal:v.cor_principal||(v.avancado&&v.avancado.cor_principal),cor_detalhe:v.cor_detalhe||(v.avancado&&v.avancado.cor_detalhe)}))}))}
 function applyLoja(L){
   if(!L) return;
   WA=String(L.whatsapp||WA).replace(/\D/g,"");
@@ -331,7 +333,7 @@ document.getElementById("copy-wa").addEventListener("click",function(){
 });
 render("todos");
 Promise.all([fetch("data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
-  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)) P=d.produtos; applyLoja(L); render(current);})
+  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)) P=norm(d.produtos); applyLoja(L); render(current);})
   .catch(()=>{});
 </script>
 </html>

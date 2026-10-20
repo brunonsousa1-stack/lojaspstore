@@ -8,14 +8,16 @@
       "selos": [
         "Mais vendido"
       ],
-      "desenho": "hex",
       "ativo": true,
       "variantes": [
         {
           "nome": "Marrom",
           "foto": "/img/oculos-feminino-de-sol-hexagonal-3-.png"
         }
-      ]
+      ],
+      "avancado": {
+        "desenho": "hex"
+      }
     },
     {
       "nome": "Óculos de Sol Aviador",
@@ -25,28 +27,36 @@
       "selos": [
         "Clássico"
       ],
-      "desenho": "avi",
       "ativo": true,
       "variantes": [
         {
           "nome": "Preto",
           "foto": "",
-          "cor_principal": "#1d1d1d",
-          "cor_detalhe": "#2a2a2a"
+          "avancado": {
+            "cor_principal": "#1d1d1d",
+            "cor_detalhe": "#2a2a2a"
+          }
         },
         {
           "nome": "Dourado com lente marrom",
           "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#6b4423"
+          "avancado": {
+            "cor_principal": "#c9a24f",
+            "cor_detalhe": "#6b4423"
+          }
         },
         {
           "nome": "Dourado com lente preta",
           "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#222"
+          "avancado": {
+            "cor_principal": "#c9a24f",
+            "cor_detalhe": "#222"
+          }
         }
-      ]
+      ],
+      "avancado": {
+        "desenho": "avi"
+      }
     },
     {
       "nome": "Relógio Feminino DK Original",
@@ -56,34 +66,44 @@
       "selos": [
         "Quartz"
       ],
-      "desenho": "round",
       "ativo": true,
       "variantes": [
         {
           "nome": "Dourado, mostrador creme",
           "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#f1e6cf"
+          "avancado": {
+            "cor_principal": "#c9a24f",
+            "cor_detalhe": "#f1e6cf"
+          }
         },
         {
           "nome": "Dourado, mostrador preto",
           "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#1d1d1d"
+          "avancado": {
+            "cor_principal": "#c9a24f",
+            "cor_detalhe": "#1d1d1d"
+          }
         },
         {
           "nome": "Prateado, mostrador creme",
           "foto": "",
-          "cor_principal": "#b9bcc0",
-          "cor_detalhe": "#f1e6cf"
+          "avancado": {
+            "cor_principal": "#b9bcc0",
+            "cor_detalhe": "#f1e6cf"
+          }
         },
         {
           "nome": "Prateado, mostrador preto",
           "foto": "",
-          "cor_principal": "#b9bcc0",
-          "cor_detalhe": "#1d1d1d"
+          "avancado": {
+            "cor_principal": "#b9bcc0",
+            "cor_detalhe": "#1d1d1d"
+          }
         }
-      ]
+      ],
+      "avancado": {
+        "desenho": "round"
+      }
     },
     {
       "nome": "Relógio Feminino DK Original Gota",
@@ -93,22 +113,28 @@
       "selos": [
         "Novo"
       ],
-      "desenho": "drop",
       "ativo": true,
       "variantes": [
         {
           "nome": "Dourado, mostrador branco",
           "foto": "",
-          "cor_principal": "#c9a24f",
-          "cor_detalhe": "#fafafa"
+          "avancado": {
+            "cor_principal": "#c9a24f",
+            "cor_detalhe": "#fafafa"
+          }
         },
         {
           "nome": "Prateado, mostrador branco",
           "foto": "",
-          "cor_principal": "#b9bcc0",
-          "cor_detalhe": "#fafafa"
+          "avancado": {
+            "cor_principal": "#b9bcc0",
+            "cor_detalhe": "#fafafa"
+          }
         }
-      ]
+      ],
+      "avancado": {
+        "desenho": "drop"
+      }
     },
     {
       "nome": "Relógio Unissex DK Original Digital",
@@ -118,16 +144,20 @@
       "selos": [
         "Unissex"
       ],
-      "desenho": "digital",
       "ativo": true,
       "variantes": [
         {
           "nome": "Preto",
           "foto": "",
-          "cor_principal": "#1d1d1d",
-          "cor_detalhe": "#9fb39a"
+          "avancado": {
+            "cor_principal": "#1d1d1d",
+            "cor_detalhe": "#9fb39a"
+          }
         }
-      ]
+      ],
+      "avancado": {
+        "desenho": "digital"
+      }
     }
   ]
 }
