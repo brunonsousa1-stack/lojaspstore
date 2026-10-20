@@ -60,6 +60,8 @@ nav a:hover{opacity:1;color:#8a6a2c}
 .stamp small{display:block;font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase}
 .stamp span{font-size:26px}
 @media (max-width:760px){.hero .wrap{grid-template-columns:1fr;padding-block:36px 40px}.price-tag{width:min(280px,100%)}.stamp{width:92px;height:92px}.stamp span{font-size:21px}}
+.hero-img{display:block;background:var(--dark);line-height:0}
+.hero-img img{display:block;width:100%;height:auto;max-width:100%}
 
 /* benefícios */
 .perks{border-bottom:1px solid var(--line);background:var(--surface)}
@@ -219,6 +221,7 @@ body.locked{overflow:hidden}
     <div class="stamp"><div><small>tudo por</small><span id="stamp-preco">29,99</span></div></div>
   </div>
 </div></section>
+<a class="hero-img" id="hero-img" href="#vitrine" hidden><picture><source media="(max-width:760px)" id="hero-img-m"><img id="hero-img-d" alt=""></picture></a>
 
 <div class="perks"><div class="wrap">
   <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H4v12h16v-4M4 8l2-4h12l2 4M16 12h6v4h-6z"/></svg></div><div><b class="js-preco">R$ 29,99</b><span>em qualquer produto</span></div></div>
@@ -360,6 +363,12 @@ function applyLoja(L){
   if(L.banner_etiqueta) document.getElementById("hero-eyebrow").textContent=L.banner_etiqueta;
   if(L.banner_titulo) document.getElementById("hero-titulo").textContent=L.banner_titulo;
   if(L.banner_texto) document.getElementById("hero-texto").textContent=L.banner_texto;
+  const bd=L.banner_imagem||"", bm=L.banner_imagem_celular||"";
+  if(bd||bm){
+    const im=document.getElementById("hero-img-d"); im.src=bd||bm; im.alt=[L.banner_titulo,L.banner_etiqueta].filter(Boolean).join(" · ")||"SP Store";
+    document.getElementById("hero-img-m").srcset=bm||bd;
+    document.getElementById("hero-img").hidden=false; document.querySelector("section.hero").hidden=true;
+  }
   if(L.whatsapp_exibicao) document.getElementById("wa-text").textContent=L.whatsapp_exibicao;
   document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a=>{a.href=a.href.replace(/wa\.me\/\d+/,"wa.me/"+WA)});
 }

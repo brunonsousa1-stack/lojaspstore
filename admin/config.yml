@@ -87,3 +87,5 @@ collections:
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }
           - { label: Texto do banner, name: banner_texto, widget: text }
+          - { label: "Imagem do banner (computador, 1920 x 600 px)", name: banner_imagem, widget: image, required: false, hint: "Opcional. Com imagem, ela aparece no lugar do banner de texto. Deixe vazio para manter o banner atual." }
+          - { label: "Imagem do banner (celular, 1080 x 1080 px)", name: banner_imagem_celular, widget: image, required: false, hint: "Opcional. Se ficar vazio, o celular usa a imagem do computador." }
