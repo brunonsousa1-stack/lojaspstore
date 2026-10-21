@@ -268,7 +268,7 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
     <a href="#vitrine" data-go="oculos">Óculos de sol</a>
     <a href="#vitrine" data-go="relogios">Relógios</a>
     <a href="#como-comprar">Como comprar</a>
-    <a href="#combo">Kits</a>
+    <template id="kit-oculto-menu"><a href="#combo">Kits</a></template><!-- KIT oculto: para voltar, tire o link de dentro do <template> -->
     <a href="#duvidas">Dúvidas</a>
   </nav>
   <a class="cart-btn" href="https://wa.me/5511947523834?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SP%20Store." target="_blank" rel="noopener">Fale conosco</a>
@@ -311,7 +311,8 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
   <div class="grid" id="grid"></div>
 </div></section>
 
-<section class="shop" id="combo"><div class="wrap">
+<!-- KIT oculto: para voltar, tire a seção de dentro do <template> -->
+<template id="kit-oculto"><section class="shop" id="combo"><div class="wrap">
   <div class="combo">
     <div class="combo-art" aria-hidden="true"><span>Óculos</span><b>+</b><span>Relógio</span></div>
     <div>
@@ -322,7 +323,7 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
       <a class="btn buy" style="margin-top:14px;display:inline-flex" href="https://wa.me/5511947523834?text=Ol%C3%A1!%20Quero%20o%20kit%20%C3%B3culos%20%2B%20rel%C3%B3gio%20da%20SP%20Store." target="_blank" rel="noopener">Quero o kit no WhatsApp</a>
     </div>
   </div>
-</div></section>
+</div></section></template>
 <div class="band"><div class="wrap">
   <div><h2>Ideal para presentear</h2><p>Tire suas dúvidas sobre cores e modelos direto com a gente antes de comprar.</p></div>
   <a class="btn btn-gold" href="https://wa.me/5511947523834?text=Ol%C3%A1!%20Quero%20ajuda%20para%20escolher%20um%20presente." target="_blank" rel="noopener">Ajuda para escolher</a>
