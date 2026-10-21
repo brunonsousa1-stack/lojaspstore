@@ -186,6 +186,61 @@ dialog.pd::backdrop{background:rgba(12,12,11,.6)}
   .pd-body{padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px))}
 }
 body.locked{overflow:hidden}
+
+/* carrinho */
+.bag{position:relative;flex:none;width:42px;height:42px;border-radius:50%;border:1.5px solid #d6d4ce;background:#fbfaf7;color:#1b1a17;display:grid;place-items:center;cursor:pointer;padding:0}
+.bag:hover{border-color:#b08a3e}
+.bag-n{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#b08a3e;color:#fff;font:700 11px/20px var(--body);text-align:center}
+.bag-n.pop{animation:pop .35s ease}
+@keyframes pop{50%{transform:scale(1.35)}}
+.actions{display:grid;gap:8px}
+.add{justify-content:center;background:var(--ink);color:var(--bg);padding:11px 16px;font-size:14px}
+.add.ok{background:var(--gold);color:#1b1a17}
+.buy-alt{background:transparent;color:var(--wa);border:1.5px solid var(--wa);padding:9.5px 16px}
+.pd .add{padding:14px 18px;font-size:16px;margin-top:4px}
+.pd .buy-alt{padding:12.5px 18px;font-size:15px;margin-top:0}
+
+dialog.cart{border:0;padding:0;margin:0 0 0 auto;width:min(420px,100%);max-width:100%;height:100dvh;max-height:100dvh;background:var(--surface);color:var(--ink);box-shadow:-12px 0 40px rgba(0,0,0,.3)}
+dialog.cart[open]{display:flex;flex-direction:column}
+dialog.cart::backdrop{background:rgba(12,12,11,.55)}
+.cart-head{position:relative;padding:calc(20px + env(safe-area-inset-top,0px)) 20px 16px;border-bottom:1px solid var(--line)}
+.cart-head h2{font-size:26px;font-weight:400}
+.cart-head p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.cart-head .pd-close{top:calc(14px + env(safe-area-inset-top,0px))}
+.cart-list{flex:1;overflow:auto;padding:6px 20px}
+.ci{display:grid;grid-template-columns:72px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.ci:last-child{border-bottom:0}
+.ci-img{width:72px;height:72px;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,var(--bg),var(--surface));display:grid;place-items:center}
+.ci-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ci-img svg{width:80%;height:auto}
+.ci-top{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.ci b{font-size:14px;line-height:1.3}
+.ci-cor{font-size:13px;color:var(--muted)}
+.ci-rm{flex:none;border:0;background:none;color:var(--muted);cursor:pointer;padding:2px;border-radius:6px;display:grid;place-items:center}
+.ci-rm:hover{color:var(--ink)}
+.ci-bot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.ci-bot strong{font-family:var(--display);font-weight:400;font-size:18px;font-variant-numeric:tabular-nums}
+.qty{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:999px}
+.qty button{width:32px;height:32px;border:0;background:none;color:var(--ink);font:700 17px var(--body);cursor:pointer;border-radius:50%;display:grid;place-items:center}
+.qty button:disabled{opacity:.3;cursor:default}
+.qty span{min-width:24px;text-align:center;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.cart-foot{border-top:1px solid var(--line);padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;background:var(--surface)}
+.cart-tot{display:flex;justify-content:space-between;align-items:baseline}
+.cart-tot span{color:var(--muted);font-size:14px}
+.cart-tot strong{font-family:var(--display);font-weight:400;font-size:28px;font-variant-numeric:tabular-nums}
+.cart-foot .buy{padding:14px 18px;font-size:16px}
+.cart-note{margin:0;font-size:13px;color:var(--muted);text-align:center}
+.cart-sent{background:var(--gold-soft);border-radius:12px;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.link-btn{border:0;background:none;padding:0;font:700 13px var(--body);color:var(--ink);text-decoration:underline;cursor:pointer}
+.cart-more{justify-content:center;background:transparent;color:var(--ink);border:1.5px solid var(--line);padding:11px 16px;font-size:14px}
+.cart-empty{text-align:center;padding:48px 8px;color:var(--muted)}
+.cart-empty svg{color:var(--line);margin-bottom:8px}
+.cart-empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:30;transform:translate(-50%,16px);opacity:0;pointer-events:none;background:#1b1a17;color:#f3f1ec;border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:14px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);width:max-content;max-width:calc(100% - 32px);transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{border:0;border-radius:999px;background:#d1ab5e;color:#1b1a17;font:700 13px var(--body);padding:8px 14px;cursor:pointer;white-space:nowrap}
+@media (max-width:720px){.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 </style>
 
 <div class="ticker"><div class="wrap">
@@ -204,6 +259,7 @@ body.locked{overflow:hidden}
     <a href="#duvidas">Dúvidas</a>
   </nav>
   <a class="cart-btn" href="https://wa.me/5511947523834?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SP%20Store." target="_blank" rel="noopener">Fale conosco</a>
+  <button class="bag" id="bag-btn" type="button" aria-label="Abrir carrinho"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><span class="bag-n" id="bag-n" hidden>0</span></button>
 </div></header>
 
 <section class="hero" id="topo"><div class="wrap">
@@ -263,8 +319,8 @@ body.locked{overflow:hidden}
   <div class="sec-head"><h2>Como comprar</h2></div>
   <div class="steps">
     <div class="step"><b>Escolha o produto e a cor</b><p>Toque nas bolinhas de cor para ver as versões disponíveis.</p></div>
-    <div class="step"><b>Toque em "Comprar no WhatsApp"</b><p>A mensagem já vai com o nome do produto e a cor escolhida.</p></div>
-    <div class="step"><b>Pague com Pix ou cartão</b><p>Enviamos o link do Mercado Pago e combinamos a entrega.</p></div>
+    <div class="step"><b>Adicione ao carrinho</b><p>Junte quantos produtos e cores quiser. Se preferir um só, toque em "Comprar no WhatsApp".</p></div>
+    <div class="step"><b>Finalize e pague</b><p>O pedido completo vai pelo WhatsApp. Enviamos o link do Mercado Pago para pagar com Pix ou cartão.</p></div>
   </div>
 </div></section>
 
@@ -272,8 +328,9 @@ body.locked{overflow:hidden}
 <section class="shop" id="duvidas"><div class="wrap">
   <div class="sec-head"><h2>Dúvidas frequentes</h2></div>
   <div class="faq">
-    <details><summary>Como faço o pagamento?</summary><p>Depois de escolher o produto no WhatsApp, enviamos um link do Mercado Pago. Você paga com Pix ou cartão de crédito.</p></details>
-    <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida já vai na mensagem do WhatsApp.</p></details>
+    <details><summary>Como faço o pagamento?</summary><p>Depois que você envia o pedido pelo WhatsApp, enviamos um link do Mercado Pago. Você paga com Pix ou cartão de crédito.</p></details>
+    <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho e para a mensagem do WhatsApp.</p></details>
+    <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e finalize o pedido de uma vez pelo WhatsApp.</p></details>
     <details><summary>Como o produto chega?</summary><p>Cada item vai em caixa protegida. Combinamos a forma de envio e o prazo pelo WhatsApp.</p></details>
     <details><summary>Os relógios são originais DK?</summary><p>Sim, são da linha DK Original, com máquina quartz.</p></details>
   </div>
@@ -299,7 +356,7 @@ body.locked{overflow:hidden}
   <div class="legal"><div class="wrap">© 2026 SP Store. Todos os direitos reservados.</div></div>
 </footer>
 
-<div class="mbar"><div>Tudo por<b class="js-preco">R$ 29,99</b></div><a class="btn btn-gold" href="#vitrine" style="padding:10px 18px">Ver produtos</a></div>
+<div class="mbar"><div>Tudo por<b class="js-preco">R$ 29,99</b></div><a class="btn btn-gold" href="#vitrine" id="mbar-cta" style="padding:10px 18px">Ver produtos</a></div>
 <a class="fab" href="https://wa.me/5511947523834?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SP%20Store." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
   <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .6l-.4.6-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
 </a>
@@ -308,6 +365,16 @@ body.locked{overflow:hidden}
   <button class="pd-close" id="pd-close" type="button" aria-label="Fechar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="pd-in" id="pd-in"></div>
 </dialog>
+
+<dialog class="cart" id="cart" aria-labelledby="cart-title">
+  <div class="cart-head">
+    <h2 id="cart-title">Seu carrinho</h2><p id="cart-sub"></p>
+    <button class="pd-close" id="cart-close" type="button" aria-label="Fechar carrinho"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="cart-list" id="cart-list"></div>
+  <div class="cart-foot" id="cart-foot"></div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-t">Adicionado ao carrinho</span><button type="button" id="toast-b">Ver carrinho</button></div>
 
 <script>
 let WA = "5511947523834";
@@ -348,7 +415,10 @@ function render(f){
         ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" id="sw-${p.id}-${k}" data-p="${p.id}" data-i="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
         <div class="stock">● Pronta entrega</div>
         <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
-        <a class="btn buy" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
+        <div class="actions">
+          <button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
+          <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
+        </div>
       </div></article>`;
   }).join("") || '<p style="color:var(--muted)">Nenhum produto nesta categoria.</p>';
 }
@@ -376,7 +446,7 @@ let current="todos";
 function setFilter(f){current=f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===f));render(f)}
 document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setFilter(c.dataset.f)));
 document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=>setFilter(a.dataset.go)));
-document.getElementById("grid").addEventListener("click",e=>{const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const o=e.target.closest("[data-open]");if(o){openProduct(o.dataset.open);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
+document.getElementById("grid").addEventListener("click",e=>{const a=e.target.closest("[data-add]");if(a){addToCart(a.dataset.add);flashBtn(a);showToast();return}const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const o=e.target.closest("[data-open]");if(o){openProduct(o.dataset.open);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
 
 // ---------- janela do produto ----------
 const dlg=document.getElementById("pd"), pdIn=document.getElementById("pd-in");
@@ -402,7 +472,8 @@ function fillProduct(p){
     ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" type="button" data-pi="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
     <div class="stock">● Pronta entrega</div>
     <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
-    <a class="btn buy" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
+    <button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
+    <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
   </div>`;
 }
 function openProduct(id,fromHash){
@@ -415,7 +486,7 @@ function openProduct(id,fromHash){
 }
 function closeProduct(){ if(dlg.open){ if(dlg.close) dlg.close(); else dlg.removeAttribute("open"); } }
 dlg.addEventListener("close",()=>{
-  document.body.classList.remove("locked"); openId=null;
+  if(!cartDlg.open) document.body.classList.remove("locked"); openId=null;
   if(location.hash.startsWith("#produto-")){
     if(pushed){pushed=false;try{history.back()}catch(e){}}
     else{ try{history.replaceState(null,"",location.pathname+location.search)}catch(e){} }
@@ -428,6 +499,7 @@ dlg.addEventListener("click",e=>{
   const p=prodById(openId), vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
   const i=Math.min(sel[p.id]||0,vs.length-1), v=vs[i], gk=p.id+"-"+i;
   const n=[v.foto,...(v.fotos_extras||[])].filter(Boolean).length;
+  const ad=e.target.closest("[data-add]"); if(ad){addToCart(ad.dataset.add);closeProduct();openCart();return}
   const sw=e.target.closest("[data-pi]"); if(sw){sel[p.id]=+sw.dataset.pi;fillProduct(p);return}
   const pg=e.target.closest("[data-pg]"); if(pg&&n){gal[gk]=((gal[gk]||0)+(+pg.dataset.pg)+n)%n;fillProduct(p);return}
   const pt=e.target.closest("[data-pt]"); if(pt){gal[gk]=+pt.dataset.pt;fillProduct(p);return}
@@ -444,9 +516,97 @@ document.getElementById("copy-wa").addEventListener("click",function(){
   const t=document.getElementById("wa-text").textContent, btn=this;
   navigator.clipboard.writeText(t).then(()=>{btn.textContent="Copiado"}).catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("wa-text"));const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Selecionado"});
 });
+
+// ---------- carrinho ----------
+const CART_KEY="spstore_carrinho";
+const cartDlg=document.getElementById("cart"), cartList=document.getElementById("cart-list"), cartFoot=document.getElementById("cart-foot");
+let cart=[], sent=false;
+try{const c=JSON.parse(localStorage.getItem(CART_KEY)||"[]");if(Array.isArray(c)) cart=c.filter(x=>x&&x.nome&&x.qtd>0)}catch(e){}
+const cents=n=>Math.round(Number(n)*100);
+const cartCount=()=>cart.reduce((a,x)=>a+x.qtd,0);
+const cartTotal=()=>cart.reduce((a,x)=>a+cents(x.preco)*x.qtd,0)/100;
+const corTxt=c=>c&&c!=="Padrão"?c:"";
+function saveCart(){try{localStorage.setItem(CART_KEY,JSON.stringify(cart))}catch(e){} updateBag()}
+function itemFrom(p,v){return {nome:p.nome,cor:v.nome,preco:p.preco,foto:v.foto||"",desenho:p.desenho||"hex",cp:v.cor_principal||"",cd:v.cor_detalhe||""}}
+function addToCart(id){
+  const p=prodById(id); if(!p) return;
+  const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
+  const v=vs[Math.min(sel[p.id]||0,vs.length-1)];
+  const it=cart.find(x=>x.nome===p.nome&&x.cor===v.nome);
+  if(it) it.qtd=Math.min(99,it.qtd+1); else cart.push({...itemFrom(p,v),qtd:1});
+  sent=false; saveCart(); renderCart();
+  const n=document.getElementById("bag-n"); n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop");
+}
+// atualiza preço e fotos com o que está no painel; tira produtos que saíram do site
+function syncCart(){
+  cart=cart.map(it=>{
+    const p=P.find(x=>x.nome===it.nome&&x.ativo!==false); if(!p) return null;
+    const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
+    const v=vs.find(x=>x.nome===it.cor); if(!v) return null;
+    return {...itemFrom(p,v),qtd:it.qtd};
+  }).filter(Boolean);
+  saveCart(); renderCart();
+}
+function waOrder(){
+  const lines=cart.map(x=>`• ${x.qtd}x ${x.nome}${corTxt(x.cor)?` - ${x.cor}`:""} (${brl(cents(x.preco)*x.qtd/100)})`);
+  const n=cartCount();
+  const t=`Olá! Quero fazer este pedido pelo site da SP Store:\n\n${lines.join("\n")}\n\nTotal: ${brl(cartTotal())} (${n} ${n===1?"item":"itens"})\n\nPode me enviar o link de pagamento do Mercado Pago?`;
+  return `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
+}
+function thumb(x){return x.foto?`<img src="${esc(x.foto)}" alt="" loading="lazy">`:art(x.desenho,{cor_principal:x.cp||"#999",cor_detalhe:x.cd||"#ccc"})}
+function renderCart(){
+  const n=cartCount();
+  document.getElementById("cart-sub").textContent=n?`${n} ${n===1?"item":"itens"}`:"";
+  if(!n){
+    cartList.innerHTML=`<div class="cart-empty"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><b>Seu carrinho está vazio</b>Escolha um óculos ou relógio e toque em "Adicionar ao carrinho".</div>`;
+    cartFoot.innerHTML=`<button class="btn cart-more" type="button" data-cart="fechar">Ver produtos</button>`;
+    return;
+  }
+  cartList.innerHTML=cart.map((x,k)=>`<div class="ci">
+    <div class="ci-img">${thumb(x)}</div>
+    <div>
+      <div class="ci-top"><div><b>${esc(x.nome)}</b>${corTxt(x.cor)?`<div class="ci-cor">${esc(x.cor)}</div>`:""}</div>
+        <button class="ci-rm" type="button" data-rm="${k}" aria-label="Remover ${esc(x.nome)}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>
+      <div class="ci-bot">
+        <div class="qty"><button type="button" data-q="${k}" data-d="-1" aria-label="Diminuir" ${x.qtd<=1?"disabled":""}>−</button><span>${x.qtd}</span><button type="button" data-q="${k}" data-d="1" aria-label="Aumentar" ${x.qtd>=99?"disabled":""}>+</button></div>
+        <strong>${brl(cents(x.preco)*x.qtd/100)}</strong>
+      </div>
+    </div></div>`).join("");
+  cartFoot.innerHTML=`<div class="cart-tot"><span>Total</span><strong>${brl(cartTotal())}</strong></div>
+    ${sent?`<div class="cart-sent"><span>Pedido enviado pelo WhatsApp?</span><button class="link-btn" type="button" data-cart="limpar">Esvaziar carrinho</button></div>`:""}
+    <a class="btn buy" id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">Finalizar pedido no WhatsApp</a>
+    <p class="cart-note">Você recebe o link do Mercado Pago para pagar com Pix ou cartão.</p>
+    <button class="btn cart-more" type="button" data-cart="fechar">Continuar comprando</button>`;
+}
+function updateBag(){
+  const n=cartCount(), b=document.getElementById("bag-n");
+  b.textContent=n>99?"99+":n; b.hidden=!n;
+  document.getElementById("bag-btn").setAttribute("aria-label",n?`Abrir carrinho, ${n} ${n===1?"item":"itens"}`:"Abrir carrinho");
+  const m=document.getElementById("mbar-cta"); m.textContent=n?`Carrinho (${n})`:"Ver produtos";
+}
+function openCart(){renderCart(); if(!cartDlg.open){ if(cartDlg.showModal) cartDlg.showModal(); else cartDlg.setAttribute("open",""); } document.body.classList.add("locked"); hideToast()}
+function closeCart(){ if(cartDlg.open){ if(cartDlg.close) cartDlg.close(); else cartDlg.removeAttribute("open"); } }
+cartDlg.addEventListener("close",()=>{ if(!dlg.open) document.body.classList.remove("locked"); });
+cartDlg.addEventListener("click",e=>{
+  if(e.target===cartDlg){closeCart();return}
+  const q=e.target.closest("[data-q]"); if(q){const it=cart[+q.dataset.q]; if(it){it.qtd=Math.max(1,Math.min(99,it.qtd+(+q.dataset.d)));sent=false;saveCart();renderCart()} return}
+  const r=e.target.closest("[data-rm]"); if(r){cart.splice(+r.dataset.rm,1);sent=false;saveCart();renderCart();return}
+  const c=e.target.closest("[data-cart]"); if(c){ if(c.dataset.cart==="limpar"){cart=[];sent=false;saveCart();renderCart()} else closeCart(); return}
+  if(e.target.closest("#cart-go")){ setTimeout(()=>{sent=true;renderCart()},300) }
+});
+document.getElementById("cart-close").addEventListener("click",closeCart);
+document.getElementById("bag-btn").addEventListener("click",openCart);
+document.getElementById("mbar-cta").addEventListener("click",e=>{ if(cartCount()){e.preventDefault();openCart()} });
+const toast=document.getElementById("toast"); let toastT=null;
+function showToast(){toast.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(hideToast,3500)}
+function hideToast(){toast.classList.remove("show"); clearTimeout(toastT)}
+document.getElementById("toast-b").addEventListener("click",openCart);
+function flashBtn(b){b.classList.add("ok"); b.textContent="Adicionado ✓"; setTimeout(()=>{ if(b.isConnected){b.classList.remove("ok"); b.textContent="Adicionar ao carrinho"} },1400)}
+window.addEventListener("storage",e=>{ if(e.key===CART_KEY){ try{cart=JSON.parse(e.newValue||"[]")||[]}catch(x){cart=[]} updateBag(); renderCart() } });
+updateBag();
 render("todos");
 Promise.all([fetch("data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
-  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)) P=norm(d.produtos); applyLoja(L); render(current); fromHash();})
+  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fromHash();})
   .catch(()=>{fromHash()});
 </script>
 </html>
