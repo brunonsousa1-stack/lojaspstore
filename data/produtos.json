@@ -1,7 +1,7 @@
 {
   "produtos": [
     {
-      "nome": "Óculos de Sol Feminino Hexagonal",
+      "nome": "Óculos de Sol Feminino Hexagonal Marrom",
       "categoria": "oculos",
       "preco": 29.99,
       "descricao": "",
@@ -43,7 +43,10 @@
           ]
         }
       ],
-      "preco": 29.99
+      "preco": 29.99,
+      "selos": [
+        "Mais vendido"
+      ]
     }
   ]
 }
