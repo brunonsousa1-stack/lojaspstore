@@ -244,9 +244,9 @@ async function montarPagamento(){
       callbacks:{
         onReady(){},
         onError(err){console.error(err)},
-        onSubmit:({formData})=>new Promise(async(ok,falha)=>{
+        onSubmit:({selectedPaymentMethod,formData})=>new Promise(async(ok,falha)=>{
           pm.textContent="";
-          try{const r=await Conta.api("/api/pagar",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token,formData})});
+          try{const r=await Conta.api("/api/pagar",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token,tipo:selectedPaymentMethod,formData})});
             pedido=r.pedido||pedido;
             if(r.status==="pago"){ok();sucesso();return}
             if(r.status==="pendente"&&r.pix){ok();mostrarPix(r.pix);return}

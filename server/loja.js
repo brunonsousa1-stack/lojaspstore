@@ -160,74 +160,87 @@ export function validarEntrega(b, exigirCpf) {
   return d;
 }
 
-// ---------- Mercado Pago ----------
+// ---------- Mercado Pago (API de Orders) ----------
 // Checkout transparente: o navegador gera o token do cartão com o SDK do Mercado Pago
-// (os dados do cartão não passam por aqui) e o servidor cria o pagamento com o valor do pedido.
+// (os dados do cartão não passam por aqui) e o servidor cria a order com o valor do pedido.
 const MOTIVOS = {
-  cc_rejected_insufficient_amount: "Cartão sem limite suficiente.",
-  cc_rejected_bad_filled_security_code: "Código de segurança (CVV) incorreto.",
-  cc_rejected_bad_filled_date: "Data de validade incorreta.",
-  cc_rejected_bad_filled_card_number: "Número do cartão incorreto.",
-  cc_rejected_bad_filled_other: "Confira os dados do cartão.",
-  cc_rejected_call_for_authorize: "O banco pediu autorização. Ligue para o banco do cartão e tente de novo.",
-  cc_rejected_card_disabled: "Cartão bloqueado ou inativo. Fale com o banco.",
-  cc_rejected_duplicated_payment: "Pagamento duplicado. Esse valor já foi pago com esse cartão.",
-  cc_rejected_high_risk: "Pagamento recusado por segurança. Tente outro cartão ou o Pix.",
-  cc_rejected_max_attempts: "Muitas tentativas. Use outro cartão ou o Pix.",
-  cc_rejected_blacklist: "Pagamento recusado. Tente outro cartão ou o Pix.",
-  cc_rejected_other_reason: "O banco recusou o pagamento. Tente outro cartão ou o Pix.",
+  insufficient_amount: "Cartão sem limite suficiente.",
+  card_insufficient_amount: "Cartão sem limite suficiente.",
+  amount_limit_exceeded: "Valor acima do limite do cartão.",
+  bad_filled_card_data: "Confira os dados do cartão (número, validade e código de segurança).",
+  invalid_card_token: "Confira os dados do cartão e tente de novo.",
+  required_call_for_authorize: "O banco pediu autorização. Ligue para o banco do cartão e tente de novo.",
+  card_disabled: "Cartão bloqueado ou inativo. Fale com o banco.",
+  high_risk: "Pagamento recusado por segurança. Tente outro cartão ou o Pix.",
+  max_attempts_exceeded: "Muitas tentativas. Use outro cartão ou o Pix.",
+  rejected_by_issuer: "O banco recusou o pagamento. Tente outro cartão ou o Pix.",
+  invalid_installments: "Número de parcelas não aceito por este cartão.",
+  "3ds_challenge_expired": "O tempo da verificação do banco acabou. Tente de novo.",
+  processing_error: "Erro ao processar. Tente de novo em instantes.",
 };
-export async function criarPagamento(env, request, p, f) {
-  const c = cfg(env), origem = new URL(request.url).origin;
+const FORMAS = { pix: "Pix", bank_transfer: "Pix", credit_card: "Cartão de crédito", debit_card: "Cartão de débito", ticket: "Boleto", account_money: "Saldo Mercado Pago" };
+const reais2 = n => (Math.round(Number(n) * 100) / 100).toFixed(2);
+
+// Resume a order do Mercado Pago num formato simples usado pelo resto da loja
+export function resumoOrder(o) {
+  const pg = (o && o.transactions && o.transactions.payments && o.transactions.payments[0]) || {};
+  const pm = pg.payment_method || {};
+  const st = String(o.status || ""), det = String(pg.status_detail || o.status_detail || "");
+  let estado = "recusado";
+  if (st === "processed" && /accredited|partially_refunded/.test(o.status_detail || det)) estado = "aprovado";
+  else if (st === "action_required" && /waiting_(transfer|payment)/.test(o.status_detail || det)) estado = "aguardando";
+  else if (st === "processing" || st === "in_review" || st === "created" || (st === "action_required")) estado = "analise";
+  else if (st === "refunded" || st === "charged_back") estado = "devolvido";
+  return {
+    id: String(o.id || ""), ref: String(o.external_reference || ""), estado, status: st, detalhe: det,
+    valor: Number(o.total_paid_amount || 0) || (estado === "aprovado" ? Number(pg.paid_amount || pg.amount || o.total_amount || 0) : 0),
+    forma: FORMAS[pm.type] || FORMAS[pm.id] || "",
+    pix: pm.qr_code ? { qr: pm.qr_code, qr_base64: pm.qr_code_base64 || "", url: pm.ticket_url || "", expira: pg.date_of_expiration || "" } : null,
+  };
+}
+
+export async function criarPagamento(env, request, p, f, tipoBrick) {
+  const c = cfg(env);
   const metodo = so(f.payment_method_id, 40);
   if (!metodo) throw new Error("Escolha a forma de pagamento.");
   const payerIn = f.payer || {};
   const ident = payerIn.identification && payerIn.identification.number
-    ? { type: so(payerIn.identification.type || "CPF", 10), number: digitos(payerIn.identification.number).slice(0, 14) } : undefined;
+    ? { type: so(payerIn.identification.type || "CPF", 10), number: digitos(payerIn.identification.number).slice(0, 14) }
+    : (p.cpf ? { type: "CPF", number: p.cpf } : undefined);
   const [primeiro, ...resto] = p.nome.split(" ");
-  const corpo = {
-    transaction_amount: Number(p.total),
-    description: `SP Store · Pedido #${p.id}`,
-    payment_method_id: metodo,
-    external_reference: String(p.id),
-    notification_url: `${origem}/api/mp-webhook`,
-    statement_descriptor: "SPSTORE",
-    payer: { email: String(payerIn.email || p.email).slice(0, 120), first_name: primeiro, last_name: resto.join(" ") || primeiro, ...(ident ? { identification: ident } : {}) },
-    additional_info: {
-      items: p.itens.map((i, k) => ({ id: `item-${k + 1}`, title: so(`${i.nome}${i.cor && i.cor !== "Padrão" ? " - " + i.cor : ""}`, 250), quantity: i.qtd, unit_price: Number(i.preco) })),
-      payer: { first_name: primeiro, last_name: resto.join(" ") || primeiro, phone: { area_code: p.telefone.slice(0, 2), number: p.telefone.slice(2) } },
-      shipments: { receiver_address: { zip_code: p.endereco.cep, street_name: p.endereco.rua, street_number: p.endereco.numero, city_name: p.endereco.cidade, state_name: p.endereco.uf } },
-    },
-  };
+  const pagamento = { amount: reais2(p.total), payment_method: {} };
   if (metodo === "pix") {
-    corpo.date_of_expiration = new Date(Date.now() + 24 * 3600e3).toISOString().replace("Z", "-00:00");
+    pagamento.payment_method = { id: "pix", type: "bank_transfer" };
+    pagamento.expiration_time = "P1D";
   } else {
     if (!f.token) throw new Error("Dados do cartão incompletos.");
-    corpo.token = String(f.token).slice(0, 200);
-    corpo.installments = Math.min(12, Math.max(1, Math.floor(Number(f.installments) || 1)));
-    if (f.issuer_id) corpo.issuer_id = String(f.issuer_id).slice(0, 20);
+    const tipo = /^(credit_card|debit_card)$/.test(f.payment_type_id || "") ? f.payment_type_id : (/^(credit_card|debit_card)$/.test(tipoBrick || "") ? tipoBrick : "credit_card");
+    pagamento.payment_method = { id: metodo, type: tipo, token: String(f.token).slice(0, 200), installments: tipo === "debit_card" ? 1 : Math.min(12, Math.max(1, Math.floor(Number(f.installments) || 1))) };
   }
-  const r = await fetch(`${c.mpApi}/v1/payments`, {
+  const corpo = {
+    type: "online", processing_mode: "automatic",
+    total_amount: reais2(p.total), external_reference: String(p.id), description: `SP Store - Pedido ${p.id}`,
+    payer: { email: String(payerIn.email || p.email).slice(0, 120), first_name: primeiro, last_name: resto.join(" ") || primeiro, ...(ident ? { identification: ident } : {}) },
+    transactions: { payments: [pagamento] },
+  };
+  const r = await fetch(`${c.mpApi}/v1/orders`, {
     method: "POST",
-    headers: { authorization: "Bearer " + c.mpToken, "content-type": "application/json", "x-idempotency-key": crypto.randomUUID() },
+    headers: { accept: "application/json", authorization: "Bearer " + c.mpToken, "content-type": "application/json", "x-idempotency-key": crypto.randomUUID() },
     body: JSON.stringify(corpo),
   });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok || !d.id) {
-    const causa = d.cause && d.cause[0] && (d.cause[0].description || d.cause[0].code);
-    throw new Error("Não foi possível processar o pagamento" + (causa ? `: ${causa}` : ". Confira os dados e tente de novo."));
-  }
-  return d;
+  // cartão recusado pode voltar com erro HTTP mas com a order no corpo
+  const o = d && d.id && d.status ? d : (d && d.data && d.data.id && d.data.status ? d.data : null);
+  if (o) return o;
+  const causa = (d.errors && d.errors[0] && (d.errors[0].message || d.errors[0].code)) || d.message || "";
+  throw new Error("Não foi possível processar o pagamento" + (causa ? `: ${causa}` : ". Confira os dados e tente de novo."));
 }
-export const motivoRecusa = d => MOTIVOS[d.status_detail] || "Pagamento recusado. Confira os dados ou tente o Pix.";
-export const dadosPix = d => {
-  const t = d.point_of_interaction && d.point_of_interaction.transaction_data;
-  return t ? { qr: t.qr_code || "", qr_base64: t.qr_code_base64 || "", expira: d.date_of_expiration || "" } : null;
-};
+export const motivoRecusa = r => MOTIVOS[r.detalhe] || "Pagamento recusado. Confira os dados ou tente o Pix.";
 
 export async function buscarPagamento(env, id) {
   const c = cfg(env);
-  const r = await fetch(`${c.mpApi}/v1/payments/${encodeURIComponent(id)}`, { headers: { authorization: "Bearer " + c.mpToken } });
+  if (!/^[A-Za-z0-9_-]{4,80}$/.test(String(id))) return null;
+  const r = await fetch(`${c.mpApi}/v1/orders/${encodeURIComponent(id)}`, { headers: { accept: "application/json", authorization: "Bearer " + c.mpToken } });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error("Mercado Pago: " + r.status);
   return r.json();
@@ -244,30 +257,25 @@ export async function assinaturaValida(env, request, dataId) {
   const hex = [...mac].map(b => b.toString(16).padStart(2, "0")).join("");
   return hex === partes.v1;
 }
-const FORMAS = { pix: "Pix", bank_transfer: "Pix", credit_card: "Cartão de crédito", debit_card: "Cartão de débito", ticket: "Boleto", account_money: "Saldo Mercado Pago" };
 
-// Aplica um pagamento do Mercado Pago ao pedido. Usado pelo webhook e pela página do pedido.
-export async function aplicarPagamento(env, request, pag) {
-  const id = String(pag.external_reference || "");
-  const p = await buscarPedido(env, id);
+// Aplica uma order do Mercado Pago ao pedido. Usado pelo webhook, pelo pagamento e pela página do pedido.
+// A order sempre é consultada direto no Mercado Pago: ninguém consegue "aprovar" um pedido de fora.
+export async function aplicarPagamento(env, request, ordem, nova = false) {
+  const r = resumoOrder(ordem);
+  const p = await buscarPedido(env, r.ref);
   if (!p) return { ignorado: "pedido não encontrado" };
-  const forma = FORMAS[pag.payment_method_id] || FORMAS[pag.payment_type_id] || pag.payment_type_id || "";
-  const base = { mp_pagamento: String(pag.id), mp_status: pag.status, forma_pagamento: forma };
-  if (pag.status === "approved") {
-    if (cents(pag.transaction_amount) + 1 < cents(p.total)) return { ignorado: "valor pago menor que o pedido" };
+  if (!nova && p.mp_pagamento && p.mp_pagamento !== r.id && r.estado !== "aprovado") return { ignorado: "order antiga" };
+  const base = { mp_pagamento: r.id, mp_status: `${r.status}/${r.detalhe}`, ...(r.forma ? { forma_pagamento: r.forma } : {}) };
+  if (r.estado === "aprovado") {
+    if (cents(r.valor || 0) + 1 < cents(p.total)) return { ignorado: "valor pago menor que o pedido" };
     if (p.status !== "aguardando_pagamento" && p.status !== "cancelado") return { ok: true, status: p.status };
     const n = await mudarStatus(env, p, "pago", base);
     await emails(env, request, n, "pago");
     return { ok: true, status: "pago" };
   }
   if (p.status !== "aguardando_pagamento") return { ok: true, status: p.status };
-  if (pag.status === "pending" || pag.status === "in_process" || pag.status === "authorized") {
-    const n = await mudarStatus(env, p, "aguardando_pagamento", base);
-    await emails(env, request, n, "aguardando");
-    return { ok: true, status: n.status };
-  }
-  // rejeitado/cancelado: o cliente ainda pode tentar pagar de novo; só registra
-  await mudarStatus(env, p, "aguardando_pagamento", base);
+  const n = await mudarStatus(env, p, "aguardando_pagamento", base);
+  if (r.estado === "aguardando" || r.estado === "analise") await emails(env, request, n, "aguardando");
   return { ok: true, status: "aguardando_pagamento" };
 }
 
@@ -375,13 +383,14 @@ export async function pagar(env, request) {
   if (!p || p.token !== String(b.t || "")) return erro("Pedido não encontrado.", 404);
   if (p.status !== "aguardando_pagamento") return json({ ok: true, status: p.status, pedido: publico(p) });
   let d;
-  try { d = await criarPagamento(env, request, p, b.formData || {}); }
+  try { d = await criarPagamento(env, request, p, b.formData || {}, b.tipo); }
   catch (e) { return erro(e.message, 402); }
-  const r = await aplicarPagamento(env, request, d);
-  const atual = await buscarPedido(env, p.id);
-  if (d.status === "approved") return json({ ok: true, status: "pago", pedido: publico(atual) });
-  if (d.status === "pending" || d.status === "in_process") return json({ ok: true, status: "pendente", pix: dadosPix(d), aviso: d.status === "in_process" ? "Pagamento em análise. Avisamos por e-mail assim que for aprovado." : "", pedido: publico(atual) });
-  return json({ ok: false, status: "recusado", erro: motivoRecusa(d), pedido: publico(atual) });
+  await aplicarPagamento(env, request, d, true);
+  const atual = await buscarPedido(env, p.id), r = resumoOrder(d);
+  if (r.estado === "aprovado") return json({ ok: true, status: "pago", pedido: publico(atual) });
+  if (r.estado === "aguardando" && r.pix) return json({ ok: true, status: "pendente", pix: r.pix, pedido: publico(atual) });
+  if (r.estado === "aguardando" || r.estado === "analise") return json({ ok: true, status: "pendente", aviso: "Pagamento em análise. Avisamos por e-mail assim que for aprovado.", pedido: publico(atual) });
+  return json({ ok: false, status: "recusado", erro: motivoRecusa(r), pedido: publico(atual) });
 }
 
 // Confere no Mercado Pago o último pagamento do pedido (caso a notificação demore).
@@ -434,12 +443,12 @@ export async function webhook(env, request) {
   const url = new URL(request.url);
   let b = {}; try { b = await request.json(); } catch {}
   const tipo = b.type || b.topic || url.searchParams.get("type") || url.searchParams.get("topic");
-  const dataId = (b.data && b.data.id) || url.searchParams.get("data.id") || (tipo === "payment" ? url.searchParams.get("id") : null);
-  if (tipo !== "payment" || !dataId) return json({ ok: true, ignorado: tipo || "sem tipo" });
+  const dataId = (b.data && b.data.id) || url.searchParams.get("data.id");
+  if (tipo !== "order" || !dataId) return json({ ok: true, ignorado: tipo || "sem tipo" });
   if (!(await assinaturaValida(env, request, dataId))) return erro("assinatura inválida", 401);
-  const pag = await buscarPagamento(env, dataId);
-  if (!pag) return json({ ok: true, ignorado: "pagamento não encontrado" });
-  const r = await aplicarPagamento(env, request, pag);
+  const ordem = await buscarPagamento(env, dataId);
+  if (!ordem) return json({ ok: true, ignorado: "order não encontrada" });
+  const r = await aplicarPagamento(env, request, ordem);
   return json({ ok: true, ...r });
 }
 
