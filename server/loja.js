@@ -169,6 +169,45 @@ export function validarEntrega(b, exigirCpf) {
   return d;
 }
 
+// ---------- estoque (tabela "estoque": chave "Produto|Cor" -> qtd; sem linha = sem controle) ----------
+export const chaveEstoque = (nome, cor) => `${nome}|${cor}`;
+export async function lerEstoque(env) {
+  try { const r = await sb(env, "estoque?select=chave,qtd", { method: "GET" }); return Object.fromEntries((r || []).map(x => [x.chave, Number(x.qtd)])); }
+  catch { return {}; }
+}
+export function conferirEstoque(est, itens) {
+  for (const i of itens) {
+    const n = est[chaveEstoque(i.nome, i.cor)];
+    if (typeof n === "number" && i.qtd > n) throw new Error(n <= 0 ? `${i.nome}${i.cor && i.cor !== "Padrão" ? " (" + i.cor + ")" : ""} esgotou. Remova do carrinho.` : `Temos só ${n} ${n === 1 ? "unidade" : "unidades"} de ${i.nome}${i.cor && i.cor !== "Padrão" ? " (" + i.cor + ")" : ""}. Ajuste a quantidade no carrinho.`);
+  }
+}
+// sinal -1 = baixa (venda paga), +1 = devolve (pedido pago cancelado). Marca no pedido para não repetir.
+async function moverEstoque(env, p, sinal) {
+  const marc = { ...(p.emails || {}) };
+  if (sinal < 0 && marc.estoque_baixado) return p;
+  if (sinal > 0 && !marc.estoque_baixado) return p;
+  try {
+    await sb(env, "rpc/mover_estoque", { method: "POST", body: JSON.stringify({ itens: p.itens.map(i => ({ chave: chaveEstoque(i.nome, i.cor), qtd: i.qtd })), sinal }), headers: { prefer: "return=minimal" } });
+  } catch { return p; }
+  if (sinal < 0) marc.estoque_baixado = new Date().toISOString(); else delete marc.estoque_baixado;
+  const r = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ emails: marc }) }).catch(() => null);
+  return r && r[0] ? r[0] : { ...p, emails: marc };
+}
+export async function salvarEstoque(env, itens) {
+  if (!Array.isArray(itens)) throw new Error("Dados inválidos.");
+  for (const it of itens.slice(0, 500)) {
+    const chave = String(it.chave || "").slice(0, 200); if (!chave.includes("|")) continue;
+    if (it.qtd === null || it.qtd === "" || it.qtd === undefined) await sb(env, `estoque?chave=eq.${encodeURIComponent(chave)}`, { method: "DELETE", headers: { prefer: "return=minimal" } });
+    else { const q = Math.max(0, Math.min(99999, Math.floor(Number(it.qtd) || 0))); await sb(env, "estoque?on_conflict=chave", { method: "POST", body: JSON.stringify({ chave, qtd: q, atualizado_em: new Date().toISOString() }), headers: { prefer: "resolution=merge-duplicates,return=minimal" } }); }
+  }
+  return lerEstoque(env);
+}
+export async function listaEstoque(env, request) {
+  const [{ produtos }, est] = await Promise.all([catalogo(request), lerEstoque(env)]);
+  return produtos.map(p => ({ nome: p.nome, ativo: p.ativo !== false, foto: (p.variantes && p.variantes[0] && p.variantes[0].foto) || "",
+    variantes: (p.variantes && p.variantes.length ? p.variantes : [{ nome: "Padrão" }]).map(v => ({ cor: v.nome, foto: v.foto || "", chave: chaveEstoque(p.nome, v.nome), qtd: est[chaveEstoque(p.nome, v.nome)] ?? null })) }));
+}
+
 // ---------- Mercado Pago (API de Orders) ----------
 // Checkout transparente: o navegador gera o token do cartão com o SDK do Mercado Pago
 // (os dados do cartão não passam por aqui) e o servidor cria a order com o valor do pedido.
@@ -278,7 +317,8 @@ export async function aplicarPagamento(env, request, ordem, nova = false) {
   if (r.estado === "aprovado") {
     if (cents(r.valor || 0) + 1 < cents(p.total)) return { ignorado: "valor pago menor que o pedido" };
     if (p.status !== "aguardando_pagamento" && p.status !== "cancelado") return { ok: true, status: p.status };
-    const n = await mudarStatus(env, p, "pago", base);
+    let n = await mudarStatus(env, p, "pago", base);
+    n = await moverEstoque(env, n, -1);
     await emails(env, request, n, "pago");
     return { ok: true, status: "pago" };
   }
@@ -363,6 +403,7 @@ export async function checkout(env, request) {
     entrega = validarEntrega(b, meAtivo(env));
     const { produtos, loja } = await catalogo(request);
     itens = montarItens(produtos, b.itens);
+    conferirEstoque(await lerEstoque(env), itens);
     sub = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
     const rem = await lerConfig(env, "remetente");
     const ops = await cotar(env, { cepOrigem: rem && rem.cep, cepDestino: entrega.endereco.cep, itens, produtos, loja, subtotal: sub });
@@ -499,7 +540,9 @@ export async function atualizarPeloAdmin(env, request, p, b) {
   if (typeof b.rastreio === "string") extra.rastreio = so(b.rastreio, 40).toUpperCase();
   if (novo === "enviado" && !(extra.rastreio || p.rastreio)) throw new Error("Informe o código de rastreio para marcar como enviado.");
   if (novo === "pago" && p.status !== "aguardando_pagamento") throw new Error("Este pedido não está aguardando pagamento.");
-  const n = await mudarStatus(env, p, novo, extra);
+  let n = await mudarStatus(env, p, novo, extra);
+  if (novo === "pago" && p.status !== "pago") n = await moverEstoque(env, n, -1);
+  if (novo === "cancelado" && p.status !== "cancelado") n = await moverEstoque(env, n, +1);
   if (novo !== p.status && ["pago", "enviado", "entregue", "cancelado"].includes(novo)) await emails(env, request, n, novo);
   else if (novo === "enviado" && extra.rastreio && extra.rastreio !== p.rastreio && n.emails && n.emails.enviado) {
     // código corrigido depois do envio: manda de novo

@@ -41,3 +41,22 @@ create index if not exists pedidos_status_idx on public.pedidos (status);
 -- Só o servidor da loja (com a chave secreta) acessa os pedidos.
 alter table public.pedidos enable row level security;
 revoke all on public.pedidos from anon, authenticated;
+
+-- Estoque por produto e cor (sem linha = sem controle de estoque)
+create table if not exists public.estoque (
+  chave text primary key,
+  qtd integer not null default 0,
+  atualizado_em timestamptz not null default now()
+);
+alter table public.estoque enable row level security;
+revoke all on public.estoque from anon, authenticated;
+create or replace function public.mover_estoque(itens jsonb, sinal int) returns void
+language plpgsql security definer set search_path = public as $$
+declare i jsonb;
+begin
+  for i in select * from jsonb_array_elements(itens) loop
+    update public.estoque set qtd = greatest(0, qtd + sinal * (i->>'qtd')::int), atualizado_em = now() where chave = i->>'chave';
+  end loop;
+end $$;
+revoke execute on function public.mover_estoque(jsonb, int) from public, anon, authenticated;
+grant execute on function public.mover_estoque(jsonb, int) to service_role;

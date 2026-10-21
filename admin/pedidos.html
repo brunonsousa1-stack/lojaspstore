@@ -36,7 +36,8 @@
 <header class="top"><div class="wrap">
   <a href="/" aria-label="Ver a loja"><img src="/img/logo.png" alt="SP Store"></a>
   <b style="font-family:var(--display);font-weight:400;font-size:20px">Pedidos</b>
-  <button class="back" type="button" id="cfg-btn" hidden style="background:none;cursor:pointer;font:inherit;font-weight:600;font-size:14px">Configurações de envio</button>
+  <button class="back" type="button" id="est-btn" hidden style="background:none;cursor:pointer;font:inherit;font-weight:600;font-size:14px">Estoque</button>
+  <button class="back" type="button" id="cfg-btn" hidden style="margin-left:0;background:none;cursor:pointer;font:inherit;font-weight:600;font-size:14px">Configurações de envio</button>
   <a class="back" href="/admin/" style="margin-left:0">Painel de produtos</a>
 </div></header>
 <main><div class="wrap" id="app"><p class="muted">Carregando…</p></div></main>
@@ -66,6 +67,7 @@ function entrar(msg){
 async function carregar(){
   try{const [d,e]=await Promise.all([Conta.api("/api/admin/pedidos"),Conta.api("/api/admin/envio").catch(()=>null)]);todos=d.pedidos||[];ENVIO=e; if(!window.__carregou){window.__carregou=1; if(todos.some(p=>p.status==="aguardando_pagamento"&&p.pix_informado)) filtro="aguardando_pagamento";}
     const cb=$("#cfg-btn");cb.hidden=false;cb.onclick=()=>{tela=tela==="cfg"?"lista":"cfg";render()};
+    const eb=$("#est-btn");eb.hidden=false;eb.onclick=()=>{tela=tela==="estoque"?"lista":"estoque";render()};
     if(ENVIO&&ENVIO.melhorEnvio&&!ENVIO.remetente) tela="cfg"; render()}
   catch(e){if(e.status===401)return entrar();if(e.status===403){await Conta.sair();return entrar(e.message)}app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
 }
@@ -86,6 +88,7 @@ function lista(){
 }
 function render(){
   if(tela==="cfg") return telaCfg();
+  if(tela==="estoque") return telaEstoque();
   const cont=k=>k==="todos"?todos.length:todos.filter(p=>p.status===k).length;
   const l=lista();
   app.innerHTML=`${ENVIO&&ENVIO.melhorEnvio?`<div class="msg info" style="margin-bottom:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><span>Melhor Envio conectado${ENVIO.saldo!=null?` · saldo <b>${brl(ENVIO.saldo)}</b>`:""}</span><a href="https://melhorenvio.com.br/painel/gerenciar/carteira" target="_blank" rel="noopener" style="font-weight:700">Adicionar saldo</a></div>`:""}${kpis()}
@@ -158,6 +161,26 @@ async function acao(id,tipo,btn){
   btn.disabled=true; const t=btn.textContent; btn.innerHTML=`<span class="spin"></span>Salvando…`;
   try{const d=await Conta.api("/api/admin/pedidos",{method:"POST",body:JSON.stringify(corpo)});const i=todos.findIndex(x=>x.id===id);todos[i]={...todos[i],...d.pedido};confirmar=null;render()}
   catch(e){btn.disabled=false;btn.textContent=t;m.textContent=e.message}
+}
+async function telaEstoque(){
+  app.innerHTML=`<p class="wait muted" style="display:flex;gap:10px;align-items:center"><span class="spin"></span>Carregando estoque…</p>`;
+  let lista; try{lista=(await Conta.api("/api/admin/estoque")).produtos}catch(e){app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`;return}
+  app.innerHTML=`<div style="max-width:820px;margin:0 auto"><div class="card"><div class="eyebrow">Controle de estoque</div><h2 style="margin:6px 0 4px">Estoque</h2>
+    <p class="sub">Digite quantas unidades você tem de cada cor. O estoque <b>baixa sozinho</b> a cada venda paga e <b>volta</b> se você cancelar um pedido pago. Com <b>0</b>, o site mostra "Esgotado". Deixe <b>vazio</b> para não controlar aquela cor.</p>
+    <form id="fe" class="form">${lista.map(p=>`<div style="border-top:1px solid var(--line);padding-top:12px">
+      <b style="font-size:15px">${esc(p.nome)}</b>${p.ativo?"":` <span class="muted" style="font-size:13px">(escondido no site)</span>`}
+      <div style="display:grid;gap:8px;margin-top:8px">${p.variantes.map(v=>`<label style="display:grid;grid-template-columns:44px 1fr 120px;gap:12px;align-items:center;font-size:14px">
+        <span style="width:44px;height:44px;border-radius:10px;overflow:hidden;background:var(--bg);display:block">${v.foto?`<img src="${esc(v.foto)}" alt="" style="width:100%;height:100%;object-fit:cover">`:""}</span>
+        <span>${esc(v.cor)}${v.qtd===0?` <span class="badge st-cancelado" style="margin-left:6px">Esgotado</span>`:v.qtd!=null&&v.qtd<=3?` <span class="badge st-aguardando_pagamento" style="margin-left:6px">Acabando</span>`:""}</span>
+        <input class="in" type="number" min="0" step="1" inputmode="numeric" data-chave="${esc(v.chave)}" value="${v.qtd==null?"":v.qtd}" placeholder="sem controle" style="min-height:42px;padding:8px 10px"></label>`).join("")}</div></div>`).join("")}
+      <div class="msg" id="me" role="status"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-dark" type="submit">Salvar estoque</button><button class="btn btn-line" type="button" id="voltar-e">Voltar aos pedidos</button></div>
+    </form></div></div>`;
+  $("#voltar-e").onclick=()=>{tela="lista";render()};
+  $("#fe").addEventListener("submit",async e=>{e.preventDefault();const m=$("#me"),btn=e.target.querySelector("[type=submit]");btn.disabled=true;
+    const itens=[...e.target.querySelectorAll("[data-chave]")].map(i=>({chave:i.dataset.chave,qtd:i.value.trim()===""?null:Number(i.value)}));
+    try{await Conta.api("/api/admin/estoque",{method:"POST",body:JSON.stringify({itens})});m.className="msg ok";m.textContent="Estoque salvo! O site já mostra as quantidades novas.";setTimeout(()=>telaEstoque(),900)}
+    catch(err){m.className="msg bad";m.textContent=err.message;btn.disabled=false}});
 }
 function telaCfg(){
   const r=(ENVIO&&ENVIO.remetente)||{cep:"08020360",numero:"33"};
