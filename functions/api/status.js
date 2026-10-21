@@ -1,0 +1,22 @@
+// Diagnóstico da configuração da loja: só diz o que está ligado, nunca mostra chaves.
+import { json, pronto, sb, catalogo, montarItens } from "../../server/loja.js";
+import { cotar, meAtivo } from "../../server/frete.js";
+export const onRequestGet = async ({ env, request }) => {
+  const r = {
+    supabase: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY && env.SUPABASE_SERVICE_KEY),
+    banco: false, emails: !!env.RESEND_API_KEY, loja_email: !!env.LOJA_EMAIL,
+    mercado_pago: !!(env.MP_ACCESS_TOKEN && env.MP_PUBLIC_KEY), melhor_envio: meAtivo(env), frete_teste: null,
+    pagamento_no_site: pronto(env),
+  };
+  if (r.supabase) { try { await sb(env, "pedidos?select=id&limit=1", { method: "GET" }); await sb(env, "config?select=chave&limit=1", { method: "GET" }); r.banco = true; } catch (e) { r.banco_erro = String(e.message).slice(0, 120); } }
+  if (r.melhor_envio) {
+    try {
+      const { produtos, loja } = await catalogo(request);
+      const p = produtos.find(x => x.ativo !== false);
+      const itens = montarItens(produtos, [{ nome: p.nome, cor: (p.variantes && p.variantes[0] && p.variantes[0].nome) || "Padrão", qtd: 1 }]);
+      const ops = await cotar(env, { cepOrigem: "", cepDestino: "01001000", itens, produtos, loja, subtotal: itens[0].preco });
+      r.frete_teste = ops.map(o => `${o.nome} ${o.empresa}: R$ ${o.preco.toFixed(2)} (${o.prazo} dias)`).slice(0, 6);
+    } catch (e) { r.frete_erro = String(e.message).slice(0, 160); }
+  }
+  return json(r);
+};
