@@ -11,6 +11,7 @@
 //   MP_WEBHOOK_SECRET     opcional. Assinatura secreta das notificações do Mercado Pago
 
 import { cotar, meAtivo, gerarEtiqueta, validarRemetente, saldo } from "./frete.js";
+import { brCode, pixAtivo } from "./pix.js";
 
 export const STATUS = {
   aguardando_pagamento: "Aguardando pagamento",
@@ -34,8 +35,15 @@ const cfg = env => ({
   remetente: String(env.EMAIL_REMETENTE || "SP Store <pedidos@lojaspstore.com.br>"),
   webhookSecret: String(env.MP_WEBHOOK_SECRET || ""),
 });
-export const pronto = env => { const c = cfg(env); return !!(c.sbUrl && c.sbAnon && c.sbService && c.mpToken && c.mpPublic); };
-export const configPublica = env => { const c = cfg(env); return { pronto: pronto(env), supabaseUrl: c.sbUrl, supabaseAnonKey: c.sbAnon, mpPublicKey: c.mpPublic }; };
+// contas e pedidos funcionam com o banco; o pagamento pode ser cartão (Mercado Pago) e/ou Pix direto na chave da loja
+export const pronto = env => { const c = cfg(env); return !!(c.sbUrl && c.sbAnon && c.sbService); };
+export const cartaoPronto = env => { const c = cfg(env); return !!(c.mpToken && c.mpPublic); };
+export async function configPublica(env, request) {
+  const c = cfg(env); let loja = {};
+  try { loja = (await catalogo(request)).loja; } catch {}
+  const pix = pixAtivo(loja), cartao = cartaoPronto(env);
+  return { pronto: pronto(env) && (pix || cartao), pix, cartao, supabaseUrl: c.sbUrl, supabaseAnonKey: c.sbAnon, mpPublicKey: cartao ? c.mpPublic : "" };
+}
 
 export const json = (data, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
@@ -89,6 +97,7 @@ export function publico(p) {
     subtotal: Number(p.subtotal), frete: Number(p.frete), total: Number(p.total),
     forma_pagamento: p.forma_pagamento, rastreio: p.rastreio || "", historico: p.historico || [], token: p.token,
     envio: p.envio ? { nome: p.envio.nome, empresa: p.envio.empresa, prazo: p.envio.prazo } : null,
+    pix_informado: !!(p.emails && p.emails.pix_informado),
   };
 }
 async function mudarStatus(env, p, novo, extra = {}) {
@@ -316,11 +325,15 @@ export async function emails(env, request, p, evento) {
   const n = `#${p.id}`;
   let ok = false;
   if (evento === "aguardando") {
+    const pixBloco = p.pix_codigo ? `<p style="font-size:14px"><b>Pix copia e cola</b> (valor exato de ${reais(p.total)}${p.pix_nome ? `, para ${esc(p.pix_nome)}` : ""}):</p><p style="font-family:monospace;font-size:12px;word-break:break-all;background:#ececea;border-radius:10px;padding:10px">${esc(p.pix_codigo)}</p><p style="font-size:14px">Depois de pagar, toque em <b>“Já fiz o Pix”</b> na página do pedido. Assim que confirmarmos o recebimento, você recebe o e-mail de compra confirmada.</p>` : `<p>Assim que o pagamento for confirmado, você recebe outro e-mail.</p>`;
     ok = await enviarEmail(env, p.email, `Pedido ${n} recebido · aguardando pagamento`, moldura(`Recebemos seu pedido ${n}`,
-      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido foi registrado e está <b>aguardando o pagamento</b>. Assim que o Mercado Pago confirmar, você recebe outro e-mail.</p>${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
+      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido foi registrado e está <b>aguardando o pagamento</b>.</p>${pixBloco}${tabelaItens(p)}${botao(link, "Ver pedido")}`, origem), c.lojaEmail);
+  } else if (evento === "pix_conferir") {
+    ok = c.lojaEmail ? await enviarEmail(env, c.lojaEmail, `Confira o Pix: pedido ${n} · ${reais(p.total)}`, moldura(`Cliente informou o Pix · ${n}`,
+      `<p><b>${esc(p.nome)}</b> disse que pagou <b>${reais(p.total)}</b> por Pix (identificação <b>SPSTORE${p.id}</b>).</p><p>Confira no extrato do Mercado Pago e, se o valor entrou, toque em <b>Confirmar Pix recebido</b> no painel. O cliente recebe a confirmação na hora.</p>${tabelaItens(p)}${botao(origem + "/admin/pedidos.html", "Abrir painel de pedidos")}`, origem)) : false;
   } else if (evento === "pago") {
     ok = await enviarEmail(env, p.email, `Compra confirmada! Pedido ${n}`, moldura(`Pagamento aprovado ✓`,
-      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Obrigado pela compra. O pagamento do pedido <b>${n}</b> foi aprovado${p.forma_pagamento ? ` (${esc(p.forma_pagamento)})` : ""} e já estamos separando seus produtos.</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entrega:</b><br>${enderecoTxt(p.endereco)}</p>${botao(link, "Acompanhar pedido")}<p style="font-size:14px;color:#6a675f">Quando o pedido for enviado, mandamos o código de rastreio por aqui.</p>`, origem), c.lojaEmail);
+      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Obrigado pela compra. O pagamento do pedido <b>${n}</b> foi ${p.forma_pagamento === "Pix direto" ? "confirmado (Pix)" : `aprovado${p.forma_pagamento ? ` (${esc(p.forma_pagamento)})` : ""}`} e já estamos separando seus produtos.</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entrega:</b><br>${enderecoTxt(p.endereco)}</p>${botao(link, "Acompanhar pedido")}<p style="font-size:14px;color:#6a675f">Quando o pedido for enviado, mandamos o código de rastreio por aqui.</p>`, origem), c.lojaEmail);
     if (c.lojaEmail) await enviarEmail(env, c.lojaEmail, `Nova venda! Pedido ${n} · ${reais(p.total)}`, moldura(`Nova venda paga · ${n}`,
       `<p><b>${esc(p.nome)}</b> · ${esc(p.email)} · ${esc(p.telefone)}</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entregar em:</b><br>${enderecoTxt(p.endereco)}</p>${botao(origem + "/admin/pedidos.html", "Abrir painel de pedidos")}`, origem));
   } else if (evento === "enviado") {
@@ -377,7 +390,7 @@ export async function checkout(env, request) {
 
 // Paga um pedido (cartão ou Pix) dentro do site.
 export async function pagar(env, request) {
-  if (!pronto(env)) return erro("Pagamento indisponível no momento.", 503);
+  if (!pronto(env) || !cartaoPronto(env)) return erro("Pagamento com cartão indisponível no momento. Use o Pix.", 503);
   let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
   const p = await buscarPedido(env, b.id);
   if (!p || p.token !== String(b.t || "")) return erro("Pedido não encontrado.", 404);
@@ -439,6 +452,33 @@ export async function etiqueta(env, request, p, b) {
   return { pedido: n, etiqueta_url: r.etiqueta_url };
 }
 
+// ---------- Pix direto na chave da loja ----------
+export async function pixDireto(env, request) {
+  if (!pronto(env)) return erro("Loja não configurada.", 503);
+  let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
+  const p = await buscarPedido(env, b.id);
+  if (!p || p.token !== String(b.t || "")) return erro("Pedido não encontrado.", 404);
+  const { loja } = await catalogo(request);
+  if (!pixAtivo(loja)) return erro("Pix indisponível no momento.", 503);
+  if (p.status !== "aguardando_pagamento") return json({ ok: true, status: p.status, pedido: publico(p) });
+  const codigo = brCode({ chave: loja.pix_chave, nome: loja.pix_nome || "SP STORE", cidade: loja.pix_cidade || "SAO PAULO", valor: p.total, txid: `SPSTORE${p.id}`, mensagem: `Pedido ${p.id}` });
+  let n = p;
+  if (p.forma_pagamento !== "Pix direto") {
+    n = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ forma_pagamento: "Pix direto" }) }).then(x => x[0]);
+  }
+  if (b.informar) {
+    const marc = { ...(n.emails || {}) };
+    if (!marc.pix_informado) {
+      marc.pix_informado = new Date().toISOString();
+      n = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ emails: marc }) }).then(x => x[0]);
+      await emails(env, request, n, "pix_conferir");
+    }
+  } else {
+    await emails(env, request, { ...n, pix_codigo: codigo, pix_nome: loja.pix_nome }, "aguardando");
+  }
+  return json({ ok: true, status: "pendente", pix: { qr: codigo, nome: loja.pix_nome || "", chave: loja.pix_chave }, pedido: publico(n) });
+}
+
 export async function webhook(env, request) {
   const url = new URL(request.url);
   let b = {}; try { b = await request.json(); } catch {}
@@ -458,8 +498,9 @@ export async function atualizarPeloAdmin(env, request, p, b) {
   const extra = {};
   if (typeof b.rastreio === "string") extra.rastreio = so(b.rastreio, 40).toUpperCase();
   if (novo === "enviado" && !(extra.rastreio || p.rastreio)) throw new Error("Informe o código de rastreio para marcar como enviado.");
+  if (novo === "pago" && p.status !== "aguardando_pagamento") throw new Error("Este pedido não está aguardando pagamento.");
   const n = await mudarStatus(env, p, novo, extra);
-  if (novo !== p.status && ["enviado", "entregue", "cancelado"].includes(novo)) await emails(env, request, n, novo);
+  if (novo !== p.status && ["pago", "enviado", "entregue", "cancelado"].includes(novo)) await emails(env, request, n, novo);
   else if (novo === "enviado" && extra.rastreio && extra.rastreio !== p.rastreio && n.emails && n.emails.enviado) {
     // código corrigido depois do envio: manda de novo
     n.emails = { ...n.emails, enviado: null }; await emails(env, request, n, "enviado");

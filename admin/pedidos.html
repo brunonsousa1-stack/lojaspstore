@@ -64,7 +64,7 @@ function entrar(msg){
   $("#f").addEventListener("submit",async e=>{e.preventDefault();const f=e.target,m=$("#m");m.textContent="";try{await Conta.entrar(f.email.value,f.senha.value);carregar()}catch(err){m.textContent=err.message}});
 }
 async function carregar(){
-  try{const [d,e]=await Promise.all([Conta.api("/api/admin/pedidos"),Conta.api("/api/admin/envio").catch(()=>null)]);todos=d.pedidos||[];ENVIO=e;
+  try{const [d,e]=await Promise.all([Conta.api("/api/admin/pedidos"),Conta.api("/api/admin/envio").catch(()=>null)]);todos=d.pedidos||[];ENVIO=e; if(!window.__carregou){window.__carregou=1; if(todos.some(p=>p.status==="aguardando_pagamento"&&p.pix_informado)) filtro="aguardando_pagamento";}
     const cb=$("#cfg-btn");cb.hidden=false;cb.onclick=()=>{tela=tela==="cfg"?"lista":"cfg";render()};
     if(ENVIO&&ENVIO.melhorEnvio&&!ENVIO.remetente) tela="cfg"; render()}
   catch(e){if(e.status===401)return entrar();if(e.status===403){await Conta.sair();return entrar(e.message)}app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
@@ -75,7 +75,7 @@ function kpis(){
   const soma=l=>l.reduce((a,p)=>a+Number(p.total),0);
   const pagoEm=p=>{const h=(p.historico||[]).find(x=>x.status==="pago");return new Date(h?h.em:p.criado_em).getTime()};
   return `<div class="kpis">
-    <div class="kpi"><small>A enviar</small><b>${todos.filter(p=>p.status==="pago").length}</b></div>
+    <div class="kpi"><small>A enviar</small><b>${todos.filter(p=>p.status==="pago").length}</b>${todos.some(p=>p.status==="aguardando_pagamento"&&p.pix_informado)?`<small style="color:var(--wa);margin-top:4px">${todos.filter(p=>p.status==="aguardando_pagamento"&&p.pix_informado).length} Pix para conferir</small>`:""}</div>
     <div class="kpi"><small>Vendas hoje</small><b>${brl(soma(pagos.filter(p=>pagoEm(p)>=hoje.getTime())))}</b></div>
     <div class="kpi"><small>Últimos 7 dias</small><b>${brl(soma(pagos.filter(p=>pagoEm(p)>=sete)))}</b></div>
     <div class="kpi"><small>Pedidos pagos</small><b>${pagos.length}</b></div></div>`;
@@ -107,7 +107,7 @@ function pedido(p){
     <span class="num">#${p.id}<small>${dh(p.criado_em)}</small></span>
     <span class="cli">${esc(p.nome)}<small>${esc(p.email)}</small></span>
     <span class="itn muted">${n} ${n===1?"item":"itens"}</span>
-    <span class="badge st-${p.status}">${esc(p.status_texto)}</span>
+    <span class="badge st-${p.status}">${p.status==="aguardando_pagamento"&&p.pix_informado?"Pix para conferir":esc(p.status_texto)}</span>
     <span class="val">${brl(p.total)}</span></button>
   ${open?`<div class="od">
     <div><h3>Cliente</h3><p><b>${esc(p.nome)}</b><br>${esc(p.email)}<br><a href="https://wa.me/55${digitos(p.telefone).replace(/^55/,"")}" target="_blank" rel="noopener">${esc(fmtTel(p.telefone))}</a>${p.cpf?`<br>CPF ${esc(String(p.cpf).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.$2.$3-$4"))}`:""}</p>
@@ -133,6 +133,10 @@ function acoes(p){
     ${p.status==="pago"?`<button class="btn btn-dark" type="button" data-acao="enviado" data-id="${p.id}">Marcar como enviado e avisar cliente</button>`:`<button class="btn btn-line" type="button" data-acao="rastreio" data-id="${p.id}">Salvar código corrigido</button><button class="btn btn-dark" type="button" data-acao="entregue" data-id="${p.id}">Marcar como entregue</button>`}
     <p class="hint">O cliente recebe um e-mail ${p.status==="pago"?"com o código de rastreio":"avisando"}.</p>
     <button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar o cancelamento":"Cancelar pedido"}</button>`;
+  if(p.status==="aguardando_pagamento"&&p.forma_pagamento==="Pix direto") return `${p.pix_informado?`<div class="msg info"><b>O cliente informou que fez o Pix.</b> Confira no extrato do Mercado Pago um Pix de <b>${brl(p.total)}</b> (identificação SPSTORE${p.id}).</div>`:`<p class="hint">Pix gerado, mas o cliente ainda não avisou que pagou. Se o valor de ${brl(p.total)} entrou no Mercado Pago, pode confirmar.</p>`}
+    <button class="btn btn-green" type="button" data-acao="pago" data-id="${p.id}">${confirmar===p.id+"-pago"?"Toque de novo: o Pix entrou mesmo?":"Confirmar Pix recebido"}</button>
+    <p class="hint">O cliente recebe na hora o e-mail de compra confirmada.</p>
+    <button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar":"Cancelar pedido"}</button>`;
   if(p.status==="aguardando_pagamento") return `<p class="hint">O cliente ainda não pagou. Pedidos sem pagamento não precisam de ação.</p><button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar":"Cancelar pedido"}</button>`;
   if(p.status==="entregue") return `<p class="hint">Pedido concluído.</p>`;
   return `<p class="hint">Pedido cancelado. Se o cliente pagou, faça a devolução no Mercado Pago (Atividade › pagamento › Devolver).</p>`;
@@ -140,6 +144,7 @@ function acoes(p){
 async function acao(id,tipo,btn){
   const p=todos.find(x=>x.id===id), m=$("#am-"+id); m.textContent="";
   if(tipo==="cancelado"&&confirmar!==id){confirmar=id;render();return}
+  if(tipo==="pago"&&confirmar!==id+"-pago"){confirmar=id+"-pago";render();return}
   if(tipo==="etiqueta"){
     const nf=$("#nfe-"+id); btn.disabled=true; const t0=btn.textContent; btn.innerHTML=`<span class="spin"></span>Gerando etiqueta…`;
     try{const d=await Conta.api("/api/admin/etiqueta",{method:"POST",body:JSON.stringify({id,nfe:nf?nf.value:""})});const i=todos.findIndex(x=>x.id===id);todos[i]={...todos[i],...d.pedido};render();

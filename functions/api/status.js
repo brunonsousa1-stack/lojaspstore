@@ -1,13 +1,14 @@
 // Diagnóstico da configuração da loja: só diz o que está ligado, nunca mostra chaves.
-import { json, pronto, sb, catalogo, montarItens } from "../../server/loja.js";
+import { json, pronto, sb, catalogo, montarItens, configPublica } from "../../server/loja.js";
 import { cotar, meAtivo } from "../../server/frete.js";
 export const onRequestGet = async ({ env, request }) => {
   const r = {
     supabase: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY && env.SUPABASE_SERVICE_KEY),
     banco: false, emails: !!env.RESEND_API_KEY, loja_email: !!env.LOJA_EMAIL,
     mercado_pago: !!(env.MP_ACCESS_TOKEN && env.MP_PUBLIC_KEY), melhor_envio: meAtivo(env), frete_teste: null,
-    pagamento_no_site: pronto(env),
+    pagamento_no_site: false, pix_direto: false,
   };
+  try { const c = await configPublica(env, request); r.pagamento_no_site = c.pronto; r.pix_direto = c.pix; } catch {}
   if (r.supabase) { try { await sb(env, "pedidos?select=id&limit=1", { method: "GET" }); await sb(env, "config?select=chave&limit=1", { method: "GET" }); r.banco = true; } catch (e) { r.banco_erro = String(e.message).slice(0, 120); } }
   if (r.melhor_envio) {
     try {

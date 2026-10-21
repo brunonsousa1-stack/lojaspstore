@@ -44,7 +44,7 @@
 </div></header>
 
 <main><div class="wrap" id="app"><p class="muted">Carregando…</p></div></main>
-<footer class="foot"><div class="wrap"><span>© 2026 SP Store</span><span>Pagamento processado pelo Mercado Pago · Pix ou cartão</span></div></footer>
+<footer class="foot"><div class="wrap"><span>© 2026 SP Store</span><span>Pagamento seguro · Pix ou cartão</span></div></footer>
 
 <script src="/js/conta.js"></script>
 <script>
@@ -59,7 +59,7 @@ const corTxt=c=>c&&c!=="Padrão"?c:"";
 const lerJSON=(k,store=localStorage)=>{try{return JSON.parse(store.getItem(k)||"null")}catch(e){return null}};
 const gravarJSON=(k,v,store=localStorage)=>{try{v==null?store.removeItem(k):store.setItem(k,JSON.stringify(v))}catch(e){}};
 
-let CFG={}, LOJA={}, PRODUTOS=[], cart=[], pedido=null, aba="criar", brick=null, pollT=null, freteOps=null, freteSel=null, freteCep="", exigeCpf=true, freteSeq=0;
+let metodo=null, CFG={}, LOJA={}, PRODUTOS=[], cart=[], pedido=null, aba="criar", brick=null, pollT=null, freteOps=null, freteSel=null, freteCep="", exigeCpf=true, freteSeq=0;
 const qs=new URLSearchParams(location.search);
 
 function sincronizar(){ // preço atual e itens que ainda existem
@@ -113,13 +113,14 @@ function render(){
       </form>`}
     </section>
     <section class="card ${pedido?"":"lockd"}" id="s-pag"><div class="step"><span class="n">3</span><h2>Pagamento</h2></div>
-      ${pedido?`<div class="msg bad" id="p-msg" role="alert"></div><div id="pay-brick"><p class="wait"><span class="spin"></span>Carregando formas de pagamento…</p></div><div id="pix"></div>
-      <p class="seguro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Pagamento processado pelo Mercado Pago. Os dados do cartão não ficam salvos na SP Store. Não precisa ter conta no Mercado Pago.</p>`
-      :`<p class="muted" style="margin:0">Pix ou cartão de crédito, sem sair do site.</p>`}
+      ${pedido?`${CFG.pix&&CFG.cartao?`<div class="tabs" role="tablist" id="metodos"><button role="tab" type="button" data-met="pix" aria-selected="${metodo==="pix"}">Pix</button><button role="tab" type="button" data-met="cartao" aria-selected="${metodo==="cartao"}">Cartão de crédito</button></div>`:""}
+      <div class="msg bad" id="p-msg" role="alert"></div><div id="pay-area"></div>
+      <p class="seguro" id="seguro"></p>`
+      :`<p class="muted" style="margin:0">${CFG.pix&&CFG.cartao?"Pix ou cartão de crédito, sem sair do site.":CFG.cartao?"Cartão de crédito em até 12x, sem sair do site.":"Pix direto, sem sair do site."}</p>`}
     </section>
   </div><aside class="side">${resumoHTML()}</aside></div>`;
   ligar();
-  if(pedido) montarPagamento();
+  if(pedido) iniciarPagamento();
 }
 function contaHTML(){
   return `<div class="tabs" role="tablist"><button role="tab" type="button" data-aba="criar" aria-selected="${aba==="criar"}">Criar conta</button><button role="tab" type="button" data-aba="entrar" aria-selected="${aba==="entrar"}">Já tenho conta</button></div>
@@ -229,18 +230,31 @@ async function enviarEntrega(e){
   }catch(err){carregando(btn,false);m.textContent=err.status===401?"Sua sessão expirou. Entre de novo na conta.":err.message;if(err.status===401)render();else if(/entrega|frete|CEP/i.test(err.message)&&freteCep)cotarFrete(freteCep)}
 }
 
-// ---------- pagamento (Payment Brick do Mercado Pago) ----------
-function carregarSDK(){return new Promise((ok,falha)=>{if(window.MercadoPago)return ok();const s=document.createElement("script");s.src="https://sdk.mercadopago.com/js/v2";s.onload=ok;s.onerror=()=>falha(new Error("sdk"));document.head.appendChild(s)})}
-async function montarPagamento(){
-  const box=$("#pay-brick"), pm=$("#p-msg");
-  try{await carregarSDK()}catch(e){box.innerHTML="";pm.textContent="Não conseguimos carregar o pagamento. Confira sua internet e recarregue a página.";return}
+// ---------- pagamento: Pix direto na chave da loja e/ou cartão pelo Mercado Pago ----------
+const CADEADO=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
+function iniciarPagamento(){
+  if(!metodo) metodo=CFG.pix&&(!CFG.cartao||!pedido.forma_pagamento||pedido.forma_pagamento==="Pix direto")?"pix":"cartao";
+  document.querySelectorAll("[data-met]").forEach(b=>b.setAttribute("aria-selected",b.dataset.met===metodo));
+  document.querySelectorAll("[data-met]").forEach(b=>b.addEventListener("click",()=>{if(metodo===b.dataset.met)return;metodo=b.dataset.met;document.querySelectorAll("[data-met]").forEach(x=>x.setAttribute("aria-selected",x.dataset.met===metodo));abrirMetodo()}));
+  abrirMetodo();
+}
+function abrirMetodo(){
+  $("#p-msg").textContent=""; desmontar();
+  if(metodo==="pix"){ $("#seguro").innerHTML=`${CADEADO}Pix direto para a conta da SP Store. Sem cadastro em nenhum outro site.`; pixDireto(); }
+  else { $("#seguro").innerHTML=`${CADEADO}Pagamento processado pelo Mercado Pago. Os dados do cartão não ficam salvos na SP Store. Não precisa ter conta no Mercado Pago.`; montarCartao(); }
+}
+function carregarScript(src,teste){return new Promise((ok,falha)=>{if(teste())return ok();const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>falha(new Error("script"));document.head.appendChild(s)})}
+async function montarCartao(){
+  const area=$("#pay-area"), pm=$("#p-msg");
+  area.innerHTML=`<div id="pay-brick"><p class="wait"><span class="spin"></span>Carregando o pagamento com cartão…</p></div>`;
+  try{await carregarScript("https://sdk.mercadopago.com/js/v2",()=>window.MercadoPago)}catch(e){area.innerHTML="";pm.textContent="Não conseguimos carregar o pagamento com cartão. Confira sua internet ou use o Pix.";return}
   try{
     const mp=new MercadoPago(CFG.mpPublicKey,{locale:"pt-BR"});
     const [nome,...resto]=String(pedido.nome||"").split(" ");
-    box.innerHTML="";
+    $("#pay-brick").innerHTML="";
     brick=await mp.bricks().create("payment","pay-brick",{
       initialization:{amount:Number(pedido.total),payer:{email:pedido.email,firstName:nome,lastName:resto.join(" ")}},
-      customization:{paymentMethods:{bankTransfer:["pix"],creditCard:"all",debitCard:"all",maxInstallments:12},visual:{style:{theme:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"default",customVariables:{baseColor:"#b08a3e"}}}},
+      customization:{paymentMethods:{creditCard:"all",debitCard:"all",maxInstallments:12},visual:{style:{theme:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"default",customVariables:{baseColor:"#b08a3e"}}}},
       callbacks:{
         onReady(){},
         onError(err){console.error(err)},
@@ -249,32 +263,48 @@ async function montarPagamento(){
           try{const r=await Conta.api("/api/pagar",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token,tipo:selectedPaymentMethod,formData})});
             pedido=r.pedido||pedido;
             if(r.status==="pago"){ok();sucesso();return}
-            if(r.status==="pendente"&&r.pix){ok();mostrarPix(r.pix);return}
             if(r.status==="pendente"){ok();emAnalise(r.aviso);return}
             pm.textContent=r.erro||"Pagamento recusado. Tente outro cartão ou o Pix.";falha();
           }catch(err){pm.textContent=err.message;falha()}
         })
       }
     });
-  }catch(e){box.innerHTML="";pm.textContent="Não conseguimos abrir o pagamento. Recarregue a página."}
+  }catch(e){area.innerHTML="";pm.textContent="Não conseguimos abrir o pagamento com cartão. Recarregue a página ou use o Pix."}
 }
-function desmontar(){try{brick&&brick.unmount()}catch(e){} brick=null; const b=$("#pay-brick"); if(b) b.remove()}
-function mostrarPix(px){
-  desmontar(); const box=$("#pix");
-  const exp=px.expira?new Date(px.expira):null;
-  box.innerHTML=`<div class="pix">
+function desmontar(){clearTimeout(pollT);try{brick&&brick.unmount()}catch(e){} brick=null; const a=$("#pay-area"); if(a) a.innerHTML=""}
+async function pixDireto(){
+  const area=$("#pay-area"), pm=$("#p-msg");
+  area.innerHTML=`<p class="wait"><span class="spin"></span>Gerando o Pix…</p>`;
+  try{const r=await Conta.api("/api/pix",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token})});
+    pedido=r.pedido||pedido; if(r.status&&r.status!=="pendente"){sucesso();return}
+    mostrarPixDireto(r.pix);
+  }catch(err){area.innerHTML="";pm.textContent=err.message}
+}
+function mostrarPixDireto(px){
+  const area=$("#pay-area"); if(!area||metodo!=="pix") return;
+  const informado=pedido.pix_informado;
+  area.innerHTML=`<div class="pix">
     <div class="eyebrow">Pague com Pix</div>
-    <h2 style="font-size:26px">${brl(pedido.total)}</h2>
-    <p class="muted" style="margin:0;max-width:40ch">Abra o app do seu banco, escolha <b>Pix › Ler QR Code</b> ou use o <b>Pix Copia e Cola</b>.</p>
-    ${px.qr_base64?`<img src="data:image/png;base64,${px.qr_base64}" alt="QR Code do Pix" width="260" height="260">`:""}
-    <div class="code"><span id="pix-code">${esc(px.qr)}</span><button class="btn btn-gold btn-sm" type="button" id="copiar">Copiar código</button></div>
-    ${exp?`<p class="hint" style="margin:0">O código vale até ${exp.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}.</p>`:""}
-    <p class="wait" id="pix-wait"><span class="spin"></span>Aguardando o pagamento… esta tela atualiza sozinha.</p>
-    <p class="hint" style="margin:0">Pode fechar esta página: quando o Pix cair, enviamos a confirmação para <b>${esc(pedido.email)}</b>.</p></div>`;
-  $("#copiar").addEventListener("click",function(){const t=$("#pix-code").textContent,b=this;navigator.clipboard.writeText(t).then(()=>{b.textContent="Copiado ✓"}).catch(()=>{const r=document.createRange();r.selectNodeContents($("#pix-code"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Selecionado"})});
+    <h2 style="font-size:28px">${brl(pedido.total)}</h2>
+    ${informado?`<div class="msg ok" style="text-align:left"><b>Recebemos seu aviso de pagamento!</b> Estamos conferindo o Pix. Assim que confirmarmos, você recebe o e-mail de compra confirmada em <b>${esc(pedido.email)}</b>. Pode fechar esta página.</div>`
+    :`<p class="muted" style="margin:0;max-width:42ch">Abra o app do seu banco, escolha <b>Pix › Ler QR Code</b> ou <b>Pix Copia e Cola</b>. O valor já vem preenchido.</p>`}
+    <div id="pix-qr" style="${informado?"display:none":""}"></div>
+    <div class="code" style="${informado?"display:none":""}"><span id="pix-code">${esc(px.qr)}</span><button class="btn btn-gold btn-sm" type="button" id="copiar">Copiar código</button></div>
+    ${px.nome?`<p class="hint" style="margin:0">Recebedor: <b>${esc(px.nome)}</b> · chave ${esc(px.chave)}</p>`:""}
+    ${informado?`<p class="wait"><span class="spin"></span>Aguardando a confirmação… esta tela atualiza sozinha.</p>`
+    :`<button class="btn btn-green btn-block" type="button" id="ja-paguei">Já fiz o Pix</button><p class="hint" style="margin:0">Depois de pagar, toque em <b>Já fiz o Pix</b> para avisarmos a loja.</p>`}
+  </div>`;
+  if(!informado){
+    carregarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js",()=>window.qrcode).then(()=>{const q=qrcode(0,"M");q.addData(px.qr);q.make();const box=$("#pix-qr");if(box)box.innerHTML=`<img src="${q.createDataURL(6,2)}" alt="QR Code do Pix" width="260" height="260" style="width:min(260px,100%);height:auto;border-radius:12px;background:#fff;padding:8px;border:1px solid var(--line)">`}).catch(()=>{});
+    $("#copiar").addEventListener("click",function(){const t=$("#pix-code").textContent,b=this;navigator.clipboard.writeText(t).then(()=>{b.textContent="Copiado ✓"}).catch(()=>{const r=document.createRange();r.selectNodeContents($("#pix-code"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Selecionado"})});
+    $("#ja-paguei").addEventListener("click",async function(){const b=this;b.disabled=true;b.innerHTML=`<span class="spin"></span>Avisando a loja…`;
+      try{const r=await Conta.api("/api/pix",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token,informar:true})});pedido=r.pedido||pedido;limparCarrinho();
+        const tabs=$("#metodos"); if(tabs) tabs.remove(); mostrarPixDireto(px);}
+      catch(err){b.disabled=false;b.textContent="Já fiz o Pix";$("#p-msg").textContent=err.message}});
+  }else{ limparCarrinho(); const tabs=$("#metodos"); if(tabs) tabs.remove(); }
   esperarPagamento();
 }
-function emAnalise(aviso){desmontar();$("#pix").innerHTML=`<div class="msg info">${esc(aviso||"Pagamento em análise. Avisamos por e-mail assim que for aprovado.")}</div><p style="margin:14px 0 0"><a class="btn btn-dark" href="/conta.html#pedido-${pedido.id}">Acompanhar pedido</a></p>`;limparCarrinho();esperarPagamento()}
+function emAnalise(aviso){desmontar();$("#pay-area").innerHTML=`<div class="msg info">${esc(aviso||"Pagamento em análise. Avisamos por e-mail assim que for aprovado.")}</div><p style="margin:14px 0 0"><a class="btn btn-dark" href="/conta.html#pedido-${pedido.id}">Acompanhar pedido</a></p>`;limparCarrinho();esperarPagamento()}
 function esperarPagamento(){
   clearTimeout(pollT); let n=0;
   const tick=async()=>{n++;try{const d=await Conta.api(`/api/pedido?id=${pedido.id}&t=${pedido.token}`);pedido=d.pedido;if(pedido.status!=="aguardando_pagamento"){sucesso();return}}catch(e){}

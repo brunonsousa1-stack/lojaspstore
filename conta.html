@@ -107,7 +107,7 @@ function pedidoHTML(p){
     <span class="rt"><span class="badge st-${p.status}">${esc(p.status_texto)}</span><strong>${brl(p.total)}</strong></span>
   </button>
   ${open?`<div class="det">
-    ${p.status==="aguardando_pagamento"?`<div class="full msg info" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>Este pedido ainda não foi pago.</span><a class="btn btn-green btn-sm" href="/checkout.html?pedido=${p.id}&t=${p.token}">Pagar agora</a></div>`:""}
+    ${p.status==="aguardando_pagamento"?(p.pix_informado?`<div class="full msg info">Recebemos seu aviso de Pix. Estamos conferindo o pagamento e você recebe um e-mail assim que for confirmado.</div>`:`<div class="full msg info" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>Este pedido ainda não foi pago.</span><a class="btn btn-green btn-sm" href="/checkout.html?pedido=${p.id}&t=${p.token}">Pagar agora</a></div>`):""}
     ${p.rastreio?`<div class="full"><h3>Rastreio</h3><div class="code"><span id="r-${p.id}">${esc(p.rastreio)}</span><button class="btn btn-gold btn-sm" type="button" data-copiar="r-${p.id}">Copiar</button><a class="btn btn-line btn-sm" href="https://www.melhorrastreio.com.br/rastreio/${encodeURIComponent(p.rastreio.split(",")[0].trim())}" target="_blank" rel="noopener">Rastrear entrega</a></div></div>`:""}
     <div><h3>Acompanhamento</h3>${linhaTempo(p)}</div>
     <div><h3>Entrega</h3><p style="margin:0;font-size:14px">${esc(p.nome)}<br>${esc(a.rua)}, ${esc(a.numero)}${a.complemento?" - "+esc(a.complemento):""}<br>${esc(a.bairro)} · ${esc(a.cidade)}/${esc(a.uf)}<br>CEP ${esc(String(a.cep||"").replace(/(\d{5})(\d{3})/,"$1-$2"))}</p>
