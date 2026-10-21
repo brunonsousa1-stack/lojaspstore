@@ -36,7 +36,8 @@
 <header class="top"><div class="wrap">
   <a href="/" aria-label="Ver a loja"><img src="/img/logo.png" alt="SP Store"></a>
   <b style="font-family:var(--display);font-weight:400;font-size:20px">Pedidos</b>
-  <a class="back" href="/admin/">Painel de produtos</a>
+  <button class="back" type="button" id="cfg-btn" hidden style="background:none;cursor:pointer;font:inherit;font-weight:600;font-size:14px">Configurações de envio</button>
+  <a class="back" href="/admin/" style="margin-left:0">Painel de produtos</a>
 </div></header>
 <main><div class="wrap" id="app"><p class="muted">Carregando…</p></div></main>
 
@@ -50,7 +51,7 @@ const dh=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",ho
 const fmtTel=v=>{v=digitos(v);return v.length===11?`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`:v.length===10?`(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`:v};
 const corTxt=c=>c&&c!=="Padrão"?c:"";
 const ROT={todos:"Todos",pago:"A enviar",aguardando_pagamento:"Aguardando pagamento",enviado:"Enviados",entregue:"Entregues",cancelado:"Cancelados"};
-let todos=[], filtro="pago", busca="", aberto=null, confirmar=null;
+let todos=[], filtro="pago", busca="", aberto=null, confirmar=null, ENVIO=null, tela="lista";
 
 function entrar(msg){
   app.innerHTML=`<div style="max-width:420px;margin:0 auto" class="card"><div class="eyebrow">Somente a loja</div><h2 style="margin:6px 0 4px">Entrar no painel de pedidos</h2>
@@ -63,7 +64,9 @@ function entrar(msg){
   $("#f").addEventListener("submit",async e=>{e.preventDefault();const f=e.target,m=$("#m");m.textContent="";try{await Conta.entrar(f.email.value,f.senha.value);carregar()}catch(err){m.textContent=err.message}});
 }
 async function carregar(){
-  try{const d=await Conta.api("/api/admin/pedidos");todos=d.pedidos||[];render()}
+  try{const [d,e]=await Promise.all([Conta.api("/api/admin/pedidos"),Conta.api("/api/admin/envio").catch(()=>null)]);todos=d.pedidos||[];ENVIO=e;
+    const cb=$("#cfg-btn");cb.hidden=false;cb.onclick=()=>{tela=tela==="cfg"?"lista":"cfg";render()};
+    if(ENVIO&&ENVIO.melhorEnvio&&!ENVIO.remetente) tela="cfg"; render()}
   catch(e){if(e.status===401)return entrar();if(e.status===403){await Conta.sair();return entrar(e.message)}app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
 }
 function kpis(){
@@ -82,9 +85,10 @@ function lista(){
   return todos.filter(p=>(filtro==="todos"||p.status===filtro)&&(!q||String(p.id).includes(q)||String(p.nome).toLowerCase().includes(q)||String(p.email).toLowerCase().includes(q)||String(p.rastreio).toLowerCase().includes(q)));
 }
 function render(){
+  if(tela==="cfg") return telaCfg();
   const cont=k=>k==="todos"?todos.length:todos.filter(p=>p.status===k).length;
   const l=lista();
-  app.innerHTML=`${kpis()}
+  app.innerHTML=`${ENVIO&&ENVIO.melhorEnvio?`<div class="msg info" style="margin-bottom:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><span>Melhor Envio conectado${ENVIO.saldo!=null?` · saldo <b>${brl(ENVIO.saldo)}</b>`:""}</span><a href="https://melhorenvio.com.br/painel/gerenciar/carteira" target="_blank" rel="noopener" style="font-weight:700">Adicionar saldo</a></div>`:""}${kpis()}
   <div class="bar"><div class="chips" role="group" aria-label="Filtrar">${Object.keys(ROT).map(k=>`<button class="chip" type="button" data-f="${k}" aria-pressed="${filtro===k}">${ROT[k]}<i>${cont(k)}</i></button>`).join("")}</div>
   <input class="in" type="search" id="busca" placeholder="Buscar pedido, nome ou e-mail" value="${esc(busca)}" style="margin-left:auto">
   <button class="btn btn-line btn-sm" type="button" id="atualizar">Atualizar</button></div>
@@ -106,16 +110,25 @@ function pedido(p){
     <span class="badge st-${p.status}">${esc(p.status_texto)}</span>
     <span class="val">${brl(p.total)}</span></button>
   ${open?`<div class="od">
-    <div><h3>Cliente</h3><p><b>${esc(p.nome)}</b><br>${esc(p.email)}<br><a href="https://wa.me/55${digitos(p.telefone).replace(/^55/,"")}" target="_blank" rel="noopener">${esc(fmtTel(p.telefone))}</a></p>
-      <h3 style="margin-top:14px">Entrega <button class="copy" type="button" data-copiar="${esc(p.nome+" - "+endTxt)}">copiar</button></h3><p>${esc(a.rua)}, ${esc(a.numero)}${a.complemento?" - "+esc(a.complemento):""}<br>${esc(a.bairro)}<br>${esc(a.cidade)}/${esc(a.uf)} · CEP ${esc(String(a.cep||"").replace(/(\d{5})(\d{3})/,"$1-$2"))}</p></div>
+    <div><h3>Cliente</h3><p><b>${esc(p.nome)}</b><br>${esc(p.email)}<br><a href="https://wa.me/55${digitos(p.telefone).replace(/^55/,"")}" target="_blank" rel="noopener">${esc(fmtTel(p.telefone))}</a>${p.cpf?`<br>CPF ${esc(String(p.cpf).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,"$1.$2.$3-$4"))}`:""}</p>
+      <h3 style="margin-top:14px">Entrega <button class="copy" type="button" data-copiar="${esc(p.nome+" - "+endTxt)}">copiar</button></h3><p>${esc(a.rua)}, ${esc(a.numero)}${a.complemento?" - "+esc(a.complemento):""}<br>${esc(a.bairro)}<br>${esc(a.cidade)}/${esc(a.uf)} · CEP ${esc(String(a.cep||"").replace(/(\d{5})(\d{3})/,"$1-$2"))}</p>
+      ${p.envio&&p.envio.nome?`<h3 style="margin-top:14px">Envio escolhido</h3><p>${esc(p.envio.nome)}${p.envio.empresa&&p.envio.empresa!==p.envio.nome?" · "+esc(p.envio.empresa):""}${p.envio.prazo?` · até ${p.envio.prazo} dias úteis`:""}<br><span class="muted">Frete cobrado: ${p.frete>0?brl(p.frete):"grátis"}</span></p>`:""}</div>
     <div><h3>Itens</h3><ul class="itens">${p.itens.map(x=>`<li style="grid-template-columns:44px 1fr auto"><div class="th" style="width:44px;height:44px">${x.foto?`<img src="${esc(x.foto)}" alt="">`:""}</div><div><b>${x.qtd}× ${esc(x.nome)}</b><span>${esc(corTxt(x.cor))}</span></div><div class="v">${brl(x.preco*x.qtd)}</div></li>`).join("")}</ul>
       <div class="tot"><div><span class="muted">Frete</span><span>${p.frete>0?brl(p.frete):"Grátis"}</span></div><div><b>Total</b><b>${brl(p.total)}</b></div></div>
       <p class="hint" style="margin-top:8px">${p.forma_pagamento?esc(p.forma_pagamento)+" · ":""}${p.mp_pagamento?"Mercado Pago nº "+esc(p.mp_pagamento):"sem pagamento"}</p></div>
     <div class="acts"><h3>Ações</h3><div class="msg bad" id="am-${p.id}" role="alert"></div>${acoes(p)}</div>
   </div>`:""}</article>`;
 }
+function etiquetaHTML(p){
+  const e=p.envio_completo||{}; if(!ENVIO||!ENVIO.melhorEnvio||!e.id||e.id==="fixo") return "";
+  if(e.etiqueta_url) return `<a class="btn btn-gold" href="${esc(e.etiqueta_url)}" target="_blank" rel="noopener">Imprimir etiqueta</a><button class="link" type="button" data-acao="etiqueta" data-id="${p.id}" style="justify-self:start">Gerar link de impressão de novo</button>`;
+  if(p.status!=="pago") return "";
+  return `<label class="f">Chave da NF-e <small>(opcional: sem ela vai como declaração de conteúdo)</small><input class="in" id="nfe-${p.id}" inputmode="numeric" placeholder="44 números"></label>
+    <button class="btn btn-gold" type="button" data-acao="etiqueta" data-id="${p.id}">Gerar etiqueta (${esc(e.nome||"")}) e avisar cliente</button>
+    <p class="hint">Compra a etiqueta com o saldo do Melhor Envio, preenche o rastreio e envia o e-mail ao cliente.</p><div style="border-top:1px solid var(--line);margin:4px 0"></div><p class="hint" style="margin:0">Ou, se enviou por fora, digite o rastreio:</p>`;
+}
 function acoes(p){
-  if(p.status==="pago"||p.status==="enviado") return `
+  if(p.status==="pago"||p.status==="enviado") return `${etiquetaHTML(p)}
     <label class="f">Código de rastreio<input class="in" id="ras-${p.id}" value="${esc(p.rastreio)}" placeholder="Ex.: AA123456789BR" style="text-transform:uppercase"></label>
     ${p.status==="pago"?`<button class="btn btn-dark" type="button" data-acao="enviado" data-id="${p.id}">Marcar como enviado e avisar cliente</button>`:`<button class="btn btn-line" type="button" data-acao="rastreio" data-id="${p.id}">Salvar código corrigido</button><button class="btn btn-dark" type="button" data-acao="entregue" data-id="${p.id}">Marcar como entregue</button>`}
     <p class="hint">O cliente recebe um e-mail ${p.status==="pago"?"com o código de rastreio":"avisando"}.</p>
@@ -127,12 +140,42 @@ function acoes(p){
 async function acao(id,tipo,btn){
   const p=todos.find(x=>x.id===id), m=$("#am-"+id); m.textContent="";
   if(tipo==="cancelado"&&confirmar!==id){confirmar=id;render();return}
+  if(tipo==="etiqueta"){
+    const nf=$("#nfe-"+id); btn.disabled=true; const t0=btn.textContent; btn.innerHTML=`<span class="spin"></span>Gerando etiqueta…`;
+    try{const d=await Conta.api("/api/admin/etiqueta",{method:"POST",body:JSON.stringify({id,nfe:nf?nf.value:""})});const i=todos.findIndex(x=>x.id===id);todos[i]={...todos[i],...d.pedido};render();
+      if(d.etiqueta_url){ if(filtro!=="todos"&&filtro!==todos[i].status) filtro=todos[i].status; aberto=id; render(); const mm=$("#am-"+id); if(mm){mm.className="msg ok";mm.textContent="Etiqueta pronta! Toque em Imprimir etiqueta."} }
+      Conta.api("/api/admin/envio").then(e=>{ENVIO=e}).catch(()=>{});
+    }catch(e){btn.disabled=false;btn.textContent=t0;m.textContent=e.message}
+    return}
   const ras=$("#ras-"+id), corpo={id,status:tipo==="rastreio"?p.status:tipo};
   if(ras) corpo.rastreio=ras.value.trim();
   if(tipo==="enviado"&&!corpo.rastreio){m.textContent="Digite o código de rastreio.";ras.focus();return}
   btn.disabled=true; const t=btn.textContent; btn.innerHTML=`<span class="spin"></span>Salvando…`;
   try{const d=await Conta.api("/api/admin/pedidos",{method:"POST",body:JSON.stringify(corpo)});const i=todos.findIndex(x=>x.id===id);todos[i]={...todos[i],...d.pedido};confirmar=null;render()}
   catch(e){btn.disabled=false;btn.textContent=t;m.textContent=e.message}
+}
+function telaCfg(){
+  const r=(ENVIO&&ENVIO.remetente)||{cep:"08020360",numero:"33"};
+  const fC=v=>String(v||"").replace(/\D/g,"").replace(/(\d{5})(\d{3})/,"$1-$2");
+  app.innerHTML=`<div style="max-width:720px;margin:0 auto"><div class="card"><div class="eyebrow">Melhor Envio</div><h2 style="margin:6px 0 4px">Configurações de envio</h2>
+    <p class="sub">Dados do remetente que vão nas etiquetas. ${ENVIO&&ENVIO.melhorEnvio?`Melhor Envio conectado${ENVIO.saldo!=null?` · saldo ${brl(ENVIO.saldo)}`:""}.`:`<b>Falta colocar o ME_TOKEN no Cloudflare</b> para gerar etiquetas.`}</p>
+    <form class="form" id="fr" novalidate>
+      <label class="f">Razão social ou nome da loja<input class="in" name="nome" value="${esc(r.nome||"")}"></label>
+      <div class="row"><label class="f">CNPJ<input class="in" name="cnpj" inputmode="numeric" value="${esc(r.cnpj||"")}"></label><label class="f">Inscrição estadual <small>(opcional)</small><input class="in" name="ie" value="${esc(r.ie||"")}" placeholder="ou deixe vazio"></label></div>
+      <div class="row"><label class="f">Telefone com DDD<input class="in" name="telefone" inputmode="tel" value="${esc(r.telefone||"")}"></label><label class="f">E-mail<input class="in" name="email" type="email" value="${esc(r.email||"")}"></label></div>
+      <div class="row r3"><label class="f">CEP<input class="in" name="cep" inputmode="numeric" value="${esc(fC(r.cep))}"></label><span></span><span></span></div>
+      <label class="f">Rua<input class="in" name="rua" value="${esc(r.rua||"")}"></label>
+      <div class="row"><label class="f">Número<input class="in" name="numero" value="${esc(r.numero||"")}"></label><label class="f">Complemento <small>(opcional)</small><input class="in" name="complemento" value="${esc(r.complemento||"")}"></label></div>
+      <label class="f">Bairro<input class="in" name="bairro" value="${esc(r.bairro||"")}"></label>
+      <div class="row r3"><label class="f">Cidade<input class="in" name="cidade" value="${esc(r.cidade||"")}"></label><span></span><label class="f">UF<input class="in" name="uf" maxlength="2" value="${esc(r.uf||"")}" style="text-transform:uppercase"></label></div>
+      <div class="msg" id="mr" role="status"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-dark" type="submit">Salvar</button><button class="btn btn-line" type="button" id="voltar">Voltar aos pedidos</button></div>
+    </form></div></div>`;
+  const f=$("#fr"); $("#voltar").onclick=()=>{tela="lista";render()};
+  const cepBusca=async()=>{const c=digitos(f.cep.value);if(c.length!==8)return;try{const d=await fetch(`https://viacep.com.br/ws/${c}/json/`).then(x=>x.json());if(!d.erro){if(d.logradouro&&!f.rua.value)f.rua.value=d.logradouro;if(d.bairro&&!f.bairro.value)f.bairro.value=d.bairro;if(!f.cidade.value)f.cidade.value=d.localidade||"";if(!f.uf.value)f.uf.value=d.uf||""}}catch(e){}};
+  f.cep.addEventListener("input",cepBusca); cepBusca();
+  f.addEventListener("submit",async e=>{e.preventDefault();const m=$("#mr"),btn=f.querySelector("[type=submit]");const corpo=Object.fromEntries(new FormData(f));
+    btn.disabled=true;try{const d=await Conta.api("/api/admin/envio",{method:"POST",body:JSON.stringify(corpo)});ENVIO={...(ENVIO||{}),remetente:d.remetente};m.className="msg ok";m.textContent="Salvo! As próximas etiquetas usam estes dados."}catch(err){m.className="msg bad";m.textContent=err.message}btn.disabled=false});
 }
 (async function(){
   const c=await Conta.config();

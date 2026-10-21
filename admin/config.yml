@@ -76,6 +76,10 @@ collections:
                       - { label: Relógio redondo, value: round }
                       - { label: Relógio gota, value: drop }
                       - { label: Relógio digital, value: digital }
+                  - { label: "Peso com embalagem (gramas)", name: peso_g, widget: number, value_type: int, min: 1, required: false, hint: "Usado no cálculo do frete. Vazio = 400 g." }
+                  - { label: "Embalagem: largura (cm)", name: largura_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 11 cm." }
+                  - { label: "Embalagem: altura (cm)", name: altura_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 4 cm." }
+                  - { label: "Embalagem: comprimento (cm)", name: comprimento_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 16 cm." }
       - name: config
         label: Textos e contato
         file: data/loja.json
@@ -84,7 +88,8 @@ collections:
           - { label: WhatsApp como aparece no site, name: whatsapp_exibicao, widget: string }
           - { label: Preço destaque do banner, name: preco_destaque, widget: number, value_type: float, step: 0.01 }
           - { label: Preço do kit óculos + relógio, name: preco_kit, widget: number, value_type: float, step: 0.01 }
-          - { label: "Frete (valor fixo por pedido)", name: frete_valor, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Use 0 para frete grátis. Ex.: 15.90" }
+          - { label: "Frete fixo (só se o Melhor Envio estiver desligado)", name: frete_valor, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Com o Melhor Envio ligado, o frete é calculado pelo CEP. Ex.: 15.90" }
+          - { label: "Dias para postar o pedido", name: dias_para_postar, widget: number, value_type: int, min: 0, required: false, default: 1, hint: "Somado ao prazo da transportadora que o cliente vê." }
           - { label: "Frete grátis acima de", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra a partir do qual o frete fica grátis. Use 0 para não usar." }
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }

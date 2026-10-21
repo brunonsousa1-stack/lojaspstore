@@ -13,7 +13,7 @@ export const onRequestGet = async ({ env, request }) => {
     const st = url.searchParams.get("status");
     const filtro = st && /^[a-z_]+$/.test(st) ? `&status=eq.${st}` : "";
     const lista = await sb(env, `pedidos?select=*&order=id.desc&limit=300${filtro}`, { method: "GET" });
-    return json({ pedidos: lista.map(p => ({ ...publico(p), mp_pagamento: p.mp_pagamento || "", mp_status: p.mp_status || "" })) });
+    return json({ pedidos: lista.map(p => ({ ...publico(p), mp_pagamento: p.mp_pagamento || "", mp_status: p.mp_status || "", cpf: p.cpf || "", envio_completo: p.envio || null })) });
   } catch (e) { return erro("Erro ao buscar os pedidos.", 500); }
 };
 export const onRequestPost = async ({ env, request }) => {
@@ -21,6 +21,6 @@ export const onRequestPost = async ({ env, request }) => {
   let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
   const p = await buscarPedido(env, b.id);
   if (!p) return erro("Pedido não encontrado.", 404);
-  try { const n = await atualizarPeloAdmin(env, request, p, b); return json({ ok: true, pedido: publico(n) }); }
+  try { const n = await atualizarPeloAdmin(env, request, p, b); return json({ ok: true, pedido: { ...publico(n), cpf: n.cpf || "", envio_completo: n.envio || null } }); }
   catch (e) { return erro(e.message || "Erro ao atualizar.", 400); }
 };

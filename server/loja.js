@@ -10,6 +10,8 @@
 //   EMAIL_REMETENTE       opcional. Padrão: SP Store <pedidos@lojaspstore.com.br>
 //   MP_WEBHOOK_SECRET     opcional. Assinatura secreta das notificações do Mercado Pago
 
+import { cotar, meAtivo, gerarEtiqueta, validarRemetente, saldo } from "./frete.js";
+
 export const STATUS = {
   aguardando_pagamento: "Aguardando pagamento",
   pago: "Pagamento aprovado",
@@ -86,6 +88,7 @@ export function publico(p) {
     nome: p.nome, email: p.email, telefone: p.telefone, endereco: p.endereco, itens: p.itens,
     subtotal: Number(p.subtotal), frete: Number(p.frete), total: Number(p.total),
     forma_pagamento: p.forma_pagamento, rastreio: p.rastreio || "", historico: p.historico || [], token: p.token,
+    envio: p.envio ? { nome: p.envio.nome, empresa: p.envio.empresa, prazo: p.envio.prazo } : null,
   };
 }
 async function mudarStatus(env, p, novo, extra = {}) {
@@ -99,7 +102,7 @@ async function mudarStatus(env, p, novo, extra = {}) {
 }
 
 // ---------- catálogo e preços (sempre do servidor, nunca do navegador) ----------
-async function catalogo(request) {
+export async function catalogo(request) {
   const base = new URL(request.url).origin;
   const [d, L] = await Promise.all([
     fetch(base + "/data/produtos.json", { cf: { cacheTtl: 0 } }).then(r => r.json()),
@@ -133,7 +136,12 @@ export function montarItens(produtos, pedidos) {
   }
   return itens;
 }
-export function validarEntrega(b) {
+export function cpfValido(c) {
+  c = digitos(c); if (c.length !== 11 || /^(\d)\1+$/.test(c)) return false;
+  for (const t of [9, 10]) { let s = 0; for (let i = 0; i < t; i++) s += +c[i] * (t + 1 - i); if (((s * 10) % 11) % 10 !== +c[t]) return false; }
+  return true;
+}
+export function validarEntrega(b, exigirCpf) {
   const e = b.endereco || {};
   const d = {
     nome: so(b.nome, 80), telefone: digitos(b.telefone).slice(0, 13),
@@ -142,7 +150,9 @@ export function validarEntrega(b) {
       bairro: so(e.bairro, 80), cidade: so(e.cidade, 80), uf: so(e.uf, 2).toUpperCase(),
     },
   };
+  d.cpf = digitos(b.cpf).slice(0, 11);
   if (d.nome.length < 3) throw new Error("Informe o nome completo.");
+  if ((exigirCpf || d.cpf) && !cpfValido(d.cpf)) throw new Error("CPF inválido.");
   if (d.telefone.length < 10) throw new Error("Informe um telefone com DDD.");
   const a = d.endereco;
   if (a.cep.length !== 8) throw new Error("CEP inválido.");
@@ -307,7 +317,7 @@ export async function emails(env, request, p, evento) {
       `<p><b>${esc(p.nome)}</b> · ${esc(p.email)} · ${esc(p.telefone)}</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entregar em:</b><br>${enderecoTxt(p.endereco)}</p>${botao(origem + "/admin/pedidos.html", "Abrir painel de pedidos")}`, origem));
   } else if (evento === "enviado") {
     ok = await enviarEmail(env, p.email, `Seu pedido ${n} foi enviado`, moldura(`Pedido enviado 📦`,
-      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido <b>${n}</b> saiu para entrega.</p>${p.rastreio ? `<p style="font-size:16px">Código de rastreio:<br><b style="font-size:20px;letter-spacing:.05em">${esc(p.rastreio)}</b></p>` : ""}${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
+      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido <b>${n}</b> saiu para entrega.</p>${p.envio && p.envio.empresa ? `<p style="font-size:14px">Transportadora: <b>${esc(p.envio.empresa)} ${esc(p.envio.nome)}</b>${p.envio.prazo ? ` · prazo estimado de ${p.envio.prazo} dias úteis` : ""}</p>` : ""}${p.rastreio ? `<p style="font-size:16px">Código de rastreio:<br><b style="font-size:20px;letter-spacing:.05em">${esc(p.rastreio)}</b></p>${botao("https://www.melhorrastreio.com.br/rastreio/" + encodeURIComponent(p.rastreio.split(",")[0].trim()), "Rastrear entrega")}` : ""}${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
   } else if (evento === "entregue") {
     ok = await enviarEmail(env, p.email, `Pedido ${n} entregue`, moldura(`Pedido entregue`,
       `<p>Olá, ${esc(p.nome.split(" ")[0])}! O pedido <b>${n}</b> consta como entregue. Esperamos que goste! Se precisar de qualquer coisa, é só responder este e-mail.</p>${botao(origem, "Voltar à loja")}`, origem), c.lojaEmail);
@@ -327,21 +337,25 @@ export async function checkout(env, request) {
   const u = await usuario(env, request);
   if (!u) return erro("Entre na sua conta para finalizar a compra.", 401);
   let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
-  let entrega, itens, frete;
+  let entrega, itens, frete, envio, sub;
   try {
-    entrega = validarEntrega(b);
+    entrega = validarEntrega(b, meAtivo(env));
     const { produtos, loja } = await catalogo(request);
     itens = montarItens(produtos, b.itens);
-    const subtotal = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
-    frete = calcularFrete(loja, subtotal);
-    var sub = subtotal;
+    sub = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
+    const rem = await lerConfig(env, "remetente");
+    const ops = await cotar(env, { cepOrigem: rem && rem.cep, cepDestino: entrega.endereco.cep, itens, produtos, loja, subtotal: sub });
+    const op = ops.find(o => o.id === String(b.frete_id || "")) || (ops.length === 1 ? ops[0] : null);
+    if (!op) throw new Error("Escolha a forma de entrega.");
+    frete = op.preco;
+    envio = { id: op.id, nome: op.nome, empresa: op.empresa, prazo: op.prazo, pacotes: op.pacotes || [] };
   } catch (e) { return erro(e.message); }
   const total = Math.round((sub + frete) * 100) / 100;
   const criado = await sb(env, "pedidos", {
     method: "POST",
     body: JSON.stringify({
       user_id: u.id, email: String(u.email || "").toLowerCase(), nome: entrega.nome, telefone: entrega.telefone,
-      endereco: entrega.endereco, itens, subtotal: sub, frete, total, status: "aguardando_pagamento",
+      endereco: entrega.endereco, cpf: entrega.cpf || null, envio, itens, subtotal: sub, frete, total, status: "aguardando_pagamento",
       historico: [{ status: "aguardando_pagamento", em: new Date().toISOString() }], emails: {},
     }),
   });
@@ -349,7 +363,7 @@ export async function checkout(env, request) {
   // guarda nome, telefone e endereço na conta para a próxima compra
   const c = cfg(env);
   fetch(`${c.sbUrl}/auth/v1/user`, { method: "PUT", headers: { apikey: c.sbAnon, authorization: request.headers.get("authorization"), "content-type": "application/json" },
-    body: JSON.stringify({ data: { nome: entrega.nome, telefone: entrega.telefone, endereco: entrega.endereco } }) }).catch(() => {});
+    body: JSON.stringify({ data: { nome: entrega.nome, telefone: entrega.telefone, endereco: entrega.endereco, cpf: entrega.cpf || undefined } }) }).catch(() => {});
   return json({ ok: true, id: p.id, token: p.token, total: Number(p.total) });
 }
 
@@ -375,6 +389,45 @@ export async function conferir(env, request, p) {
   if (p.status !== "aguardando_pagamento" || !p.mp_pagamento) return p;
   try { const d = await buscarPagamento(env, p.mp_pagamento); if (d) await aplicarPagamento(env, request, d); } catch {}
   return (await buscarPedido(env, p.id)) || p;
+}
+
+// Opções de entrega para o CEP (mostradas no checkout)
+export async function opcoesFrete(env, request) {
+  let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
+  try {
+    const { produtos, loja } = await catalogo(request);
+    const itens = montarItens(produtos, b.itens);
+    const sub = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
+    const rem = pronto(env) ? await lerConfig(env, "remetente").catch(() => null) : null;
+    const ops = await cotar(env, { cepOrigem: rem && rem.cep, cepDestino: b.cep, itens, produtos, loja, subtotal: sub });
+    return json({ opcoes: ops.map(({ pacotes, ...o }) => o), exigeCpf: meAtivo(env) });
+  } catch (e) { return erro(e.message || "Não foi possível calcular o frete."); }
+}
+
+// ---------- configurações privadas da loja (tabela config) ----------
+export async function lerConfig(env, chave) {
+  const r = await sb(env, `config?chave=eq.${encodeURIComponent(chave)}&select=valor`, { method: "GET" });
+  return r && r[0] ? r[0].valor : null;
+}
+export async function gravarConfig(env, chave, valor) {
+  await sb(env, "config?on_conflict=chave", { method: "POST", body: JSON.stringify({ chave, valor }), headers: { prefer: "resolution=merge-duplicates,return=minimal" } });
+}
+export async function salvarRemetente(env, b) { const r = validarRemetente(b); await gravarConfig(env, "remetente", r); return r; }
+export async function infoEnvio(env) { return { remetente: await lerConfig(env, "remetente"), melhorEnvio: meAtivo(env), saldo: await saldo(env) }; }
+
+export async function etiqueta(env, request, p, b) {
+  if (!["pago", "enviado"].includes(p.status)) throw new Error("Só dá para gerar etiqueta de pedido pago.");
+  const rem = await lerConfig(env, "remetente");
+  if (!rem) throw new Error("Preencha primeiro as Configurações de envio (dados do remetente).");
+  const { produtos } = await catalogo(request);
+  const r = await gerarEtiqueta(env, { pedido: p, remetente: rem, produtos, nfe: b.nfe });
+  const envio = { ...(p.envio || {}), me_ids: r.me_ids, etiqueta_url: r.etiqueta_url, etiqueta_em: (p.envio && p.envio.etiqueta_em) || new Date().toISOString() };
+  const extra = { envio };
+  if (r.rastreio) extra.rastreio = r.rastreio;
+  let n;
+  if (p.status === "pago" && (r.rastreio || p.rastreio)) { n = await mudarStatus(env, p, "enviado", extra); await emails(env, request, n, "enviado"); }
+  else n = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify(extra) }).then(x => x[0]);
+  return { pedido: n, etiqueta_url: r.etiqueta_url };
 }
 
 export async function webhook(env, request) {
@@ -404,4 +457,4 @@ export async function atualizarPeloAdmin(env, request, p, b) {
   }
   return n;
 }
-export { sb, ORDEM };
+export { sb, ORDEM, meAtivo };

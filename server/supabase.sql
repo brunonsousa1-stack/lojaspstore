@@ -20,8 +20,20 @@ create table if not exists public.pedidos (
   mp_pagamento text,
   mp_status text,
   forma_pagamento text,
-  rastreio text
+  rastreio text,
+  cpf text,
+  envio jsonb
 );
+alter table public.pedidos add column if not exists cpf text;
+alter table public.pedidos add column if not exists envio jsonb;
+
+-- Configurações privadas da loja (dados do remetente para as etiquetas)
+create table if not exists public.config (
+  chave text primary key,
+  valor jsonb not null
+);
+alter table public.config enable row level security;
+revoke all on public.config from anon, authenticated;
 create index if not exists pedidos_user_idx on public.pedidos (user_id);
 create index if not exists pedidos_status_idx on public.pedidos (status);
 
