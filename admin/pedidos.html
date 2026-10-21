@@ -1,0 +1,143 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pedidos · Painel SP Store</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/css/loja.css">
+<style>
+.wrap{max-width:1180px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+.kpi b{font-family:var(--display);font-weight:400;font-size:26px;font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.bar .in{max-width:280px;min-height:42px;padding:8px 12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 12px;font:600 13px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip i{font-style:normal;opacity:.65;margin-left:4px}
+.lista{display:grid;gap:10px}
+.o{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.o > button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:80px 1.4fr 1fr auto auto;gap:12px;align-items:center;padding:12px 16px;font-size:14px}
+.o > button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.o .num{font-weight:700}
+.o .num small,.o .cli small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.o .val{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+@media (max-width:760px){.o > button{grid-template-columns:1fr auto}.o .itn,.o .cli small{display:none}}
+.od{border-top:1px solid var(--line);padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+@media (max-width:900px){.od{grid-template-columns:1fr}}
+.od h3{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.od p{margin:0;font-size:14px}
+.acts{display:grid;gap:10px}
+.acts .in{min-height:44px}
+.copy{border:0;background:none;color:var(--gold);font:700 12px var(--body);cursor:pointer;padding:0;margin-left:6px}
+</style>
+</head><body>
+<header class="top"><div class="wrap">
+  <a href="/" aria-label="Ver a loja"><img src="/img/logo.png" alt="SP Store"></a>
+  <b style="font-family:var(--display);font-weight:400;font-size:20px">Pedidos</b>
+  <a class="back" href="/admin/">Painel de produtos</a>
+</div></header>
+<main><div class="wrap" id="app"><p class="muted">Carregando…</p></div></main>
+
+<script src="/js/conta.js"></script>
+<script>
+const $=s=>document.querySelector(s), app=$("#app");
+const brl=n=>"R$ "+Number(n||0).toFixed(2).replace(".",",");
+const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const digitos=t=>String(t||"").replace(/\D/g,"");
+const dh=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+const fmtTel=v=>{v=digitos(v);return v.length===11?`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`:v.length===10?`(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`:v};
+const corTxt=c=>c&&c!=="Padrão"?c:"";
+const ROT={todos:"Todos",pago:"A enviar",aguardando_pagamento:"Aguardando pagamento",enviado:"Enviados",entregue:"Entregues",cancelado:"Cancelados"};
+let todos=[], filtro="pago", busca="", aberto=null, confirmar=null;
+
+function entrar(msg){
+  app.innerHTML=`<div style="max-width:420px;margin:0 auto" class="card"><div class="eyebrow">Somente a loja</div><h2 style="margin:6px 0 4px">Entrar no painel de pedidos</h2>
+  <p class="sub">Use a conta com o e-mail da loja.</p>
+  <form class="form" id="f" novalidate><label class="f">E-mail<input class="in" type="email" name="email" autocomplete="email"></label>
+  <label class="f">Senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="current-password"><button type="button" data-ver>Mostrar</button></span></label>
+  <div class="msg bad" id="m" role="alert">${msg?esc(msg):""}</div><button class="btn btn-dark btn-block" type="submit">Entrar</button></form>
+  <p class="hint" style="margin-top:12px">Ainda não tem conta com o e-mail da loja? <a href="/conta.html">Crie aqui</a> e confirme o e-mail.</p></div>`;
+  app.querySelector("[data-ver]").addEventListener("click",e=>{const i=e.target.previousElementSibling;i.type=i.type==="password"?"text":"password"});
+  $("#f").addEventListener("submit",async e=>{e.preventDefault();const f=e.target,m=$("#m");m.textContent="";try{await Conta.entrar(f.email.value,f.senha.value);carregar()}catch(err){m.textContent=err.message}});
+}
+async function carregar(){
+  try{const d=await Conta.api("/api/admin/pedidos");todos=d.pedidos||[];render()}
+  catch(e){if(e.status===401)return entrar();if(e.status===403){await Conta.sair();return entrar(e.message)}app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
+}
+function kpis(){
+  const pagos=todos.filter(p=>["pago","enviado","entregue"].includes(p.status));
+  const hoje=new Date();hoje.setHours(0,0,0,0);const sete=Date.now()-7*864e5;
+  const soma=l=>l.reduce((a,p)=>a+Number(p.total),0);
+  const pagoEm=p=>{const h=(p.historico||[]).find(x=>x.status==="pago");return new Date(h?h.em:p.criado_em).getTime()};
+  return `<div class="kpis">
+    <div class="kpi"><small>A enviar</small><b>${todos.filter(p=>p.status==="pago").length}</b></div>
+    <div class="kpi"><small>Vendas hoje</small><b>${brl(soma(pagos.filter(p=>pagoEm(p)>=hoje.getTime())))}</b></div>
+    <div class="kpi"><small>Últimos 7 dias</small><b>${brl(soma(pagos.filter(p=>pagoEm(p)>=sete)))}</b></div>
+    <div class="kpi"><small>Pedidos pagos</small><b>${pagos.length}</b></div></div>`;
+}
+function lista(){
+  const q=busca.trim().toLowerCase();
+  return todos.filter(p=>(filtro==="todos"||p.status===filtro)&&(!q||String(p.id).includes(q)||String(p.nome).toLowerCase().includes(q)||String(p.email).toLowerCase().includes(q)||String(p.rastreio).toLowerCase().includes(q)));
+}
+function render(){
+  const cont=k=>k==="todos"?todos.length:todos.filter(p=>p.status===k).length;
+  const l=lista();
+  app.innerHTML=`${kpis()}
+  <div class="bar"><div class="chips" role="group" aria-label="Filtrar">${Object.keys(ROT).map(k=>`<button class="chip" type="button" data-f="${k}" aria-pressed="${filtro===k}">${ROT[k]}<i>${cont(k)}</i></button>`).join("")}</div>
+  <input class="in" type="search" id="busca" placeholder="Buscar pedido, nome ou e-mail" value="${esc(busca)}" style="margin-left:auto">
+  <button class="btn btn-line btn-sm" type="button" id="atualizar">Atualizar</button></div>
+  <div class="lista">${l.length?l.map(pedido).join(""):`<div class="card" style="text-align:center"><p class="muted" style="margin:0">Nenhum pedido ${filtro==="todos"?"":"em “"+ROT[filtro]+"”"}.</p></div>`}</div>`;
+  app.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{filtro=b.dataset.f;aberto=null;render()}));
+  const bi=$("#busca"); bi.addEventListener("input",()=>{busca=bi.value;const pos=bi.selectionStart;render();const n=$("#busca");n.focus();n.setSelectionRange(pos,pos)});
+  $("#atualizar").addEventListener("click",carregar);
+  app.querySelectorAll("[data-abrir]").forEach(b=>b.addEventListener("click",()=>{const id=+b.dataset.abrir;aberto=aberto===id?null:id;confirmar=null;render()}));
+  app.querySelectorAll("[data-copiar]").forEach(b=>b.addEventListener("click",()=>{navigator.clipboard.writeText(b.dataset.copiar).then(()=>{b.textContent="copiado ✓"}).catch(()=>{})}));
+  app.querySelectorAll("[data-acao]").forEach(b=>b.addEventListener("click",()=>acao(+b.dataset.id,b.dataset.acao,b)));
+}
+function pedido(p){
+  const a=p.endereco||{}, open=aberto===p.id, n=p.itens.reduce((s,x)=>s+x.qtd,0);
+  const endTxt=`${a.rua}, ${a.numero}${a.complemento?" - "+a.complemento:""} - ${a.bairro} - ${a.cidade}/${a.uf} - CEP ${String(a.cep||"").replace(/(\d{5})(\d{3})/,"$1-$2")}`;
+  return `<article class="o"><button type="button" data-abrir="${p.id}" aria-expanded="${open}">
+    <span class="num">#${p.id}<small>${dh(p.criado_em)}</small></span>
+    <span class="cli">${esc(p.nome)}<small>${esc(p.email)}</small></span>
+    <span class="itn muted">${n} ${n===1?"item":"itens"}</span>
+    <span class="badge st-${p.status}">${esc(p.status_texto)}</span>
+    <span class="val">${brl(p.total)}</span></button>
+  ${open?`<div class="od">
+    <div><h3>Cliente</h3><p><b>${esc(p.nome)}</b><br>${esc(p.email)}<br><a href="https://wa.me/55${digitos(p.telefone).replace(/^55/,"")}" target="_blank" rel="noopener">${esc(fmtTel(p.telefone))}</a></p>
+      <h3 style="margin-top:14px">Entrega <button class="copy" type="button" data-copiar="${esc(p.nome+" - "+endTxt)}">copiar</button></h3><p>${esc(a.rua)}, ${esc(a.numero)}${a.complemento?" - "+esc(a.complemento):""}<br>${esc(a.bairro)}<br>${esc(a.cidade)}/${esc(a.uf)} · CEP ${esc(String(a.cep||"").replace(/(\d{5})(\d{3})/,"$1-$2"))}</p></div>
+    <div><h3>Itens</h3><ul class="itens">${p.itens.map(x=>`<li style="grid-template-columns:44px 1fr auto"><div class="th" style="width:44px;height:44px">${x.foto?`<img src="${esc(x.foto)}" alt="">`:""}</div><div><b>${x.qtd}× ${esc(x.nome)}</b><span>${esc(corTxt(x.cor))}</span></div><div class="v">${brl(x.preco*x.qtd)}</div></li>`).join("")}</ul>
+      <div class="tot"><div><span class="muted">Frete</span><span>${p.frete>0?brl(p.frete):"Grátis"}</span></div><div><b>Total</b><b>${brl(p.total)}</b></div></div>
+      <p class="hint" style="margin-top:8px">${p.forma_pagamento?esc(p.forma_pagamento)+" · ":""}${p.mp_pagamento?"Mercado Pago nº "+esc(p.mp_pagamento):"sem pagamento"}</p></div>
+    <div class="acts"><h3>Ações</h3><div class="msg bad" id="am-${p.id}" role="alert"></div>${acoes(p)}</div>
+  </div>`:""}</article>`;
+}
+function acoes(p){
+  if(p.status==="pago"||p.status==="enviado") return `
+    <label class="f">Código de rastreio<input class="in" id="ras-${p.id}" value="${esc(p.rastreio)}" placeholder="Ex.: AA123456789BR" style="text-transform:uppercase"></label>
+    ${p.status==="pago"?`<button class="btn btn-dark" type="button" data-acao="enviado" data-id="${p.id}">Marcar como enviado e avisar cliente</button>`:`<button class="btn btn-line" type="button" data-acao="rastreio" data-id="${p.id}">Salvar código corrigido</button><button class="btn btn-dark" type="button" data-acao="entregue" data-id="${p.id}">Marcar como entregue</button>`}
+    <p class="hint">O cliente recebe um e-mail ${p.status==="pago"?"com o código de rastreio":"avisando"}.</p>
+    <button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar o cancelamento":"Cancelar pedido"}</button>`;
+  if(p.status==="aguardando_pagamento") return `<p class="hint">O cliente ainda não pagou. Pedidos sem pagamento não precisam de ação.</p><button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar":"Cancelar pedido"}</button>`;
+  if(p.status==="entregue") return `<p class="hint">Pedido concluído.</p>`;
+  return `<p class="hint">Pedido cancelado. Se o cliente pagou, faça a devolução no Mercado Pago (Atividade › pagamento › Devolver).</p>`;
+}
+async function acao(id,tipo,btn){
+  const p=todos.find(x=>x.id===id), m=$("#am-"+id); m.textContent="";
+  if(tipo==="cancelado"&&confirmar!==id){confirmar=id;render();return}
+  const ras=$("#ras-"+id), corpo={id,status:tipo==="rastreio"?p.status:tipo};
+  if(ras) corpo.rastreio=ras.value.trim();
+  if(tipo==="enviado"&&!corpo.rastreio){m.textContent="Digite o código de rastreio.";ras.focus();return}
+  btn.disabled=true; const t=btn.textContent; btn.innerHTML=`<span class="spin"></span>Salvando…`;
+  try{const d=await Conta.api("/api/admin/pedidos",{method:"POST",body:JSON.stringify(corpo)});const i=todos.findIndex(x=>x.id===id);todos[i]={...todos[i],...d.pedido};confirmar=null;render()}
+  catch(e){btn.disabled=false;btn.textContent=t;m.textContent=e.message}
+}
+(async function(){
+  const c=await Conta.config();
+  if(!c.pronto){app.innerHTML=`<div class="card"><h2>Painel de pedidos</h2><p class="muted">Falta configurar o banco de dados e o Mercado Pago no Cloudflare.</p></div>`;return}
+  if(Conta.sessao()) carregar(); else entrar();
+})();
+</script>
+</body></html>

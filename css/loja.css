@@ -1,0 +1,116 @@
+/* SP Store · páginas de conta, finalizar compra e painel de pedidos (mesma identidade do site) */
+:root{
+  --bg:#ececea; --surface:#fbfaf7; --ink:#1b1a17; --muted:#6a675f; --line:#d6d4ce;
+  --gold:#b08a3e; --gold-soft:#efe4cc; --dark:#1b1a17; --on-dark:#f3f1ec; --wa:#1f9d55; --bad:#b3261e; --bad-soft:#f9e1de; --ok-soft:#dff1e6; --warn-soft:#fbefd2;
+  --display:"Marcellus",Georgia,"Times New Roman",serif;
+  --body:"Figtree",ui-sans-serif,system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#181816; --surface:#22211e; --ink:#efede7; --muted:#a29e94; --line:#36342f;
+  --gold:#d1ab5e; --gold-soft:#3a3123; --dark:#0f0f0e; --wa:#2fbf6c; --bad:#f2948b; --bad-soft:#3b1f1c; --ok-soft:#1d3326; --warn-soft:#3a3020; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#181816; --surface:#22211e; --ink:#efede7; --muted:#a29e94; --line:#36342f;
+  --gold:#d1ab5e; --gold-soft:#3a3123; --dark:#0f0f0e; --wa:#2fbf6c; --bad:#f2948b; --bad-soft:#3b1f1c; --ok-soft:#1d3326; --warn-soft:#3a3020; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;min-height:100dvh;display:flex;flex-direction:column}
+a{color:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{width:100%;max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{background:#fbfaf7;color:#1b1a17;border-bottom:1px solid #d6d4ce;position:sticky;top:0;z-index:5}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:12px}
+.top img{height:44px;width:auto;display:block}
+.top .back{margin-left:auto;font-weight:600;font-size:14px;text-decoration:none;display:inline-flex;gap:6px;align-items:center;padding:8px 14px;border-radius:999px;border:1.5px solid #d6d4ce;color:#1b1a17}
+.top .back:hover{border-color:#b08a3e}
+.top .lock{font-size:13px;color:#4b6a55;font-weight:600;display:inline-flex;gap:6px;align-items:center}
+main{flex:1;padding-block:28px 48px}
+.foot{background:var(--dark);color:var(--on-dark);font-size:13px;opacity:.95}
+.foot .wrap{padding-block:18px;display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between}
+.foot a{text-decoration:none;opacity:.85}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px}
+.card + .card{margin-top:16px}
+.card h2{font-size:24px;margin-bottom:4px}
+.sub{margin:0 0 16px;color:var(--muted);font-size:14px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.muted{color:var(--muted)}
+
+/* formulários */
+.form{display:grid;gap:14px}
+.row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.row.r3{grid-template-columns:1.2fr 1fr .6fr}
+@media (max-width:560px){.row,.row.r3{grid-template-columns:1fr}}
+label.f{display:grid;gap:6px;font-size:14px;font-weight:600}
+label.f small{font-weight:400;color:var(--muted)}
+.in{width:100%;font:500 16px var(--body);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;min-height:48px}
+.in:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 25%,transparent)}
+.in[aria-invalid="true"]{border-color:var(--bad)}
+select.in{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat;padding-right:36px}
+.pass{position:relative}
+.pass .in{padding-right:76px}
+.pass button{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);font:600 13px var(--body);cursor:pointer;padding:6px 8px}
+.hint{font-size:13px;color:var(--muted);margin:-4px 0 0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:13px 22px;font:700 15px var(--body);text-decoration:none;border:0;cursor:pointer;min-height:48px;transition:filter .15s}
+.btn:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.55;cursor:default;filter:none}
+.btn-dark{background:var(--ink);color:var(--bg)}
+.btn-gold{background:#d1ab5e;color:#1b1a17}
+.btn-green{background:var(--wa);color:#fff}
+.btn-line{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn-line:hover{border-color:var(--gold)}
+.btn-block{width:100%}
+.btn-sm{padding:8px 14px;min-height:38px;font-size:14px}
+.link{border:0;background:none;padding:0;font:600 14px var(--body);color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.link:hover{color:var(--gold)}
+
+.tabs{display:flex;gap:4px;background:var(--bg);border-radius:999px;padding:4px;margin-bottom:18px}
+.tabs button{flex:1;border:0;background:none;border-radius:999px;padding:10px;font:700 14px var(--body);color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+.msg{border-radius:12px;padding:12px 14px;font-size:14px}
+.msg:empty{display:none}
+.msg.bad{background:var(--bad-soft);color:var(--bad)}
+.msg.ok{background:var(--ok-soft)}
+.msg.info{background:var(--gold-soft)}
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:gira .7s linear infinite;flex:none}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+/* status */
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st-aguardando_pagamento{background:var(--warn-soft);color:#8a5a00}
+.st-pago{background:var(--ok-soft);color:#17703c}
+.st-enviado{background:#dde8f7;color:#1f4f8f}
+.st-entregue{background:var(--ink);color:var(--bg)}
+.st-cancelado{background:var(--bad-soft);color:var(--bad)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .st-aguardando_pagamento{color:#f0c56b}:root:not([data-theme="light"]) .st-pago{color:#7fd6a0}:root:not([data-theme="light"]) .st-enviado{background:#1f2c40;color:#9cc0f0}}
+
+/* itens */
+.itens{list-style:none;margin:0;padding:0}
+.itens li{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.itens li:last-child{border-bottom:0}
+.itens .th{width:56px;height:56px;border-radius:10px;overflow:hidden;background:var(--bg)}
+.itens .th img{width:100%;height:100%;object-fit:cover;display:block}
+.itens b{font-size:14px;display:block;line-height:1.3}
+.itens span{font-size:13px;color:var(--muted)}
+.itens .v{font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;white-space:nowrap}
+.tot{display:grid;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tot div{display:flex;justify-content:space-between;font-size:14px}
+.tot .grand{font-size:16px;font-weight:700;padding-top:4px}
+.tot .grand strong{font-family:var(--display);font-weight:400;font-size:26px}
+
+/* linha do tempo */
+.tl{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:0}
+.tl li{position:relative;padding:0 0 14px 26px;font-size:14px}
+.tl li::before{content:"";position:absolute;left:5px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--line)}
+.tl li::after{content:"";position:absolute;left:9px;top:18px;bottom:0;width:2px;background:var(--line)}
+.tl li:last-child::after{display:none}
+.tl li.on::before{background:var(--wa)}
+.tl li.on{font-weight:600}
+.tl small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+
+.code{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-family:ui-monospace,Menlo,monospace;font-size:14px;word-break:break-all}
+.code span{flex:1 1 180px;min-width:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

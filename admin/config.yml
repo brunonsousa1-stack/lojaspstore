@@ -84,6 +84,8 @@ collections:
           - { label: WhatsApp como aparece no site, name: whatsapp_exibicao, widget: string }
           - { label: Preço destaque do banner, name: preco_destaque, widget: number, value_type: float, step: 0.01 }
           - { label: Preço do kit óculos + relógio, name: preco_kit, widget: number, value_type: float, step: 0.01 }
+          - { label: "Frete (valor fixo por pedido)", name: frete_valor, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Use 0 para frete grátis. Ex.: 15.90" }
+          - { label: "Frete grátis acima de", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra a partir do qual o frete fica grátis. Use 0 para não usar." }
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }
           - { label: Texto do banner, name: banner_texto, widget: text }

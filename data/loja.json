@@ -7,5 +7,7 @@
   "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp.",
   "preco_destaque": 29.99,
   "whatsapp": "5511947523834",
-  "banner_imagem_celular": "/img/coleção-de-óculos-premium-ao-sol.png"
+  "banner_imagem_celular": "/img/coleção-de-óculos-premium-ao-sol.png",
+  "frete_valor": 0,
+  "frete_gratis_acima": 0
 }

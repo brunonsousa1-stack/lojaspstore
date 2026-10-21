@@ -237,6 +237,14 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
 .cart-empty svg{color:var(--line);margin-bottom:8px}
 .cart-empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
 
+.acct{flex:none;width:42px;height:42px;border-radius:50%;border:1.5px solid #d6d4ce;background:#fbfaf7;color:#1b1a17;display:grid;place-items:center;text-decoration:none}
+.acct:hover{border-color:#b08a3e}
+.acct.on{background:#1b1a17;color:#d1ab5e;border-color:#1b1a17}
+.so-site{display:none}
+body.pag-site .so-site{display:revert}
+body.pag-site .so-wa{display:none}
+.cart-wa{font-size:13px;text-align:center;color:var(--muted)}
+.cart-wa a{color:var(--wa);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:30;transform:translate(-50%,16px);opacity:0;pointer-events:none;background:#1b1a17;color:#f3f1ec;border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:14px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);width:max-content;max-width:calc(100% - 32px);transition:opacity .2s,transform .2s}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{border:0;border-radius:999px;background:#d1ab5e;color:#1b1a17;font:700 13px var(--body);padding:8px 14px;cursor:pointer;white-space:nowrap}
@@ -259,6 +267,7 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
     <a href="#duvidas">Dúvidas</a>
   </nav>
   <a class="cart-btn" href="https://wa.me/5511947523834?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SP%20Store." target="_blank" rel="noopener">Fale conosco</a>
+  <a class="acct so-site" id="acct" href="/conta.html" aria-label="Minha conta" title="Minha conta"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
   <button class="bag" id="bag-btn" type="button" aria-label="Abrir carrinho"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><span class="bag-n" id="bag-n" hidden>0</span></button>
 </div></header>
 
@@ -320,7 +329,8 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
   <div class="steps">
     <div class="step"><b>Escolha o produto e a cor</b><p>Toque nas bolinhas de cor para ver as versões disponíveis.</p></div>
     <div class="step"><b>Adicione ao carrinho</b><p>Junte quantos produtos e cores quiser. Se preferir um só, toque em "Comprar no WhatsApp".</p></div>
-    <div class="step"><b>Finalize e pague</b><p>O pedido completo vai pelo WhatsApp. Enviamos o link do Mercado Pago para pagar com Pix ou cartão.</p></div>
+    <div class="step so-wa"><b>Finalize e pague</b><p>O pedido completo vai pelo WhatsApp. Enviamos o link do Mercado Pago para pagar com Pix ou cartão.</p></div>
+    <div class="step so-site"><b>Pague no site</b><p>Pix ou cartão em até 12x, direto no site e com segurança do Mercado Pago. Você acompanha o pedido e o rastreio na sua conta.</p></div>
   </div>
 </div></section>
 
@@ -328,7 +338,9 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
 <section class="shop" id="duvidas"><div class="wrap">
   <div class="sec-head"><h2>Dúvidas frequentes</h2></div>
   <div class="faq">
-    <details><summary>Como faço o pagamento?</summary><p>Depois que você envia o pedido pelo WhatsApp, enviamos um link do Mercado Pago. Você paga com Pix ou cartão de crédito.</p></details>
+    <details class="so-site"><summary>Como faço o pagamento?</summary><p>No carrinho, toque em "Finalizar compra", crie sua conta (ou entre) e pague com Pix ou cartão de crédito direto no site. O pagamento é processado pelo Mercado Pago e você não precisa ter conta lá.</p></details>
+    <details class="so-site"><summary>Como acompanho meu pedido?</summary><p>Entre em "Minha conta" (o ícone de pessoa no topo do site). Lá aparecem todos os seus pedidos, o status e o código de rastreio. Você também recebe cada atualização por e-mail.</p></details>
+    <details class="so-wa"><summary>Como faço o pagamento?</summary><p>Depois que você envia o pedido pelo WhatsApp, enviamos um link do Mercado Pago. Você paga com Pix ou cartão de crédito.</p></details>
     <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho e para a mensagem do WhatsApp.</p></details>
     <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e finalize o pedido de uma vez pelo WhatsApp.</p></details>
     <details><summary>Como o produto chega?</summary><p>Cada item vai em caixa protegida. Combinamos a forma de envio e o prazo pelo WhatsApp.</p></details>
@@ -520,7 +532,11 @@ document.getElementById("copy-wa").addEventListener("click",function(){
 // ---------- carrinho ----------
 const CART_KEY="spstore_carrinho";
 const cartDlg=document.getElementById("cart"), cartList=document.getElementById("cart-list"), cartFoot=document.getElementById("cart-foot");
-let cart=[], sent=false;
+let cart=[], sent=false, PAG_SITE=false;
+fetch("/api/config",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
+  if(!c||!c.pronto) return; PAG_SITE=true; document.body.classList.add("pag-site"); renderCart();
+  try{ if(localStorage.getItem("spstore_sessao")) document.getElementById("acct").classList.add("on") }catch(e){}
+}).catch(()=>{});
 try{const c=JSON.parse(localStorage.getItem(CART_KEY)||"[]");if(Array.isArray(c)) cart=c.filter(x=>x&&x.nome&&x.qtd>0)}catch(e){}
 const cents=n=>Math.round(Number(n)*100);
 const cartCount=()=>cart.reduce((a,x)=>a+x.qtd,0);
@@ -574,8 +590,10 @@ function renderCart(){
     </div></div>`).join("");
   cartFoot.innerHTML=`<div class="cart-tot"><span>Total</span><strong>${brl(cartTotal())}</strong></div>
     ${sent?`<div class="cart-sent"><span>Pedido enviado pelo WhatsApp?</span><button class="link-btn" type="button" data-cart="limpar">Esvaziar carrinho</button></div>`:""}
-    <a class="btn buy" id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">Finalizar pedido no WhatsApp</a>
-    <p class="cart-note">Você recebe o link do Mercado Pago para pagar com Pix ou cartão.</p>
+    ${PAG_SITE?`<a class="btn buy" href="/checkout.html">Finalizar compra</a>
+    <p class="cart-note">Pix ou cartão em até 12x, direto no site.</p>
+    <p class="cart-wa">ou <a id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">finalizar pelo WhatsApp</a></p>`:`<a class="btn buy" id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">Finalizar pedido no WhatsApp</a>
+    <p class="cart-note">Você recebe o link do Mercado Pago para pagar com Pix ou cartão.</p>`}
     <button class="btn cart-more" type="button" data-cart="fechar">Continuar comprando</button>`;
 }
 function updateBag(){
