@@ -47,6 +47,31 @@
       "selos": [
         "Mais vendido"
       ]
+    },
+    {
+      "ativo": true,
+      "avancado": {
+        "desenho": "hex"
+      },
+      "nome": "Óculos de Sol Feminino Hexagonal Dourado",
+      "preco": 29.97,
+      "categoria": "oculos",
+      "selos": [
+        "Maisvendido"
+      ],
+      "variantes": [
+        {
+          "foto": "/img/oculos-hexagonal-dourado.jpg",
+          "fotos_extras": [
+            "/img/oculos-hexagonal-dourado-1-.jpg",
+            "/img/oculos-de-sol-feminino-hexagonal-2-.jpg",
+            "/img/oculos-feminino-de-sol-hexagonal-6-.png",
+            "/img/oculos-feminino-de-sol-hexagonal-7-.png",
+            "/img/oculos-feminino-de-sol-hexagonal-1-.png"
+          ],
+          "nome": "Dourado"
+        }
+      ]
     }
   ]
 }
