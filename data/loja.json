@@ -1,9 +1,11 @@
 {
-  "whatsapp": "5511947523834",
   "whatsapp_exibicao": "(11) 94752-3834",
-  "preco_destaque": 29.99,
+  "banner_imagem": "/img/coleção-óculos_-estilo-ao-sol.png",
   "preco_kit": 59.98,
   "banner_etiqueta": "Óculos de sol e relógios",
   "banner_titulo": "Estilo pra todo dia por",
-  "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp."
+  "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp.",
+  "preco_destaque": 29.99,
+  "whatsapp": "5511947523834",
+  "banner_imagem_celular": "/img/coleção-de-óculos-premium-ao-sol.png"
 }
