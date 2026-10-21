@@ -38,6 +38,20 @@ function traduzir(m) {
   return m;
 }
 
+// Identifica o serviço para o filtro de transportadoras do painel
+export function chaveServico(s) {
+  const emp = String((s.company && s.company.name) || s.empresa || "").toLowerCase(), nome = String(s.name || s.nome || "").toLowerCase();
+  if (emp.includes("correios")) return /sedex/.test(nome) ? "correios-sedex" : /mini/.test(nome) ? "correios-mini" : "correios-pac";
+  if (emp.includes("jadlog")) return /package/.test(nome) ? "jadlog-package" : "jadlog-com";
+  if (emp.includes("loggi")) return "loggi";
+  if (emp.includes("j&t") || emp.includes("jet")) return "jet";
+  return "outra-" + emp.replace(/[^a-z0-9]/g, "");
+}
+export function permitido(loja, s) {
+  const lista = Array.isArray(loja.frete_transportadoras) ? loja.frete_transportadoras.filter(Boolean) : [];
+  return !lista.length || lista.includes(chaveServico(s));
+}
+
 export function medidas(produto) {
   const a = (produto && produto.avancado) || {};
   const n = (v, d) => (Number(v) > 0 ? Number(v) : d);
@@ -65,7 +79,7 @@ export async function cotar(env, { cepOrigem, cepDestino, itens, produtos, loja,
     options: { receipt: false, own_hand: false },
   };
   const lista = await me(env, "/shipment/calculate", "POST", corpo);
-  let ops = (Array.isArray(lista) ? lista : []).filter(s => s && !s.error && s.id != null && (s.custom_price ?? s.price) != null)
+  let ops = (Array.isArray(lista) ? lista : []).filter(s => s && !s.error && s.id != null && (s.custom_price ?? s.price) != null && permitido(loja, s))
     .map(s => ({
       id: String(s.id), nome: so(s.name, 40), empresa: so(s.company && s.company.name, 40), logo: (s.company && s.company.picture) || "",
       preco: Math.round(Number(s.custom_price ?? s.price) * 100) / 100,

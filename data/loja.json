@@ -13,5 +13,11 @@
   "dias_para_postar": 1,
   "pix_chave": "brunospstore@gmail.com",
   "pix_nome": "LOJA SP STORE LTDA",
-  "pix_cidade": "SAO PAULO"
+  "pix_cidade": "SAO PAULO",
+  "frete_transportadoras": [
+    "correios-pac",
+    "correios-sedex",
+    "correios-mini",
+    "jadlog-com"
+  ]
 }

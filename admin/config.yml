@@ -92,6 +92,20 @@ collections:
           - { label: "Chave Pix (para receber direto, sem taxa)", name: pix_chave, widget: string, required: false, hint: "E-mail, CPF/CNPJ (só números), celular com +55 ou chave aleatória. Deixe vazio para desligar o Pix direto." }
           - { label: "Nome do recebedor do Pix", name: pix_nome, widget: string, required: false, hint: "Como aparece no Pix. Ex.: LOJA SP STORE LTDA" }
           - { label: "Cidade do recebedor do Pix", name: pix_cidade, widget: string, required: false, default: "SAO PAULO" }
+          - label: "Transportadoras que aparecem no site"
+            name: frete_transportadoras
+            widget: select
+            multiple: true
+            required: false
+            hint: "Só estas opções aparecem para o cliente. Deixe vazio para mostrar todas."
+            options:
+              - { label: "Correios PAC", value: correios-pac }
+              - { label: "Correios SEDEX", value: correios-sedex }
+              - { label: "Correios Mini Envios", value: correios-mini }
+              - { label: "Jadlog .Com", value: jadlog-com }
+              - { label: "Jadlog .Package", value: jadlog-package }
+              - { label: "Loggi", value: loggi }
+              - { label: "J&T Express", value: jet }
           - { label: "Dias para postar o pedido", name: dias_para_postar, widget: number, value_type: int, min: 0, required: false, default: 1, hint: "Somado ao prazo da transportadora que o cliente vê." }
           - { label: "Frete grátis acima de", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra a partir do qual o frete fica grátis. Use 0 para não usar." }
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
