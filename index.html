@@ -175,6 +175,19 @@ dialog.pd::backdrop{background:rgba(12,12,11,.6)}
 .pd-desc{margin:0;color:var(--muted);font-size:15px;white-space:pre-line}
 .pd-label{font-size:13px;font-weight:700}
 .pd-label span{font-weight:400;color:var(--muted)}
+.pd-lt{grid-column:1/-1;border-top:1px solid var(--line);padding:20px 26px 26px}
+.pd-lt h3{font-size:20px;font-weight:400;margin:0 0 14px}
+.pd-lt-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.lt-card{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lt-open{display:flex;flex-direction:column;gap:6px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.lt-img{aspect-ratio:1;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,var(--bg),var(--surface));display:grid;place-items:center}
+.lt-img img{width:100%;height:100%;object-fit:cover;display:block}
+.lt-img svg{width:70%;height:auto}
+.lt-nome{font-size:13px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
+.lt-preco{font-weight:700;font-size:15px}
+.lt-add{margin-top:auto;border:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:999px;padding:8px 10px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.lt-add.ok{background:var(--ink);color:var(--surface)}
+@media (max-width:760px){.pd-lt{padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px))}.pd-lt-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pd .sw{width:36px;height:36px}
 .pd .price strong{font-size:30px}
 .pd .buy{padding:14px 18px;font-size:16px;margin-top:4px}
@@ -474,7 +487,21 @@ function fillProduct(p){
     <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
     <button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
     <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
-  </div>`;
+  </div>${leveTambem(p)}`;
+}
+// ---------- "Leve também": mesma categoria, outros modelos primeiro ----------
+function leveTambem(p){
+  const outros=P.map((x,idx)=>({...x,id:"p"+idx}))
+    .filter(x=>x.ativo!==false&&x.categoria===p.categoria&&x.id!==p.id)
+    .sort((a,b)=>((a.desenho||"hex")===(p.desenho||"hex"))-((b.desenho||"hex")===(p.desenho||"hex")))
+    .slice(0,4);
+  if(!outros.length) return "";
+  return `<section class="pd-lt" aria-label="Leve também"><h3>Leve também</h3><div class="pd-lt-grid">${outros.map(x=>{
+    const vs=x.variantes&&x.variantes.length?x.variantes:[{nome:"Padrão"}];
+    const v=vs[Math.min(sel[x.id]||0,vs.length-1)];
+    const img=v.foto?`<img src="${esc(v.foto)}" alt="${esc(x.nome)}" loading="lazy">`:art(x.desenho||"hex",v);
+    return `<div class="lt-card"><button class="lt-open" type="button" data-lt-open="${x.id}"><div class="lt-img">${img}</div><span class="lt-nome">${esc(x.nome)}</span><span class="lt-preco">${brl(x.preco)}</span></button><button class="lt-add" type="button" data-lt-add="${x.id}">Adicionar</button></div>`;
+  }).join("")}</div></section>`;
 }
 function openProduct(id,fromHash){
   const p=prodById(id); if(!p) return;
@@ -499,6 +526,8 @@ dlg.addEventListener("click",e=>{
   const p=prodById(openId), vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
   const i=Math.min(sel[p.id]||0,vs.length-1), v=vs[i], gk=p.id+"-"+i;
   const n=[v.foto,...(v.fotos_extras||[])].filter(Boolean).length;
+  const la=e.target.closest("[data-lt-add]"); if(la){addToCart(la.dataset.ltAdd);la.classList.add("ok");la.textContent="Adicionado ✓";setTimeout(()=>{if(la.isConnected){la.classList.remove("ok");la.textContent="Adicionar"}},1400);return}
+  const lo=e.target.closest("[data-lt-open]"); if(lo){openProduct(lo.dataset.ltOpen);dlg.scrollTop=0;pdIn.scrollTop=0;return}
   const ad=e.target.closest("[data-add]"); if(ad){addToCart(ad.dataset.add);closeProduct();openCart();return}
   const sw=e.target.closest("[data-pi]"); if(sw){sel[p.id]=+sw.dataset.pi;fillProduct(p);return}
   const pg=e.target.closest("[data-pg]"); if(pg&&n){gal[gk]=((gal[gk]||0)+(+pg.dataset.pg)+n)%n;fillProduct(p);return}
