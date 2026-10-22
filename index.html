@@ -112,6 +112,14 @@ section.shop{padding-block:48px}
 .cf b{display:block;font-size:14px}
 .cf span{font-size:13px;color:var(--muted)}
 .cf a{color:var(--ink)}
+.ig-band{background:linear-gradient(120deg,#2a1f12,#1b1a17);color:#f3f1ec;margin-top:40px}
+.ig-band .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:22px}
+.ig-band .ig-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);color:#fff;flex:none}
+.ig-band b{display:block;font-family:var(--display);font-weight:400;font-size:22px}
+.ig-band span{font-size:14px;opacity:.85}
+.ig-band .btn{margin-left:auto}
+@media (max-width:640px){.ig-band .btn{margin-left:0;width:100%;justify-content:center}}
+.ig-band+footer{margin-top:0}
 .cats{padding-block:28px 0}
 .cats .wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 @media (max-width:640px){.cats .wrap{gap:10px}}
@@ -441,6 +449,11 @@ body.pag-site .so-wa{display:none}
     <details><summary>Os relógios são originais DK?</summary><p>Sim, são da linha DK Original, com máquina quartz.</p></details>
   </div>
 </div></section>
+<section class="ig-band js-ig-on" hidden><div class="wrap">
+  <div class="ig-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></div>
+  <div><b>Siga a SP Store no Instagram</b><span>Novidades, lançamentos e cupons em primeira mão · <span class="js-ig-user">@spstore</span></span></div>
+  <a class="btn btn-gold js-ig-link" href="#" target="_blank" rel="noopener">Seguir no Instagram</a>
+</div></section>
 <footer id="contato">
   <div class="wrap">
     <div>
@@ -458,6 +471,7 @@ body.pag-site .so-wa{display:none}
       <li><a href="/trocas.html">Trocas e devoluções</a></li>
       <li><a href="/conta.html">Meus pedidos</a></li>
       <li><a href="https://wa.me/5511947523834" target="_blank" rel="noopener">WhatsApp</a></li>
+      <li class="js-ig-on" hidden><a class="js-ig-link" href="#" target="_blank" rel="noopener">Instagram <span class="js-ig-user"></span></a></li>
       <li><a class="js-mail" href="mailto:lojaspstore@gmail.com">lojaspstore@gmail.com</a></li>
     </ul></div>
   </div>
@@ -609,6 +623,8 @@ function applyLoja(L){
   if(L.banner_titulo) document.getElementById("hero-titulo").textContent=L.banner_titulo;
   if(L.banner_texto) document.getElementById("hero-texto").textContent=L.banner_texto;
   LOJA_CAT={oculos:L.categoria_oculos_img||"",relogios:L.categoria_relogios_img||""};
+  const ig=String(L.instagram||"").trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i,"").replace(/^@/,"").replace(/[/?#].*$/,"");
+  if(/^[A-Za-z0-9._]{1,30}$/.test(ig)){document.querySelectorAll(".js-ig-on").forEach(e=>e.hidden=false);document.querySelectorAll(".js-ig-user").forEach(e=>e.textContent="@"+ig);document.querySelectorAll(".js-ig-link").forEach(a=>a.href="https://www.instagram.com/"+ig+"/?utm_source=site")}
   LOJA_ML={nota:L.ml_nota||"",vendas:L.ml_vendas||"",link:/^https:\/\//.test(L.ml_link||"")?L.ml_link:"",titulo:L.ml_titulo||""}; renderConfianca();
   if(CAT){
     document.getElementById("hero-eyebrow").textContent="Coleção SP Store";

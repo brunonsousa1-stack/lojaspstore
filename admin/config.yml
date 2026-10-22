@@ -21,6 +21,7 @@ collections:
         fields:
           - { label: WhatsApp (só números, com 55 e DDD), name: whatsapp, widget: string }
           - { label: WhatsApp como aparece no site, name: whatsapp_exibicao, widget: string }
+          - { label: "Instagram da loja", name: instagram, widget: string, required: false, hint: "Só o @ (ex.: spstore) ou o link do perfil. Vazio = não aparece no site." }
           - { label: "Mercado Livre: nota da loja", name: ml_nota, widget: string, required: false, hint: "Ex.: 4,8. Aparece na faixa 'Loja oficial no Mercado Livre'. Vazio = faixa não aparece." }
           - { label: "Mercado Livre: vendas", name: ml_vendas, widget: string, required: false, hint: "Ex.: +5 mil. Use o número real mostrado no Mercado Livre." }
           - { label: "Mercado Livre: link da sua loja", name: ml_link, widget: string, required: false, hint: "Ex.: https://www.mercadolivre.com.br/loja/spstore" }
