@@ -262,8 +262,10 @@ export async function criarPagamento(env, request, p, f, tipoBrick) {
     pagamento.expiration_time = "P1D";
   } else {
     if (!f.token) throw new Error("Dados do cartão incompletos.");
-    const tipo = /^(credit_card|debit_card)$/.test(f.payment_type_id || "") ? f.payment_type_id : (/^(credit_card|debit_card)$/.test(tipoBrick || "") ? tipoBrick : "credit_card");
-    pagamento.payment_method = { id: metodo, type: tipo, token: String(f.token).slice(0, 200), installments: tipo === "debit_card" ? 1 : Math.min(12, Math.max(1, Math.floor(Number(f.installments) || 1))) };
+    // A loja aceita só cartão de crédito (débito desligado).
+    if (f.payment_type_id === "debit_card" || tipoBrick === "debit_card") throw new Error("A loja não aceita cartão de débito. Use cartão de crédito ou Pix.");
+    const tipo = "credit_card";
+    pagamento.payment_method = { id: metodo, type: tipo, token: String(f.token).slice(0, 200), installments: Math.min(12, Math.max(1, Math.floor(Number(f.installments) || 1))) };
   }
   const corpo = {
     type: "online", processing_mode: "automatic",

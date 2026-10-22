@@ -254,7 +254,7 @@ async function montarCartao(){
     $("#pay-brick").innerHTML="";
     brick=await mp.bricks().create("payment","pay-brick",{
       initialization:{amount:Number(pedido.total),payer:{email:pedido.email,firstName:nome,lastName:resto.join(" ")}},
-      customization:{paymentMethods:{creditCard:"all",debitCard:"all",maxInstallments:12},visual:{style:{theme:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"default",customVariables:{baseColor:"#b08a3e"}}}},
+      customization:{paymentMethods:{creditCard:"all",maxInstallments:12},visual:{style:{theme:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"default",customVariables:{baseColor:"#b08a3e"}}}},
       callbacks:{
         onReady(){},
         onError(err){console.error(err)},
