@@ -138,7 +138,7 @@ function render(){
       ${pedido?`${CFG.pix&&CFG.cartao?`<div class="tabs" role="tablist" id="metodos"><button role="tab" type="button" data-met="pix" aria-selected="${metodo==="pix"}">Pix${pctPix()?` <small style="color:#17703c">${pctPix()}% off</small>`:""}</button><button role="tab" type="button" data-met="cartao" aria-selected="${metodo==="cartao"}">Cartão de crédito</button></div>`:""}
       <div class="msg bad" id="p-msg" role="alert"></div><div id="pay-area"></div>
       <p class="seguro" id="seguro"></p>`
-      :`<p class="muted" style="margin:0">${CFG.pix&&CFG.cartao?"Pix ou cartão de crédito, sem sair do site.":CFG.cartao?"Cartão de crédito em até 12x, sem sair do site.":"Pix direto, sem sair do site."}</p>`}
+      :`<p class="muted" style="margin:0">${CFG.pix&&CFG.cartao?(Number(LOJA.parcelas_sem_juros)>1?`Pix com desconto ou ${LOJA.parcelas_sem_juros}x sem juros no cartão, sem sair do site.`:"Pix ou cartão de crédito, sem sair do site."):CFG.cartao?(Number(LOJA.parcelas_sem_juros)>1?`Cartão em até ${LOJA.parcelas_sem_juros}x sem juros ou até 12x, sem sair do site.`:"Cartão de crédito em até 12x, sem sair do site."):"Pix direto, sem sair do site."}</p>`}
     </section>
   </div><aside class="side">${resumoHTML()}</aside></div>`;
   ligar();

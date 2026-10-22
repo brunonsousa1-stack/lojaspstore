@@ -46,5 +46,6 @@
   "frete_gratis_acima": 119,
   "carro_raio_km": 2,
   "motoboy_ativo": true,
-  "meta_pixel_id": "253112213041309"
+  "meta_pixel_id": "253112213041309",
+  "parcelas_sem_juros": 4
 }

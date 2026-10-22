@@ -356,6 +356,7 @@ body.pag-site .so-wa{display:none}
   <span class="js-promo-on"><b class="js-promo">Leve 4 óculos, pague 3</b></span>
   <span class="js-fg-on"><b>Frete grátis</b><span class="js-fg-reg"> Sul e Sudeste</span> acima de <span class="js-fg">R$ 120,00</span></span>
   <span class="js-pix-on"><b><span class="js-pixp">5</span>% de desconto</b> no Pix</span>
+  <span class="js-parc-on"><b class="js-parc3">4x sem juros</b> no cartão</span>
   <span class="js-moto-on"><b>🛵 Entrega hoje</b> na Grande SP · pedidos <span class="js-moto">até 13h</span></span>
 </div></div>
 
@@ -392,7 +393,7 @@ body.pag-site .so-wa{display:none}
 
 <div class="perks"><div class="wrap">
   <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H4v12h16v-4M4 8l2-4h12l2 4M16 12h6v4h-6z"/></svg></div><div><b class="js-preco">R$ 29,99</b><span>em qualquer produto</span></div></div>
-  <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4-7.5L21 3v5h-5"/></svg></div><div><b class="js-pix-on"><i class="js-pixp" style="font-style:normal">5</i>% off no Pix</b><span>ou até 12x no cartão</span></div></div>
+  <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4-7.5L21 3v5h-5"/></svg></div><div><b class="js-pix-on"><i class="js-pixp" style="font-style:normal">5</i>% off no Pix</b><span class="js-parc">4x sem juros ou até 12x</span></div></div>
   <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l1.5-4A8 8 0 1 1 8 18.5z"/></svg></div><div><b>WhatsApp</b><span>tire dúvidas antes de comprar</span></div></div>
   <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg></div><div><b class="js-fg-on">Frete grátis<span class="js-fg-reg"> Sul e Sudeste</span></b><span class="js-fg-on">acima de <span class="js-fg">R$ 120,00</span></span></div></div>
 </div></div>
@@ -429,7 +430,7 @@ body.pag-site .so-wa{display:none}
     <div class="step"><b>Escolha o produto e a cor</b><p>Toque nas bolinhas de cor para ver as versões disponíveis.</p></div>
     <div class="step"><b>Adicione ao carrinho</b><p>Junte quantos produtos e cores quiser. Se quiser só um, toque em "Comprar" e vá direto para o pagamento.</p></div>
     <div class="step so-wa"><b>Finalize e pague</b><p>O pedido completo vai pelo WhatsApp. Enviamos o link do Mercado Pago para pagar com Pix ou cartão.</p></div>
-    <div class="step so-site"><b>Pague no site</b><p>Pix ou cartão em até 12x, direto no site e com segurança do Mercado Pago. Você acompanha o pedido e o rastreio na sua conta.</p></div>
+    <div class="step so-site"><b>Pague no site</b><p>Pix com desconto ou cartão em <span class="js-parc2">até 4x sem juros (ou até 12x)</span>, direto no site e com segurança do Mercado Pago. Você acompanha o pedido e o rastreio na sua conta.</p></div>
   </div>
 </div></section>
 
@@ -574,7 +575,7 @@ function cardsHTML(list){
 }
 function norm(list){return (list||[]).map(p=>({...p,selos:(p.selos||[]).map(x=>/^maisvendido$/i.test(String(x).trim())?"Mais vendido":x),desenho:p.desenho||(p.avancado&&p.avancado.desenho)||"hex",
   variantes:(p.variantes||[]).map(v=>({...v,cor_principal:v.cor_principal||(v.avancado&&v.avancado.cor_principal),cor_detalhe:v.cor_detalhe||(v.avancado&&v.avancado.cor_detalhe)}))}))}
-let MOTO=10, MOTOC="13h", FGREG="Sul e Sudeste", PIXP=5, FGA=120, FGR=119, PLEVE=4, PCAT="oculos";
+let PSJ=4, MOTO=10, MOTOC="13h", FGREG="Sul e Sudeste", PIXP=5, FGA=120, FGR=119, PLEVE=4, PCAT="oculos";
 const PCAT_TXT={oculos:"óculos",relogios:"relógios"};
 // mesma regra do servidor: a cada PLEVE itens da categoria, o mais barato sai grátis
 function promoCart(){
@@ -588,7 +589,7 @@ const precoPix=n=>Math.round(Math.round(Number(n)*100)*(100-PIXP)/100)/100;
 function pixTxt(preco){return PIXP>0?`<span class="pixp"><b>${brl(precoPix(preco))}</b> no Pix</span>`:`<span>no Pix ou cartão</span>`}
 function perks(p){const l=[];
   if(PIXP>0)l.push(`<li><b>${PIXP}% off no Pix</b> · ${brl(precoPix(p.preco))}</li>`);
-  l.push(`<li>Ou em até <b>12x no cartão</b></li>`);
+  l.push(PSJ>1?`<li>Ou <b>${PSJ}x de ${brl(Math.floor(p.preco/PSJ*100)/100)} sem juros</b> no cartão (ou até 12x)</li>`:`<li>Ou em até <b>12x no cartão</b></li>`);
   if(PLEVE>=2&&p.categoria===PCAT)l.push(`<li><b>Leve ${PLEVE}, pague ${PLEVE-1}</b> · o ${PLEVE}º ${PCAT==="oculos"?"óculos":"relógio"} sai grátis</li>`);
   if(FGA>0)l.push(`<li><b>Frete grátis${FGREG?" "+FGREG:""}</b> em compras acima de ${brl(FGA)}</li>`);
   if(MOTO)l.push(`<li><b>🛵 Entrega hoje</b> na Grande SP por ${brl(MOTO)} · pedidos até ${MOTOC}</li>`);
@@ -603,6 +604,10 @@ function applyLoja(L){
   document.querySelectorAll(".js-promo-on").forEach(e=>e.hidden=PLEVE<2);
   document.querySelectorAll(".js-promo").forEach(e=>e.textContent=`Leve ${PLEVE} ${PCAT_TXT[PCAT]||""}, pague ${PLEVE-1}`);
   document.querySelectorAll(".js-pixp").forEach(e=>e.textContent=PIXP);
+  if(L.parcelas_sem_juros!=null) PSJ=Math.max(1,Math.min(12,parseInt(L.parcelas_sem_juros)||1));
+  document.querySelectorAll(".js-parc").forEach(e=>e.textContent=PSJ>1?`${PSJ}x sem juros ou até 12x`:"ou até 12x no cartão");
+  document.querySelectorAll(".js-parc-on").forEach(e=>e.hidden=PSJ<2);document.querySelectorAll(".js-parc3").forEach(e=>e.textContent=PSJ+"x sem juros");
+  document.querySelectorAll(".js-parc2").forEach(e=>e.textContent=PSJ>1?`até ${PSJ}x sem juros (ou até 12x)`:"até 12x");
   if(L.motoboy_ativo!=null) MOTO=L.motoboy_ativo?Math.max(0,Number(L.motoboy_valor??10)):0;
   if(L.motoboy_corte) MOTOC=String(L.motoboy_corte).replace(/:00$/,"h").replace(":","h");
   document.querySelectorAll(".js-moto-on").forEach(e=>e.hidden=!MOTO);
@@ -629,7 +634,7 @@ function applyLoja(L){
   if(CAT){
     document.getElementById("hero-eyebrow").textContent="Coleção SP Store";
     document.getElementById("hero-titulo").textContent=CATN[CAT]+" por";
-    document.getElementById("hero-texto").textContent=CAT==="oculos"?`Proteção UV400, vários modelos e cores.${PLEVE>=2&&PCAT==="oculos"?` Leve ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou cartão em até 12x.`:"Relógios DK Original com máquina quartz. Pix com desconto ou cartão em até 12x.";
+    document.getElementById("hero-texto").textContent=CAT==="oculos"?`Proteção UV400, vários modelos e cores.${PLEVE>=2&&PCAT==="oculos"?` Leve ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`:`Relógios DK Original com máquina quartz. Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`;
   }
   const bd=CAT?(L["banner_"+CAT]||""):(L.banner_imagem||""), bm=CAT?(L["banner_"+CAT+"_celular"]||""):(L.banner_imagem_celular||"");
   if(bd||bm){
@@ -851,7 +856,7 @@ function renderCart(){
     ${PIXP>0?`<div class="cart-pix">ou <b>${brl(precoPix(tot))}</b> no Pix (${PIXP}% off)</div>`:""}
     ${sent?`<div class="cart-sent"><span>Pedido enviado pelo WhatsApp?</span><button class="link-btn" type="button" data-cart="limpar">Esvaziar carrinho</button></div>`:""}
     ${PAG_SITE?`<a class="btn buy" href="/checkout.html">Finalizar compra</a>
-    <p class="cart-note">Pix ou cartão em até 12x, direto no site.</p>
+    <p class="cart-note">Pix com desconto ou ${PSJ>1?`${PSJ}x sem juros (até 12x)`:"até 12x"} no cartão.</p>
     <p class="cart-wa">ou <a id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">finalizar pelo WhatsApp</a></p>`:`<a class="btn buy" id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">Finalizar pedido no WhatsApp</a>
     <p class="cart-note">Você recebe o link do Mercado Pago para pagar com Pix ou cartão.</p>`}
     <button class="btn cart-more" type="button" data-cart="fechar">Continuar comprando</button>`;

@@ -93,6 +93,7 @@ collections:
               - { label: Óculos de sol, value: oculos }
               - { label: Relógios, value: relogios }
           - { label: "Desconto no Pix (%)", name: desconto_pix, widget: number, value_type: int, min: 0, max: 30, required: false, default: 5, hint: "Desconto sobre os produtos (não sobre o frete) quando o cliente paga no Pix. 0 = sem desconto." }
+          - { label: "Parcelas sem juros no cartão", name: parcelas_sem_juros, widget: number, value_type: int, min: 1, max: 12, required: false, default: 4, hint: "Só o texto do site. Configure o mesmo número no Mercado Pago (Seu negócio > Custos > Parcelamento sem acréscimo). 1 = não anunciar." }
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }
           - { label: Texto do banner, name: banner_texto, widget: text }
