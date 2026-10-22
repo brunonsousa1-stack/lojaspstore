@@ -89,3 +89,7 @@ collections:
           - { label: Texto do banner, name: banner_texto, widget: text }
           - { label: "Imagem do banner (computador, 1920 x 600 px)", name: banner_imagem, widget: image, required: false, hint: "Opcional. Com imagem, ela aparece no lugar do banner de texto. Deixe vazio para manter o banner atual." }
           - { label: "Imagem do banner (celular, 1080 x 1080 px)", name: banner_imagem_celular, widget: image, required: false, hint: "Opcional. Se ficar vazio, o celular usa a imagem do computador." }
+          - { label: "Chave Pix da loja", name: pix_chave, widget: string, required: false, hint: "A chave Pix da conta Mercado Pago. CNPJ ou CPF só números; celular com +55 e DDD (ex.: +5511947523834); ou e-mail; ou chave aleatória. Vazio = o site não mostra a opção Pix." }
+          - { label: "Nome que aparece no Pix", name: pix_nome, widget: string, required: false, hint: "Até 25 letras, sem acento. Ex.: SP STORE" }
+          - { label: "Cidade do Pix", name: pix_cidade, widget: string, required: false, hint: "Até 15 letras, sem acento. Ex.: SAO PAULO" }
+          - { label: "Frete fixo (R$)", name: frete_fixo, widget: number, value_type: float, step: 0.01, min: 0, required: false, hint: "Valor somado em todo pedido. Deixe 0 para combinar o frete pelo WhatsApp depois da compra." }

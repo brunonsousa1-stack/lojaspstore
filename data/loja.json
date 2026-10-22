@@ -4,8 +4,12 @@
   "preco_kit": 59.98,
   "banner_etiqueta": "Óculos de sol e relógios",
   "banner_titulo": "Estilo pra todo dia por",
-  "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp.",
+  "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e pague com Pix ou cartão.",
   "preco_destaque": 29.99,
   "whatsapp": "5511947523834",
-  "banner_imagem_celular": "/img/coleção-de-óculos-premium-ao-sol.png"
+  "banner_imagem_celular": "/img/coleção-de-óculos-premium-ao-sol.png",
+  "pix_chave": "",
+  "pix_nome": "SP STORE",
+  "pix_cidade": "SAO PAULO",
+  "frete_fixo": 0
 }

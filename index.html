@@ -247,6 +247,31 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
 .link-btn{border:0;background:none;padding:0;font:700 13px var(--body);color:var(--ink);text-decoration:underline;cursor:pointer}
 .cart-more{justify-content:center;background:transparent;color:var(--ink);border:1.5px solid var(--line);padding:11px 16px;font-size:14px}
 .cart-empty{text-align:center;padding:48px 8px;color:var(--muted)}
+/* checkout */
+.ck{display:grid;gap:12px;padding:14px 0 20px}
+.ck h3{margin:6px 0 0;font:700 15px var(--body)}
+.ck label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.ck input{font:16px var(--body);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;box-sizing:border-box}
+.ck input:focus{border-color:var(--gold);outline:0}
+.ck .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ck .row3{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.ck-pay{display:grid;gap:8px}
+.ck-pay label{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:12px;color:var(--ink);font-size:15px;cursor:pointer}
+.ck-pay label:has(input:checked){border-color:var(--gold);background:var(--gold-soft)}
+.ck-pay input{width:auto;accent-color:var(--gold)}
+.ck-pay small{display:block;color:var(--muted);font-size:12px}
+.ck-err{background:#fde8e6;color:#8a1f12;border-radius:10px;padding:10px 12px;font-size:14px}
+.ck-resumo{display:grid;gap:4px;font-size:14px}
+.ck-resumo div{display:flex;justify-content:space-between;gap:10px}
+.ck-resumo .t{font-weight:700;font-size:16px;border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
+.pix{display:grid;gap:12px;justify-items:center;text-align:center;padding:16px 0 20px}
+.pix-qr{background:#fff;border-radius:12px;padding:10px;width:220px;height:220px}
+.pix-qr svg{width:100%;height:100%;display:block}
+.pix-code{width:100%;font:12px monospace;word-break:break-all;background:var(--bg);border:1px dashed var(--line);border-radius:10px;padding:10px;text-align:left;max-height:84px;overflow:auto}
+.pix-val{font-family:var(--display);font-size:32px}
+.pix ol{text-align:left;margin:0;padding-left:20px;font-size:14px;color:var(--muted);display:grid;gap:4px}
+.ret{text-align:center;padding:28px 4px;display:grid;gap:10px;justify-items:center}
+.ret-ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:28px;background:var(--gold-soft)}
 .cart-empty svg{color:var(--line);margin-bottom:8px}
 .cart-empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
 
@@ -279,7 +304,7 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
   <div>
     <div class="eyebrow" id="hero-eyebrow">Óculos de sol e relógios</div>
     <h1><span id="hero-titulo">Estilo pra todo dia por</span> <em class="js-preco">R$&nbsp;29,99</em></h1>
-    <p id="hero-texto">Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp.</p>
+    <p id="hero-texto">Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e pague com Pix ou cartão.</p>
     <div class="hero-ctas">
       <a class="btn btn-gold" href="#vitrine">Ver produtos</a>
       <a class="btn btn-ghost" href="#como-comprar">Como comprar</a>
@@ -334,7 +359,7 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
   <div class="steps">
     <div class="step"><b>Escolha o produto e a cor</b><p>Toque nas bolinhas de cor para ver as versões disponíveis.</p></div>
     <div class="step"><b>Adicione ao carrinho</b><p>Junte quantos produtos e cores quiser. Se preferir um só, toque em "Comprar no WhatsApp".</p></div>
-    <div class="step"><b>Finalize e pague</b><p>O pedido completo vai pelo WhatsApp. Enviamos o link do Mercado Pago para pagar com Pix ou cartão.</p></div>
+    <div class="step"><b>Finalize e pague</b><p>No carrinho, informe o endereço de entrega e pague com Pix ou cartão de crédito pelo Mercado Pago, direto no site.</p></div>
   </div>
 </div></section>
 
@@ -342,9 +367,9 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
 <section class="shop" id="duvidas"><div class="wrap">
   <div class="sec-head"><h2>Dúvidas frequentes</h2></div>
   <div class="faq">
-    <details><summary>Como faço o pagamento?</summary><p>Depois que você envia o pedido pelo WhatsApp, enviamos um link do Mercado Pago. Você paga com Pix ou cartão de crédito.</p></details>
-    <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho e para a mensagem do WhatsApp.</p></details>
-    <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e finalize o pedido de uma vez pelo WhatsApp.</p></details>
+    <details><summary>Como faço o pagamento?</summary><p>No carrinho, toque em "Finalizar compra", preencha o endereço e escolha Pix (QR Code ou copia e cola) ou cartão de crédito em até 12x pelo Mercado Pago. Você não precisa ter conta no Mercado Pago.</p></details>
+    <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho.</p></details>
+    <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e pague tudo de uma vez.</p></details>
     <details><summary>Como o produto chega?</summary><p>Cada item vai em caixa protegida. Combinamos a forma de envio e o prazo pelo WhatsApp.</p></details>
     <details><summary>Os relógios são originais DK?</summary><p>Sim, são da linha DK Original, com máquina quartz.</p></details>
   </div>
@@ -395,7 +420,7 @@ let WA = "5511947523834";
 // cores: frame (armação), lens (lente) | case, dial (mostrador), strap
 const FALLBACK = {"produtos": [{"nome": "Óculos de Sol Feminino Hexagonal", "categoria": "oculos", "preco": 29.99, "descricao": "", "selos": ["Mais vendido"], "desenho": "hex", "ativo": true, "variantes": [{"nome": "Dourado com lente marrom", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#6b4423"}, {"nome": "Dourado com lente preta", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#222"}, {"nome": "Dourado com lente verde", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#3f5a3a"}, {"nome": "Preto", "foto": "", "cor_principal": "#1d1d1d", "cor_detalhe": "#2a2a2a"}]}, {"nome": "Óculos de Sol Aviador", "categoria": "oculos", "preco": 29.99, "descricao": "", "selos": ["Clássico"], "desenho": "avi", "ativo": true, "variantes": [{"nome": "Preto", "foto": "", "cor_principal": "#1d1d1d", "cor_detalhe": "#2a2a2a"}, {"nome": "Dourado com lente marrom", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#6b4423"}, {"nome": "Dourado com lente preta", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#222"}]}, {"nome": "Relógio Feminino DK Original", "categoria": "relogios", "preco": 29.99, "descricao": "", "selos": ["Quartz"], "desenho": "round", "ativo": true, "variantes": [{"nome": "Dourado, mostrador creme", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#f1e6cf"}, {"nome": "Dourado, mostrador preto", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#1d1d1d"}, {"nome": "Prateado, mostrador creme", "foto": "", "cor_principal": "#b9bcc0", "cor_detalhe": "#f1e6cf"}, {"nome": "Prateado, mostrador preto", "foto": "", "cor_principal": "#b9bcc0", "cor_detalhe": "#1d1d1d"}]}, {"nome": "Relógio Feminino DK Original Gota", "categoria": "relogios", "preco": 29.99, "descricao": "", "selos": ["Novo"], "desenho": "drop", "ativo": true, "variantes": [{"nome": "Dourado, mostrador branco", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#fafafa"}, {"nome": "Prateado, mostrador branco", "foto": "", "cor_principal": "#b9bcc0", "cor_detalhe": "#fafafa"}]}, {"nome": "Relógio Unissex DK Original Digital", "categoria": "relogios", "preco": 29.99, "descricao": "", "selos": ["Unissex"], "desenho": "digital", "ativo": true, "variantes": [{"nome": "Preto", "foto": "", "cor_principal": "#1d1d1d", "cor_detalhe": "#9fb39a"}]}]};
 let P = FALLBACK.produtos;
-const FALLBACK_LOJA = {"whatsapp": "5511947523834", "whatsapp_exibicao": "(11) 94752-3834", "preco_destaque": 29.99, "preco_kit": 59.98, "banner_etiqueta": "Óculos de sol e relógios", "banner_titulo": "Estilo pra todo dia por", "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp."};
+const FALLBACK_LOJA = {"whatsapp": "5511947523834", "whatsapp_exibicao": "(11) 94752-3834", "preco_destaque": 29.99, "preco_kit": 59.98, "banner_etiqueta": "Óculos de sol e relógios", "banner_titulo": "Estilo pra todo dia por", "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e pague com Pix ou cartão."};
 
 function art(kind,v){
   const x={frame:v.cor_principal,lens:v.cor_detalhe,c:v.cor_principal,d:v.cor_detalhe};
@@ -453,6 +478,7 @@ function applyLoja(L){
     document.getElementById("hero-img-m").srcset=bm||bd;
     document.getElementById("hero-img").hidden=false; document.querySelector("section.hero").hidden=true;
   }
+  LOJA=L;
   if(L.whatsapp_exibicao) document.getElementById("wa-text").textContent=L.whatsapp_exibicao;
   document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a=>{a.href=a.href.replace(/wa\.me\/\d+/,"wa.me/"+WA)});
 }
@@ -550,7 +576,9 @@ document.getElementById("copy-wa").addEventListener("click",function(){
 // ---------- carrinho ----------
 const CART_KEY="spstore_carrinho";
 const cartDlg=document.getElementById("cart"), cartList=document.getElementById("cart-list"), cartFoot=document.getElementById("cart-foot");
-let cart=[], sent=false;
+let cart=[], sent=false, step="carrinho", ckErr="", ckBusy=false, pixInfo=null;
+let LOJA={};
+const DADOS_KEY="spstore_dados", PEDIDO_KEY="spstore_pedido";
 try{const c=JSON.parse(localStorage.getItem(CART_KEY)||"[]");if(Array.isArray(c)) cart=c.filter(x=>x&&x.nome&&x.qtd>0)}catch(e){}
 const cents=n=>Math.round(Number(n)*100);
 const cartCount=()=>cart.reduce((a,x)=>a+x.qtd,0);
@@ -584,14 +612,32 @@ function waOrder(){
   return `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
 }
 function thumb(x){return x.foto?`<img src="${esc(x.foto)}" alt="" loading="lazy">`:art(x.desenho,{cor_principal:x.cp||"#999",cor_detalhe:x.cd||"#ccc"})}
+const frete=()=>cents(LOJA.frete_fixo||0)/100;
+const temPix=()=>!!String(LOJA.pix_chave||"").trim();
+function freteTxt(){return frete()>0?brl(frete()):"A combinar"}
+function getDados(){try{return JSON.parse(localStorage.getItem(DADOS_KEY)||"{}")||{}}catch(e){return {}}}
+function itensTxt(itens){return itens.map(x=>`• ${x.qtd}x ${x.nome}${corTxt(x.cor)?` - ${x.cor}`:""} (${brl(cents(x.preco)*x.qtd/100)})`).join("\n")}
+function endTxt(d){return `${d.endereco}, ${d.numero}${d.complemento?" - "+d.complemento:""}, ${d.bairro} - ${d.cidade}/${d.uf} - CEP ${d.cep}`}
+function waPedido(o,extra){
+  const t=`Olá! Fiz o pedido ${o.pedido} pelo site da SP Store.\n\n${itensTxt(o.itens)}\n\nFrete: ${o.frete>0?brl(o.frete):"a combinar"}\nTotal: ${brl(o.total)}\nPagamento: ${o.forma}\n\nEntrega para: ${o.dados.nome}\n${endTxt(o.dados)}\nTel: ${o.dados.telefone}${extra?"\n\n"+extra:""}`;
+  return `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
+}
+function novoPedidoId(){return "SP"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase()}
+function resumoHtml(){return `<div class="ck-resumo"><div><span>Produtos (${cartCount()})</span><span>${brl(cartTotal())}</span></div><div><span>Frete</span><span>${freteTxt()}</span></div><div class="t"><span>Total</span><span>${brl(cartTotal()+frete())}</span></div></div>`}
 function renderCart(){
   const n=cartCount();
+  const title=document.getElementById("cart-title");
+  if(step==="retorno"){ return renderRetorno() }
+  if(step==="pix"&&pixInfo){ title.textContent="Pagar com Pix"; document.getElementById("cart-sub").textContent=`Pedido ${pixInfo.pedido}`; return renderPix() }
+  if(!n) step="carrinho";
+  title.textContent=step==="dados"?"Entrega e pagamento":"Seu carrinho";
   document.getElementById("cart-sub").textContent=n?`${n} ${n===1?"item":"itens"}`:"";
   if(!n){
     cartList.innerHTML=`<div class="cart-empty"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><b>Seu carrinho está vazio</b>Escolha um óculos ou relógio e toque em "Adicionar ao carrinho".</div>`;
     cartFoot.innerHTML=`<button class="btn cart-more" type="button" data-cart="fechar">Ver produtos</button>`;
     return;
   }
+  if(step==="dados"){ return renderDados() }
   cartList.innerHTML=cart.map((x,k)=>`<div class="ci">
     <div class="ci-img">${thumb(x)}</div>
     <div>
@@ -603,10 +649,113 @@ function renderCart(){
       </div>
     </div></div>`).join("");
   cartFoot.innerHTML=`<div class="cart-tot"><span>Total</span><strong>${brl(cartTotal())}</strong></div>
-    ${sent?`<div class="cart-sent"><span>Pedido enviado pelo WhatsApp?</span><button class="link-btn" type="button" data-cart="limpar">Esvaziar carrinho</button></div>`:""}
-    <a class="btn buy" id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">Finalizar pedido no WhatsApp</a>
-    <p class="cart-note">Você recebe o link do Mercado Pago para pagar com Pix ou cartão.</p>
+    <button class="btn buy" type="button" data-cart="dados" style="justify-content:center">Finalizar compra</button>
+    <p class="cart-note">Pix ou cartão de crédito em até 12x pelo Mercado Pago</p>
     <button class="btn cart-more" type="button" data-cart="fechar">Continuar comprando</button>`;
+}
+function renderDados(){
+  const d=getDados(), v=k=>esc(d[k]||"");
+  const forma=d.forma==="cartao"||!temPix()?"cartao":"pix";
+  cartList.innerHTML=`<form class="ck" id="ck" novalidate>
+    ${ckErr?`<div class="ck-err" role="alert">${esc(ckErr)}</div>`:""}
+    <h3>Seus dados</h3>
+    <label>Nome completo<input name="nome" autocomplete="name" required value="${v("nome")}"></label>
+    <label>E-mail<input name="email" type="email" autocomplete="email" required value="${v("email")}"></label>
+    <label>WhatsApp<input name="telefone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(11) 90000-0000" value="${v("telefone")}"></label>
+    <h3>Endereço de entrega</h3>
+    <div class="row"><label>CEP<input name="cep" inputmode="numeric" autocomplete="postal-code" required placeholder="00000-000" value="${v("cep")}"></label><span></span></div>
+    <label>Rua<input name="endereco" autocomplete="address-line1" required value="${v("endereco")}"></label>
+    <div class="row"><label>Número<input name="numero" required value="${v("numero")}"></label><label>Complemento<input name="complemento" placeholder="Opcional" value="${v("complemento")}"></label></div>
+    <label>Bairro<input name="bairro" required value="${v("bairro")}"></label>
+    <div class="row3"><label>Cidade<input name="cidade" autocomplete="address-level2" required value="${v("cidade")}"></label><label>UF<input name="uf" maxlength="2" autocomplete="address-level1" required value="${v("uf")}"></label></div>
+    <h3>Pagamento</h3>
+    <div class="ck-pay">
+      ${temPix()?`<label><input type="radio" name="forma" value="pix" ${forma==="pix"?"checked":""}><span>Pix<small>QR Code ou copia e cola, na hora</small></span></label>`:""}
+      <label><input type="radio" name="forma" value="cartao" ${forma==="cartao"?"checked":""}><span>Cartão de crédito<small>Em até 12x, na página segura do Mercado Pago</small></span></label>
+    </div>
+    ${resumoHtml()}
+    ${frete()>0?"":`<p class="cart-note" style="text-align:left">O frete é combinado com você pelo WhatsApp depois da compra.</p>`}
+  </form>`;
+  cartFoot.innerHTML=`<button class="btn buy" type="submit" form="ck" style="justify-content:center" ${ckBusy?"disabled":""}>${ckBusy?"Abrindo o Mercado Pago…":"Ir para o pagamento"}</button>
+    <button class="btn cart-more" type="button" data-cart="voltar">Voltar ao carrinho</button>`;
+}
+function lerForm(f){const d={};new FormData(f).forEach((x,k)=>d[k]=String(x).trim());d.cep=d.cep.replace(/\D/g,"");d.uf=(d.uf||"").toUpperCase();return d}
+function validar(d){
+  if(d.nome.split(/\s+/).length<2) return "Digite seu nome completo.";
+  if(!/^\S+@\S+\.\S+$/.test(d.email)) return "Confira o e-mail.";
+  if(d.telefone.replace(/\D/g,"").length<10) return "Digite o WhatsApp com DDD.";
+  if(d.cep.length!==8) return "O CEP precisa ter 8 números.";
+  if(!d.endereco||!d.numero||!d.bairro||!d.cidade||d.uf.length!==2) return "Preencha o endereço completo.";
+  return "";
+}
+async function enviarDados(f){
+  const d=lerForm(f); try{localStorage.setItem(DADOS_KEY,JSON.stringify(d))}catch(e){}
+  ckErr=validar(d); if(ckErr){renderCart();cartList.scrollTop=0;return}
+  const itens=cart.map(x=>({nome:x.nome,cor:x.cor,qtd:x.qtd,preco:x.preco}));
+  const base={itens,dados:d,frete:frete(),total:cartTotal()+frete()};
+  if(d.forma==="pix"){
+    pixInfo={...base,pedido:novoPedidoId(),forma:"Pix"};
+    step="pix"; renderCart(); cartList.scrollTop=0; return;
+  }
+  ckBusy=true; renderCart();
+  try{
+    const r=await fetch("/api/pagamento",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({itens,cliente:d})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.url) throw new Error(j.erro||"Não foi possível abrir o pagamento. Tente de novo.");
+    try{localStorage.setItem(PEDIDO_KEY,JSON.stringify({...base,pedido:j.pedido,forma:"Cartão de crédito (Mercado Pago)"}))}catch(e){}
+    location.href=j.url;
+  }catch(e){ ckBusy=false; ckErr=e.message||"Não foi possível abrir o pagamento."; renderCart(); cartList.scrollTop=0 }
+}
+// ---- Pix (código copia e cola no padrão do Banco Central) ----
+function semAcento(t){return String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9 ]/g,"").toUpperCase()}
+function chavePix(k){k=String(k||"").trim();if(k.includes("@"))return k.toLowerCase();if(/^\+/.test(k))return "+"+k.replace(/\D/g,"");if(/^[\d.\-\/() ]+$/.test(k))return k.replace(/\D/g,"");return k}
+function crc16(t){let c=0xFFFF;for(let i=0;i<t.length;i++){c^=t.charCodeAt(i)<<8;for(let j=0;j<8;j++)c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF}return c.toString(16).toUpperCase().padStart(4,"0")}
+function pixCode(valor,txid){
+  const f=(id,v)=>id+String(v.length).padStart(2,"0")+v;
+  const nome=semAcento(LOJA.pix_nome||"SP STORE").slice(0,25)||"SP STORE";
+  const cid=semAcento(LOJA.pix_cidade||"SAO PAULO").slice(0,15)||"SAO PAULO";
+  const t=f("00","01")+f("26",f("00","br.gov.bcb.pix")+f("01",chavePix(LOJA.pix_chave)))+f("52","0000")+f("53","986")+f("54",valor.toFixed(2))+f("58","BR")+f("59",nome)+f("60",cid)+f("62",f("05",semAcento(txid).replace(/ /g,"").slice(0,25)||"***"))+"6304";
+  return t+crc16(t);
+}
+let qrLib=null;
+function carregaQR(){return qrLib||(qrLib=new Promise((ok,er)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js";sc.onload=()=>ok(window.qrcode);sc.onerror=er;document.head.appendChild(sc)}))}
+function renderPix(){
+  const o=pixInfo, code=pixCode(o.total,o.pedido);
+  cartList.innerHTML=`<div class="pix">
+    <div class="pix-val">${brl(o.total)}</div>
+    ${o.frete>0?"":`<p class="cart-note">Valor dos produtos. O frete é combinado pelo WhatsApp.</p>`}
+    <div class="pix-qr" id="pix-qr" aria-label="QR Code do Pix"></div>
+    <div class="pix-code" id="pix-code">${esc(code)}</div>
+    <button class="btn cart-more" type="button" data-cart="copiar" style="justify-content:center;width:100%">Copiar código Pix</button>
+    <ol><li>Abra o app do seu banco e escolha Pix.</li><li>Escaneie o QR Code ou cole o código.</li><li>Confira o valor e o nome ${esc(LOJA.pix_nome||"SP Store")} e pague.</li><li>Toque abaixo para enviar o comprovante no WhatsApp.</li></ol>
+  </div>`;
+  cartFoot.innerHTML=`<a class="btn buy" id="pix-wa" href="${waPedido(o,"Já paguei com Pix. Segue o comprovante:")}" target="_blank" rel="noopener" style="justify-content:center">Enviar comprovante no WhatsApp</a>
+    <button class="btn cart-more" type="button" data-cart="voltar-dados">Trocar forma de pagamento</button>`;
+  carregaQR().then(q=>{const el=document.getElementById("pix-qr");if(!el)return;const qr=q(0,"M");qr.addData(code);qr.make();el.innerHTML=qr.createSvgTag({cellSize:4,margin:0,scalable:true})}).catch(()=>{const el=document.getElementById("pix-qr");if(el)el.style.display="none"});
+}
+let retorno=null;
+function renderRetorno(){
+  const r=retorno, o=r.pedido;
+  const title=document.getElementById("cart-title"); document.getElementById("cart-sub").textContent=o?`Pedido ${o.pedido}`:"";
+  const map={
+    aprovado:["✓","Pagamento aprovado!","Obrigado pela compra. Toque abaixo para nos mandar o pedido no WhatsApp e combinar o envio."],
+    pendente:["…","Pagamento em análise","Assim que o Mercado Pago aprovar, separamos seu pedido. Se quiser, avise a gente no WhatsApp."],
+    recusado:["!","Pagamento não concluído","Nada foi cobrado. Seus produtos continuam no carrinho para você tentar de novo."]};
+  const [ic,t,txt]=map[r.status]||map.pendente;
+  title.textContent=t;
+  cartList.innerHTML=`<div class="ret"><div class="ret-ic">${ic}</div><b style="font-size:20px">${t}</b><p class="cart-note">${txt}</p></div>`;
+  cartFoot.innerHTML=(o&&r.status!=="recusado"?`<a class="btn buy" href="${waPedido(o,r.status==="aprovado"?"Pagamento aprovado no cartão.":"Pagamento no cartão em análise.")}" target="_blank" rel="noopener" style="justify-content:center">Enviar pedido no WhatsApp</a>`:"")+
+    (r.status==="recusado"&&cartCount()?`<button class="btn buy" type="button" data-cart="dados" style="justify-content:center">Tentar de novo</button>`:"")+
+    `<button class="btn cart-more" type="button" data-cart="fim">${r.status==="recusado"?"Ver carrinho":"Continuar comprando"}</button>`;
+}
+function verRetorno(){
+  const q=new URLSearchParams(location.search), st=q.get("pagamento"); if(!st) return;
+  let o=null; try{o=JSON.parse(localStorage.getItem(PEDIDO_KEY)||"null")}catch(e){}
+  if(o&&q.get("pedido")&&o.pedido!==q.get("pedido")) o=null;
+  if(st==="aprovado"||st==="pendente"){cart=[];saveCart()}
+  retorno={status:st,pedido:o}; step="retorno";
+  history.replaceState(null,"",location.pathname+location.hash);
+  openCart();
 }
 function updateBag(){
   const n=cartCount(), b=document.getElementById("bag-n");
@@ -616,13 +765,29 @@ function updateBag(){
 }
 function openCart(){renderCart(); if(!cartDlg.open){ if(cartDlg.showModal) cartDlg.showModal(); else cartDlg.setAttribute("open",""); } document.body.classList.add("locked"); hideToast()}
 function closeCart(){ if(cartDlg.open){ if(cartDlg.close) cartDlg.close(); else cartDlg.removeAttribute("open"); } }
-cartDlg.addEventListener("close",()=>{ if(!dlg.open) document.body.classList.remove("locked"); });
+cartDlg.addEventListener("close",()=>{ if(!dlg.open) document.body.classList.remove("locked"); if(step==="pix"&&!cartCount()){step="carrinho";pixInfo=null} if(step==="retorno"){step="carrinho";retorno=null} });
+cartDlg.addEventListener("submit",e=>{ if(e.target.id==="ck"){ e.preventDefault(); if(!ckBusy) enviarDados(e.target) } });
+cartDlg.addEventListener("input",e=>{
+  const i=e.target; if(ckErr&&i.form&&i.form.id==="ck"){ckErr="";const er=cartList.querySelector(".ck-err");if(er)er.remove()}
+  if(i.name!=="cep") return;
+  const c=i.value.replace(/\D/g,""); if(c.length!==8) return;
+  fetch(`https://viacep.com.br/ws/${c}/json/`).then(r=>r.json()).then(j=>{ if(!j||j.erro) return; const f=i.form;
+    if(j.logradouro) f.endereco.value=j.logradouro; if(j.bairro) f.bairro.value=j.bairro; if(j.localidade) f.cidade.value=j.localidade; if(j.uf) f.uf.value=j.uf;
+    (j.logradouro?f.numero:f.endereco).focus() }).catch(()=>{});
+});
 cartDlg.addEventListener("click",e=>{
   if(e.target===cartDlg){closeCart();return}
   const q=e.target.closest("[data-q]"); if(q){const it=cart[+q.dataset.q]; if(it){it.qtd=Math.max(1,Math.min(99,it.qtd+(+q.dataset.d)));sent=false;saveCart();renderCart()} return}
   const r=e.target.closest("[data-rm]"); if(r){cart.splice(+r.dataset.rm,1);sent=false;saveCart();renderCart();return}
-  const c=e.target.closest("[data-cart]"); if(c){ if(c.dataset.cart==="limpar"){cart=[];sent=false;saveCart();renderCart()} else closeCart(); return}
-  if(e.target.closest("#cart-go")){ setTimeout(()=>{sent=true;renderCart()},300) }
+  const c=e.target.closest("[data-cart]"); if(c){ const a=c.dataset.cart;
+    if(a==="dados"){step="dados";ckErr="";renderCart();cartList.scrollTop=0}
+    else if(a==="voltar"){step="carrinho";ckErr="";renderCart()}
+    else if(a==="voltar-dados"){step="dados";pixInfo=null;renderCart()}
+    else if(a==="copiar"){const t=document.getElementById("pix-code").textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{c.textContent="Código copiado ✓"},()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("pix-code"));const s=getSelection();s.removeAllRanges();s.addRange(r);c.textContent="Selecionado: toque e copie"})}
+    else if(a==="fim"){retorno=null;step="carrinho";if(cartCount())renderCart();else closeCart()}
+    else closeCart();
+    return}
+  if(e.target.closest("#pix-wa")){ try{localStorage.removeItem(PEDIDO_KEY)}catch(x){} setTimeout(()=>{cart=[];saveCart()},300) }
 });
 document.getElementById("cart-close").addEventListener("click",closeCart);
 document.getElementById("bag-btn").addEventListener("click",openCart);
@@ -636,7 +801,7 @@ window.addEventListener("storage",e=>{ if(e.key===CART_KEY){ try{cart=JSON.parse
 updateBag();
 render("todos");
 Promise.all([fetch("data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
-  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fromHash();})
-  .catch(()=>{fromHash()});
+  .then(([d,L])=>{applyLoja(L); if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} render(current); fromHash(); verRetorno();})
+  .catch(()=>{fromHash(); verRetorno()});
 </script>
 </html>
