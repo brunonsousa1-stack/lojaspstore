@@ -12,12 +12,12 @@
       "variantes": [
         {
           "nome": "Marrom",
-          "foto": "/img/oculos-de-sol-femininno-hexagonal-1-.jpg",
+          "foto": "/img/oculos-de-sol-femininno-hexagonal-1-.webp",
           "fotos_extras": [
-            "/img/oculos-de-sol-femininno-hexagonal.jpg",
-            "/img/oculos-feminino-de-sol-hexagonal-3-.png",
-            "/img/oculos-feminino-de-sol-hexagonal-4-.png",
-            "/img/oculos-feminino-de-sol-hexagonal-1-.png"
+            "/img/oculos-de-sol-femininno-hexagonal.webp",
+            "/img/oculos-feminino-de-sol-hexagonal-3-.webp",
+            "/img/oculos-feminino-de-sol-hexagonal-4-.webp",
+            "/img/oculos-feminino-de-sol-hexagonal-1-.webp"
           ]
         }
       ],
@@ -35,11 +35,11 @@
       "variantes": [
         {
           "nome": "Preto",
-          "foto": "/img/oculos-de-sol-feminino-hexagonal-preto-protecao-uv400-1-.jpg",
+          "foto": "/img/oculos-de-sol-feminino-hexagonal-preto-protecao-uv400-1-.webp",
           "fotos_extras": [
-            "/img/oculos-de-sol-feminino-hexagonal-preto-protecao-uv400-1-.png",
-            "/img/oculos-feminino-de-sol-hexagonal.png",
-            "/img/oculos-feminino-de-sol-hexagonal-1-.png"
+            "/img/oculos-de-sol-feminino-hexagonal-preto-protecao-uv400-1--png.webp",
+            "/img/oculos-feminino-de-sol-hexagonal.webp",
+            "/img/oculos-feminino-de-sol-hexagonal-1-.webp"
           ]
         }
       ],
@@ -61,13 +61,13 @@
       ],
       "variantes": [
         {
-          "foto": "/img/oculos-hexagonal-dourado.jpg",
+          "foto": "/img/oculos-hexagonal-dourado.webp",
           "fotos_extras": [
-            "/img/oculos-hexagonal-dourado-1-.jpg",
-            "/img/oculos-de-sol-feminino-hexagonal-2-.jpg",
-            "/img/oculos-feminino-de-sol-hexagonal-6-.png",
-            "/img/oculos-feminino-de-sol-hexagonal-7-.png",
-            "/img/oculos-feminino-de-sol-hexagonal-1-.png"
+            "/img/oculos-hexagonal-dourado-1-.webp",
+            "/img/oculos-de-sol-feminino-hexagonal-2-.webp",
+            "/img/oculos-feminino-de-sol-hexagonal-6-.webp",
+            "/img/oculos-feminino-de-sol-hexagonal-7-.webp",
+            "/img/oculos-feminino-de-sol-hexagonal-1-.webp"
           ],
           "nome": "Dourado"
         }
