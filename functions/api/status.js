@@ -17,7 +17,7 @@ export const onRequestGet = async ({ env, request }) => {
       const p = produtos.find(x => x.ativo !== false);
       const itens = montarItens(produtos, [{ nome: p.nome, cor: (p.variantes && p.variantes[0] && p.variantes[0].nome) || "Padrão", qtd: 1 }]);
       const ops = await cotar(env, { cepOrigem: "", cepDestino: "01001000", itens, produtos, loja, subtotal: itens[0].preco });
-      r.frete_teste = ops.map(o => `${o.nome} ${o.empresa}: R$ ${o.preco.toFixed(2)} (${o.prazo} dias)`).slice(0, 6);
+      r.frete_teste = ops.map(o => `${o.nome} ${o.empresa}: R$ ${o.preco.toFixed(2)} (${o.prazo_txt || o.prazo + " dias"})`).slice(0, 6);
     } catch (e) { r.frete_erro = String(e.message).slice(0, 160); }
   }
   if (r.banco) { try { const c = await coordCep(env, sb, "08020360"); r.localizacao_cep = c ? `ok (${c.fonte})` : "não encontrou"; } catch (e) { r.localizacao_cep = "erro"; } }
