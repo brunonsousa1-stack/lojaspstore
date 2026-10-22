@@ -115,6 +115,10 @@ function aplicar(lista, d, base) {
       if (j >= 0 && j < lista.length) [lista[i], lista[j]] = [lista[j], lista[i]];
       break;
     }
+    case "limpar_preco_de": {
+      lista = lista.map(p => { if (!p.preco_de) return p; const n = { ...p, _v: novaV() }; delete n.preco_de; return n; });
+      break;
+    }
     case "excluir": {
       const i = achar(d.nome); if (i < 0) return lista; // já excluído
       lista.splice(i, 1);

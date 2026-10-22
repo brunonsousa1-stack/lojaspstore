@@ -200,7 +200,7 @@ function alertasSelos(){
   const typo=PRODS.filter(p=>(p.selos||[]).some(x=>/^maisvendido$/i.test(String(x).trim()))).length;
   const av=[];
   if(mv>3) av.push(`<b>${mv} produtos</b> estão com o selo "Mais vendido". Deixe só nos 2 ou 3 que mais vendem, para o selo voltar a chamar atenção.`);
-  if(de>ativos.length*0.6) av.push(`<b>${de} de ${ativos.length}</b> produtos têm preço antigo riscado. Use só em promoções reais: pelo Código de Defesa do Consumidor, o preço "de" precisa ter sido praticado antes.`);
+  if(de>0) av.push(`<b>${de} de ${ativos.length}</b> produtos têm preço antigo riscado ("de R$ X por…"). Use só em promoções reais: pelo Código de Defesa do Consumidor, o preço "de" precisa ter sido praticado antes. <button class="link" type="button" id="tirar-de">Tirar o preço riscado de todos</button>`);
   if(typo) av.push(`${typo===1?"Um produto":typo+" produtos"} com o selo escrito "Maisvendido": ao abrir e salvar, ele é corrigido para "Mais vendido".`);
   return av.length?`<div class="msg" style="background:var(--warn-soft);margin-bottom:14px"><b>Dica para passar mais confiança</b><ul style="margin:6px 0 0;padding-left:18px">${av.map(x=>`<li>${x}</li>`).join("")}</ul></div>`:"";
 }
@@ -245,6 +245,7 @@ function renderLista(){
   const b=$("#busca"); b.addEventListener("input",()=>{busca=b.value;const pos=b.selectionStart;renderLista();const nb=$("#busca");nb.focus();nb.setSelectionRange(pos,pos)});
   app.querySelectorAll("[data-f]").forEach(x=>x.onclick=()=>{filtro=x.dataset.f;renderLista()});
   $("#novo").onclick=()=>abrir(-1);
+  const td=$("#tirar-de"); if(td) td.onclick=()=>confirmarModal("Tirar o preço riscado de todos?","Os produtos continuam com o preço de venda atual. Só some o valor riscado (\"de R$ X\") e o selo de desconto, no site, no Google e no Meta.","Tirar de todos",()=>acaoRapida({op:"limpar_preco_de"},"Preço riscado removido de todos os produtos."));
   app.querySelectorAll("[data-ed]").forEach(x=>x.onclick=()=>abrir(+x.dataset.ed));
   app.querySelectorAll("[data-up]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.up].nome,para:"antes"},"Ordem da vitrine atualizada."));
   app.querySelectorAll("[data-down]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.down].nome,para:"depois"},"Ordem da vitrine atualizada."));
