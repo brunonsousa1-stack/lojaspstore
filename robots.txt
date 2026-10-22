@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Allow: /api/google-shopping
+Disallow: /checkout.html
+Disallow: /conta.html
+
+Sitemap: https://lojaspstore.com.br/sitemap.xml
