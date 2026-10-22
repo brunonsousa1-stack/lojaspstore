@@ -88,11 +88,15 @@ function totais(){
 function resumoHTML(){
   const t=totais(), n=t.itens.reduce((a,x)=>a+x.qtd,0);
   const fgr=Number(LOJA.frete_gratis_acima)||0, fga=Number(LOJA.frete_gratis_exibir)>0?Number(LOJA.frete_gratis_exibir):fgr;
-  const falta=fgr>0&&!pedido&&t.sub<fgr?Math.max(0.01,fga-t.sub):0;
+  const regs=(Array.isArray(LOJA.frete_gratis_regioes)?LOJA.frete_gratis_regioes:[]).filter(Boolean);
+  const regCep=c=>{const d=String(c||"").replace(/\D/g,"")[0];return "0123".includes(d)?"sudeste":"89".includes(d)?"sul":d?"outras":""};
+  const nomeReg=regs.length&&!regs.includes("outras")?regs.map(x=>({sul:"Sul",sudeste:"Sudeste"}[x])).join(" e "):"";
+  const cepOk=!freteCep||!regs.length||regs.includes(regCep(freteCep));
+  const falta=fgr>0&&!pedido&&cepOk&&t.sub<fgr?Math.max(0.01,fga-t.sub):0;
   return `<details class="card resumo" open><summary><span>Resumo · ${n} ${n===1?"item":"itens"} · ${brl(t.total)}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></summary>
     <ul class="itens" style="margin-top:12px">${t.itens.map(x=>`<li><div class="th">${x.foto?`<img src="${esc(x.foto)}" alt="">`:""}</div><div><b>${esc(x.nome)}</b><span>${corTxt(x.cor)?esc(x.cor)+" · ":""}${x.qtd}×</span>${x.gratis?`<span style="display:block;color:#17703c;font-weight:600">🎁 ${x.gratis} grátis na promoção</span>`:""}</div><div class="v">${x.gratis?`<s class="muted" style="font-weight:400;font-size:12px;display:block">${brl(cents(x.preco)*x.qtd/100)}</s>`:""}${brl(cents(x.preco)*(x.qtd-(x.gratis||0))/100)}</div></li>`).join("")}</ul>
     <div class="tot"><div><span class="muted">Subtotal</span><span>${brl(t.sub)}</span></div><div><span class="muted">Frete${pedido&&pedido.envio&&pedido.envio.nome?` · ${esc(pedido.envio.nome)}`:freteSel&&freteSel.nome?` · ${esc(freteSel.nome)}`:""}</span><span>${t.frete==null?`<span class="muted">${CFG.pronto?"informe o CEP":"a combinar"}</span>`:t.frete>0?brl(t.frete):"Grátis"}</span></div>
-    ${falta>0?`<div style="font-size:13px;color:var(--gold)">Faltam ${brl(falta)} para frete grátis</div>`:""}
+    ${falta>0?`<div style="font-size:13px;color:var(--gold)">Faltam ${brl(falta)} para frete grátis${nomeReg&&!freteCep?` (${nomeReg})`:""}</div>`:""}
     ${t.desconto>0?`<div style="color:#17703c"><span>Desconto no Pix (${pctPix()}%)</span><span>− ${brl(t.desconto)}</span></div>`:""}
     <div class="grand"><span>Total${t.desconto>0?" no Pix":""}</span><strong>${brl(t.total)}</strong></div>
     ${t.pix!=null&&t.pix<t.total?`<div style="font-size:13px;color:#17703c;justify-content:flex-end">ou <b style="margin:0 4px">${brl(t.pix)}</b> no Pix (${pctPix()}% off)</div>`:""}</div>

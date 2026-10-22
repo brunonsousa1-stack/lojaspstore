@@ -52,6 +52,17 @@ export function permitido(loja, s) {
   return !lista.length || lista.includes(chaveServico(s));
 }
 
+// Região pelo 1º dígito do CEP: 0-1 SP, 2 RJ/ES, 3 MG (Sudeste) · 8 PR/SC, 9 RS (Sul)
+// 4 BA/SE, 5 PE/AL/PB/RN, 6 CE/PI/MA/PA/AP/AM/RR/AC (Nordeste/Norte) · 7 DF/GO/TO/MT/MS/RO (Centro-Oeste/Norte)
+export function regiaoCep(cep) {
+  const d = digitos(cep)[0];
+  return "0123".includes(d) ? "sudeste" : "89".includes(d) ? "sul" : d ? "outras" : "";
+}
+// regiões com frete grátis (painel › Banner e textos). Vazio = Brasil todo.
+export function regiaoTemGratis(loja, cep) {
+  const lista = Array.isArray(loja.frete_gratis_regioes) ? loja.frete_gratis_regioes.filter(Boolean) : [];
+  return !lista.length || lista.includes(regiaoCep(cep));
+}
 export function medidas(produto) {
   const a = (produto && produto.avancado) || {};
   const n = (v, d) => (Number(v) > 0 ? Number(v) : d);
@@ -64,7 +75,7 @@ export async function cotar(env, { cepOrigem, cepDestino, itens, produtos, loja,
   if (destino.length !== 8) throw new Error("CEP inválido.");
   const dias = Math.max(0, Math.floor(Number(loja.dias_para_postar ?? 1)));
   const gratisAcima = Math.max(0, Number(loja.frete_gratis_acima) || 0);
-  const gratis = gratisAcima > 0 && subtotal >= gratisAcima;
+  const gratis = gratisAcima > 0 && subtotal >= gratisAcima && regiaoTemGratis(loja, destino);
   if (!meAtivo(env)) {
     const v = gratis ? 0 : Math.max(0, Number(loja.frete_valor) || 0);
     return [{ id: "fixo", nome: "Entrega padrão", empresa: "", logo: "", preco: v, prazo: null, gratis: v === 0 }];

@@ -27,5 +27,9 @@
   "email_atendimento": "lojaspstore@gmail.com",
   "frete_gratis_exibir": 120,
   "promo_leve": 4,
-  "promo_categoria": "oculos"
+  "promo_categoria": "oculos",
+  "frete_gratis_regioes": [
+    "sul",
+    "sudeste"
+  ]
 }
