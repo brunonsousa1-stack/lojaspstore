@@ -2,7 +2,7 @@
 // Guarda só ids aleatórios do navegador (nada de nome, e-mail ou IP).
 (function () {
   const L = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
-  if (L("spstore_admin") === "1") { window.SPA = { ev() {}, observar() {}, px() {} }; return; } // visitas do dono não contam
+  const DONO = L("spstore_admin") === "1"; // visitas do dono não contam na Análise da loja (o Pixel do Meta continua funcionando)
   const novoId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, "");
   const agora = Date.now();
 
@@ -34,6 +34,7 @@
   let fila = [], tm = null;
   function enviar() {
     clearTimeout(tm); tm = null;
+    if (DONO) { fila.length = 0; return; }
     if (!fila.length) return;
     const corpo = JSON.stringify({ v: vid, s: sess.id, e: fila.splice(0, 40) });
     try { if (!(navigator.sendBeacon && navigator.sendBeacon("/api/ev", new Blob([corpo], { type: "text/plain" })))) fetch("/api/ev", { method: "POST", body: corpo, keepalive: true }).catch(() => {}); } catch (e) {}
