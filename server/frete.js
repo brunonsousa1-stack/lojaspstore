@@ -63,6 +63,40 @@ export function regiaoTemGratis(loja, cep) {
   const lista = Array.isArray(loja.frete_gratis_regioes) ? loja.frete_gratis_regioes.filter(Boolean) : [];
   return !lista.length || lista.includes(regiaoCep(cep));
 }
+// ---------- Motoboy (entrega no mesmo dia na Grande SP) ----------
+// loja.motoboy_faixas: uma faixa por linha, ex. "Guarulhos: 07000-000 a 07399-999" ou "03310-000" ou "033"
+export function faixasMotoboy(loja) {
+  return String(loja.motoboy_faixas || "").split(/\n|;/).map(l => {
+    const t = l.replace(/^[^:]*:/, "").trim(); const m = t.match(/(\d[\d-]*)\s*(?:a|-|até|ate|–)\s*(\d[\d-]*)$/i);
+    if (m) { const a = digitos(m[1]), b = digitos(m[2]); return a.length === 8 && b.length === 8 ? [a, b] : null; }
+    const d = digitos(t); if (!d) return null;
+    return d.length >= 8 ? [d.slice(0, 8), d.slice(0, 8)] : [d.padEnd(8, "0"), d.padEnd(8, "9")];
+  }).filter(Boolean);
+}
+export const cepNoMotoboy = (loja, cep) => { const c = digitos(cep); return c.length === 8 && faixasMotoboy(loja).some(([a, b]) => c >= a && c <= b); };
+const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+// Quando o motoboy entrega: hoje (antes do horário de corte, em dia de entrega) ou o próximo dia de entrega.
+export function previsaoMotoboy(loja, agora = new Date()) {
+  const sp = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const dias = Array.isArray(loja.motoboy_dias) && loja.motoboy_dias.length ? loja.motoboy_dias.map(Number) : [1, 2, 3, 4, 5, 6];
+  const [hh, mm] = String(loja.motoboy_corte || "13:00").split(":").map(Number);
+  const antesDoCorte = sp.getHours() * 60 + sp.getMinutes() < (hh || 0) * 60 + (mm || 0);
+  for (let k = 0; k < 8; k++) {
+    const d = new Date(sp); d.setDate(sp.getDate() + k);
+    if (!dias.includes(d.getDay()) || (k === 0 && !antesDoCorte)) continue;
+    const data = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const quando = k === 0 ? "hoje" : k === 1 ? "amanhã" : DIAS[d.getDay()];
+    return { k, quando, data, texto: k === 0 ? `Chega hoje (${data})` : `Chega ${quando} (${data})` };
+  }
+  return null;
+}
+export function opcaoMotoboy(loja, cep, agora) {
+  if (!loja.motoboy_ativo || !cepNoMotoboy(loja, cep)) return null;
+  const p = previsaoMotoboy(loja, agora); if (!p) return null;
+  return { id: "motoboy", nome: "Motoboy", empresa: p.k === 0 ? "Entrega hoje" : `Entrega ${p.quando}`, logo: "", preco: Math.round(Math.max(0, Number(loja.motoboy_valor ?? 10)) * 100) / 100,
+    prazo: null, prazo_txt: p.texto, entrega_em: p.data, gratis: false };
+}
+
 export function medidas(produto) {
   const a = (produto && produto.avancado) || {};
   const n = (v, d) => (Number(v) > 0 ? Number(v) : d);
@@ -76,9 +110,10 @@ export async function cotar(env, { cepOrigem, cepDestino, itens, produtos, loja,
   const dias = Math.max(0, Math.floor(Number(loja.dias_para_postar ?? 1)));
   const gratisAcima = Math.max(0, Number(loja.frete_gratis_acima) || 0);
   const gratis = gratisAcima > 0 && subtotal >= gratisAcima && regiaoTemGratis(loja, destino);
+  const moto = opcaoMotoboy(loja, destino);
   if (!meAtivo(env)) {
     const v = gratis ? 0 : Math.max(0, Number(loja.frete_valor) || 0);
-    return [{ id: "fixo", nome: "Entrega padrão", empresa: "", logo: "", preco: v, prazo: null, gratis: v === 0 }];
+    return [...(moto ? [moto] : []), { id: "fixo", nome: "Entrega padrão", empresa: "", logo: "", preco: v, prazo: null, gratis: v === 0 }];
   }
   const corpo = {
     from: { postal_code: digitos(cepOrigem || cfg(env).cepOrigem || "08020360") },
@@ -98,9 +133,10 @@ export async function cotar(env, { cepOrigem, cepDestino, itens, produtos, loja,
       pacotes: (s.packages || []).map(p => ({ altura: Number(p.dimensions && p.dimensions.height), largura: Number(p.dimensions && p.dimensions.width), comprimento: Number(p.dimensions && p.dimensions.length), peso: Number(p.weight) })),
     }))
     .sort((a, b) => a.preco - b.preco);
-  if (!ops.length) throw new Error("Não encontramos opções de entrega para este CEP.");
-  if (gratis) ops[0] = { ...ops[0], preco: 0, gratis: true };
-  return ops;
+  if (!ops.length && !moto) throw new Error("Não encontramos opções de entrega para este CEP.");
+  if (gratis && ops.length) ops[0] = { ...ops[0], preco: 0, gratis: true };
+  // motoboy primeiro e sempre com o valor dele (não entra no frete grátis)
+  return moto ? [moto, ...ops] : ops;
 }
 
 // ---------- etiqueta ----------

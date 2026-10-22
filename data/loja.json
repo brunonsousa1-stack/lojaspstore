@@ -31,5 +31,17 @@
   "frete_gratis_regioes": [
     "sul",
     "sudeste"
-  ]
+  ],
+  "motoboy_ativo": true,
+  "motoboy_valor": 10,
+  "motoboy_corte": "13:00",
+  "motoboy_dias": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "motoboy_faixas": "São Paulo (capital): 01000-000 a 05999-999\nSão Paulo (capital, zona leste): 08000-000 a 08499-999\nOsasco: 06000-000 a 06299-999\nCarapicuíba: 06300-000 a 06399-999\nBarueri: 06400-000 a 06499-999\nSantana de Parnaíba: 06500-000 a 06549-999\nJandira: 06600-000 a 06649-999\nItapevi: 06650-000 a 06699-999\nTaboão da Serra: 06750-000 a 06799-999\nEmbu das Artes: 06800-000 a 06849-999\nGuarulhos: 07000-000 a 07399-999\nArujá: 07400-000 a 07499-999\nCaieiras: 07700-000 a 07749-999\nFranco da Rocha: 07800-000 a 07899-999\nFrancisco Morato: 07900-000 a 07999-999\nFerraz de Vasconcelos: 08500-000 a 08549-999\nPoá: 08550-000 a 08569-999\nItaquaquecetuba: 08570-000 a 08599-999\nSuzano: 08600-000 a 08699-999\nMogi das Cruzes: 08700-000 a 08899-999\nSanto André: 09000-000 a 09299-999\nMauá: 09300-000 a 09399-999\nSão Caetano do Sul: 09500-000 a 09599-999\nSão Bernardo do Campo: 09600-000 a 09899-999\nDiadema: 09900-000 a 09999-999"
 }

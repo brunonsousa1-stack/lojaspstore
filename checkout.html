@@ -225,7 +225,7 @@ function desenharFretes(){
   const box=$("#fretes"); if(!box) return;
   if(!freteOps){box.innerHTML=`<p class="hint" style="margin:0">Digite o CEP para ver as opções de entrega.</p>`;atualizarResumo();return}
   box.innerHTML=freteOps.map(o=>`<label class="fr"><input type="radio" name="frete" value="${esc(o.id)}" ${freteSel&&freteSel.id===o.id?"checked":""}>
-    <span><b>${o.logo?`<img src="${esc(o.logo)}" alt="">`:""}${esc(o.nome)}${o.empresa&&o.empresa!==o.nome?` · ${esc(o.empresa)}`:""}</b><small>${o.prazo?`Chega em até ${o.prazo} dias úteis`:"Prazo combinado após o pagamento"}</small></span>
+    <span><b>${o.logo?`<img src="${esc(o.logo)}" alt="">`:""}${esc(o.nome)}${o.empresa&&o.empresa!==o.nome?` · ${esc(o.empresa)}`:""}</b><small>${o.prazo_txt?`${o.id==="motoboy"?"🛵 ":""}${esc(o.prazo_txt)}`:o.prazo?`Chega em até ${o.prazo} dias úteis`:"Prazo combinado após o pagamento"}</small></span>
     <span class="pr ${o.preco===0?"free":""}">${o.preco===0?"Grátis":brl(o.preco)}</span></label>`).join("");
   box.querySelectorAll("input[name=frete]").forEach(i=>i.addEventListener("change",()=>{freteSel=freteOps.find(o=>o.id===i.value);atualizarResumo()}));
   atualizarResumo();

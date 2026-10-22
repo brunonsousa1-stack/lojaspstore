@@ -96,7 +96,7 @@ export function publico(p) {
     nome: p.nome, email: p.email, telefone: p.telefone, endereco: p.endereco, itens: p.itens,
     subtotal: Number(p.subtotal), frete: Number(p.frete), total: Number(p.total), desconto: Math.max(0, Math.round((Number(p.subtotal) + Number(p.frete) - Number(p.total)) * 100) / 100),
     forma_pagamento: p.forma_pagamento, rastreio: p.rastreio || "", historico: p.historico || [], token: p.token,
-    envio: p.envio ? { nome: p.envio.nome, empresa: p.envio.empresa, prazo: p.envio.prazo } : null,
+    envio: p.envio ? { id: p.envio.id, nome: p.envio.nome, empresa: p.envio.empresa, prazo: p.envio.prazo, prazo_txt: p.envio.prazo_txt || "", entrega_em: p.envio.entrega_em || "" } : null,
     pix_informado: !!(p.emails && p.emails.pix_informado),
   };
 }
@@ -442,8 +442,8 @@ export async function emails(env, request, p, evento) {
     if (c.lojaEmail) await enviarEmail(env, c.lojaEmail, `Nova venda! Pedido ${n} · ${reais(p.total)}`, moldura(`Nova venda paga · ${n}`,
       `<p><b>${esc(p.nome)}</b> · ${esc(p.email)} · ${esc(p.telefone)}</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entregar em:</b><br>${enderecoTxt(p.endereco)}</p>${botao(origem + "/admin/pedidos.html", "Abrir painel de pedidos")}`, origem));
   } else if (evento === "enviado") {
-    ok = await enviarEmail(env, p.email, `Seu pedido ${n} foi enviado`, moldura(`Pedido enviado 📦`,
-      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido <b>${n}</b> saiu para entrega.</p>${p.envio && p.envio.empresa ? `<p style="font-size:14px">Transportadora: <b>${esc(p.envio.empresa)} ${esc(p.envio.nome)}</b>${p.envio.prazo ? ` · prazo estimado de ${p.envio.prazo} dias úteis` : ""}</p>` : ""}${p.rastreio ? `<p style="font-size:16px">Código de rastreio:<br><b style="font-size:20px;letter-spacing:.05em">${esc(p.rastreio)}</b></p>${botao("https://www.melhorrastreio.com.br/rastreio/" + encodeURIComponent(p.rastreio.split(",")[0].trim()), "Rastrear entrega")}` : ""}${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
+    ok = await enviarEmail(env, p.email, p.envio && p.envio.id === "motoboy" ? `Seu pedido ${n} saiu para entrega` : `Seu pedido ${n} foi enviado`, moldura(p.envio && p.envio.id === "motoboy" ? `Saiu com o motoboy 🛵` : `Pedido enviado 📦`,
+      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido <b>${n}</b> saiu para entrega.</p>${p.envio && p.envio.id === "motoboy" ? `<p style="font-size:16px">🛵 Seu pedido está com o <b>motoboy</b> e chega <b>hoje</b>. Fique de olho no seu WhatsApp.</p>` : ""}${p.envio && p.envio.empresa && p.envio.id !== "motoboy" ? `<p style="font-size:14px">Transportadora: <b>${esc(p.envio.empresa)} ${esc(p.envio.nome)}</b>${p.envio.prazo ? ` · prazo estimado de ${p.envio.prazo} dias úteis` : ""}</p>` : ""}${p.rastreio ? `<p style="font-size:16px">Código de rastreio:<br><b style="font-size:20px;letter-spacing:.05em">${esc(p.rastreio)}</b></p>${botao("https://www.melhorrastreio.com.br/rastreio/" + encodeURIComponent(p.rastreio.split(",")[0].trim()), "Rastrear entrega")}` : ""}${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
   } else if (evento === "entregue") {
     ok = await enviarEmail(env, p.email, `Pedido ${n} entregue`, moldura(`Pedido entregue`,
       `<p>Olá, ${esc(p.nome.split(" ")[0])}! O pedido <b>${n}</b> consta como entregue. Esperamos que goste! Se precisar de qualquer coisa, é só responder este e-mail.</p>${botao(origem, "Voltar à loja")}`, origem), c.lojaEmail);
@@ -475,7 +475,7 @@ export async function checkout(env, request) {
     const op = ops.find(o => o.id === String(b.frete_id || "")) || (ops.length === 1 ? ops[0] : null);
     if (!op) throw new Error("Escolha a forma de entrega.");
     frete = op.preco;
-    envio = { id: op.id, nome: op.nome, empresa: op.empresa, prazo: op.prazo, pacotes: op.pacotes || [] };
+    envio = { id: op.id, nome: op.nome, empresa: op.empresa, prazo: op.prazo, pacotes: op.pacotes || [], ...(op.prazo_txt ? { prazo_txt: op.prazo_txt, entrega_em: op.entrega_em } : {}) };
   } catch (e) { return erro(e.message); }
   const total = Math.round((sub + frete) * 100) / 100;
   const criado = await sb(env, "pedidos", {
@@ -552,6 +552,7 @@ export async function infoEnvio(env) { return { remetente: await lerConfig(env, 
 
 export async function etiqueta(env, request, p, b) {
   if (!["pago", "enviado"].includes(p.status)) throw new Error("Só dá para gerar etiqueta de pedido pago.");
+  if (p.envio && (p.envio.id === "motoboy" || p.envio.id === "fixo")) throw new Error("Este pedido não usa etiqueta do Melhor Envio.");
   const rem = await lerConfig(env, "remetente");
   if (!rem) throw new Error("Preencha primeiro as Configurações de envio (dados do remetente).");
   const { produtos } = await catalogo(request, env);
@@ -611,7 +612,7 @@ export async function atualizarPeloAdmin(env, request, p, b) {
   if (!STATUS[novo]) throw new Error("Status inválido.");
   const extra = {};
   if (typeof b.rastreio === "string") extra.rastreio = so(b.rastreio, 40).toUpperCase();
-  if (novo === "enviado" && !(extra.rastreio || p.rastreio)) throw new Error("Informe o código de rastreio para marcar como enviado.");
+  if (novo === "enviado" && !(extra.rastreio || p.rastreio) && !(p.envio && p.envio.id === "motoboy")) throw new Error("Informe o código de rastreio para marcar como enviado.");
   if (novo === "pago" && p.status !== "aguardando_pagamento") throw new Error("Este pedido não está aguardando pagamento.");
   let n = await mudarStatus(env, p, novo, extra);
   if (novo === "pago" && p.status !== "pago") n = await moverEstoque(env, n, -1);

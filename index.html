@@ -34,7 +34,10 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 
 /* avisos */
 .ticker{background:#0c0c0b;color:#d1ab5e;font-size:13px;font-weight:600}
-.ticker .wrap{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;padding-block:8px;text-align:center}
+.ticker .wrap{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;padding-block:8px;text-align:center}
+@media (max-width:900px){.ticker .wrap{display:grid;place-items:center;min-height:36px;padding-block:6px}
+  .ticker .wrap>span{grid-area:1/1;opacity:0;transition:opacity .4s}
+  .ticker .wrap>span.on{opacity:1}}
 .ticker b{letter-spacing:.06em;text-transform:uppercase}
 
 /* cabeçalho */
@@ -49,7 +52,9 @@ nav a:hover{opacity:1;color:#8a6a2c}
 .logo-img{height:48px;width:auto;display:block}
 .logo-foot{display:inline-block;background:#fbfaf7;border-radius:10px;padding:8px 12px}
 .cart-btn{background:#1b1a17;color:#f3f1ec;border:0;border-radius:999px;padding:9px 16px;font:600 14px var(--body);text-decoration:none;white-space:nowrap}
-@media (max-width:720px){nav{display:none}.cart-btn{margin-left:auto}}
+@media (max-width:720px){nav{display:none}.cart-btn{margin-left:auto}
+@media (max-width:520px){header .wrap{gap:10px}.cart-btn{padding:8px 12px;font-size:13px}.logo-img{max-width:110px;height:auto}.ticker{font-size:12px}}
+@media (max-width:370px){.cart-btn{display:none}.acct{margin-left:auto}}}
 
 /* banner */
 .hero{background:var(--dark);color:var(--on-dark);overflow:hidden}
@@ -293,7 +298,7 @@ body.pag-site .so-wa{display:none}
   <span class="js-promo-on"><b class="js-promo">Leve 4 óculos, pague 3</b></span>
   <span class="js-fg-on"><b>Frete grátis</b><span class="js-fg-reg"> Sul e Sudeste</span> acima de <span class="js-fg">R$ 120,00</span></span>
   <span class="js-pix-on"><b><span class="js-pixp">5</span>% de desconto</b> no Pix</span>
-  <span><b>Pagamento seguro</b> · Pix ou cartão em até 12x</span>
+  <span class="js-moto-on"><b>🛵 Entrega hoje</b> na Grande SP · pedidos <span class="js-moto">até 13h</span></span>
 </div></div>
 
 <header><div class="wrap">
@@ -483,7 +488,7 @@ function render(f){
 }
 function norm(list){return (list||[]).map(p=>({...p,desenho:p.desenho||(p.avancado&&p.avancado.desenho)||"hex",
   variantes:(p.variantes||[]).map(v=>({...v,cor_principal:v.cor_principal||(v.avancado&&v.avancado.cor_principal),cor_detalhe:v.cor_detalhe||(v.avancado&&v.avancado.cor_detalhe)}))}))}
-let FGREG="Sul e Sudeste", PIXP=5, FGA=120, FGR=119, PLEVE=4, PCAT="oculos";
+let MOTO=10, MOTOC="13h", FGREG="Sul e Sudeste", PIXP=5, FGA=120, FGR=119, PLEVE=4, PCAT="oculos";
 const PCAT_TXT={oculos:"óculos",relogios:"relógios"};
 // mesma regra do servidor: a cada PLEVE itens da categoria, o mais barato sai grátis
 function promoCart(){
@@ -500,6 +505,7 @@ function perks(p){const l=[];
   l.push(`<li>Ou em até <b>12x no cartão</b></li>`);
   if(PLEVE>=2&&p.categoria===PCAT)l.push(`<li><b>Leve ${PLEVE}, pague ${PLEVE-1}</b> · o ${PLEVE}º ${PCAT==="oculos"?"óculos":"relógio"} sai grátis</li>`);
   if(FGA>0)l.push(`<li><b>Frete grátis${FGREG?" "+FGREG:""}</b> em compras acima de ${brl(FGA)}</li>`);
+  if(MOTO)l.push(`<li><b>🛵 Entrega hoje</b> na Grande SP por ${brl(MOTO)} · pedidos até ${MOTOC}</li>`);
   l.push(`<li>Troca ou devolução em até <b>7 dias</b> · <a href="/trocas.html">ver política</a></li>`);
   return `<ul class="pd-perks">${l.join("")}</ul>`}
 function applyLoja(L){
@@ -511,6 +517,10 @@ function applyLoja(L){
   document.querySelectorAll(".js-promo-on").forEach(e=>e.hidden=PLEVE<2);
   document.querySelectorAll(".js-promo").forEach(e=>e.textContent=`Leve ${PLEVE} ${PCAT_TXT[PCAT]||""}, pague ${PLEVE-1}`);
   document.querySelectorAll(".js-pixp").forEach(e=>e.textContent=PIXP);
+  if(L.motoboy_ativo!=null) MOTO=L.motoboy_ativo?Math.max(0,Number(L.motoboy_valor??10)):0;
+  if(L.motoboy_corte) MOTOC=String(L.motoboy_corte).replace(/:00$/,"h").replace(":","h");
+  document.querySelectorAll(".js-moto-on").forEach(e=>e.hidden=!MOTO);
+  document.querySelectorAll(".js-moto").forEach(e=>e.textContent=`até ${MOTOC}`);
   if(L.frete_gratis_regioes!=null){const r=(Array.isArray(L.frete_gratis_regioes)?L.frete_gratis_regioes:[]).filter(Boolean);
     FGREG=!r.length||r.includes("outras")&&r.length===3?"":r.includes("outras")?"":r.map(x=>({sul:"Sul",sudeste:"Sudeste"}[x])).join(" e ")}
   document.querySelectorAll(".js-fg-reg").forEach(e=>e.hidden=!FGREG);
@@ -740,6 +750,8 @@ function hideToast(){toast.classList.remove("show"); clearTimeout(toastT)}
 document.getElementById("toast-b").addEventListener("click",openCart);
 function flashBtn(b){b.classList.add("ok"); b.textContent="Adicionado ✓"; setTimeout(()=>{ if(b.isConnected){b.classList.remove("ok"); b.textContent="Adicionar ao carrinho"} },1400)}
 window.addEventListener("storage",e=>{ if(e.key===CART_KEY){ try{cart=JSON.parse(e.newValue||"[]")||[]}catch(x){cart=[]} updateBag(); renderCart() } });
+// faixa do topo no celular: uma mensagem por vez
+(function(){let k=0;const gira=()=>{const it=[...document.querySelectorAll(".ticker .wrap>span")].filter(e=>!e.hidden);if(!it.length)return;it.forEach(e=>e.classList.remove("on"));it[k%it.length].classList.add("on");k++};gira();setInterval(gira,3500)})();
 updateBag();
 render("todos");
 const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(d=>Array.isArray(d.produtos)?d:Promise.reject()).catch(()=>fetch("/data/produtos.json",{cache:"no-store"}).then(r=>r.json()));
