@@ -12,74 +12,9 @@ public_folder: /img
 
 collections:
   - name: loja
-    label: Minha loja
+    label: Banner e textos
     editor: { preview: false }
     files:
-      - name: produtos
-        label: Produtos
-        file: data/produtos.json
-        fields:
-          - label: Produtos
-            name: produtos
-            widget: list
-            label_singular: produto
-            summary: "{{fields.nome}} · R$ {{fields.preco}}"
-            fields:
-              - { label: Nome do produto, name: nome, widget: string }
-              - { label: Preço, name: preco, widget: number, value_type: float, step: 0.01, min: 0, hint: "Use ponto nos centavos. Ex.: 29.99" }
-              - label: Categoria
-                name: categoria
-                widget: select
-                options:
-                  - { label: Óculos de sol, value: oculos }
-                  - { label: Relógios, value: relogios }
-              - { label: Descrição curta, name: descricao, widget: text, required: false, hint: "Aparece embaixo do nome no site. Uma ou duas frases." }
-              - { label: Selos, name: selos, widget: list, required: false, hint: "Etiquetas sobre a foto, separadas por vírgula. Ex.: Novo, Mais vendido" }
-              - { label: Mostrar no site, name: ativo, widget: boolean, default: true }
-              - label: Cores / versões
-                label_singular: cor / versão
-                name: variantes
-                widget: list
-                summary: "{{fields.nome}}"
-                hint: "Produto sem opção de cor? Deixe só 1 item aqui."
-                fields:
-                  - { label: Nome da cor, name: nome, widget: string }
-                  - { label: Foto principal, name: foto, widget: image, required: false, hint: "Quadrada, 1000 x 1000 px, JPG." }
-                  - label: Mais fotos desta cor
-                    label_singular: foto
-                    name: fotos_extras
-                    widget: list
-                    required: false
-                    field: { label: Foto, name: foto, widget: image }
-                  - label: Opções avançadas
-                    name: avancado
-                    widget: object
-                    collapsed: true
-                    required: false
-                    fields:
-                      - { label: Cor principal da bolinha, name: cor_principal, widget: color, required: false, hint: "Usada só quando não há foto." }
-                      - { label: Cor de detalhe da bolinha, name: cor_detalhe, widget: color, required: false }
-              - label: Opções avançadas
-                name: avancado
-                widget: object
-                collapsed: true
-                required: false
-                fields:
-                  - label: Desenho usado quando não há foto
-                    name: desenho
-                    widget: select
-                    required: false
-                    default: hex
-                    options:
-                      - { label: Óculos hexagonal, value: hex }
-                      - { label: Óculos aviador, value: avi }
-                      - { label: Relógio redondo, value: round }
-                      - { label: Relógio gota, value: drop }
-                      - { label: Relógio digital, value: digital }
-                  - { label: "Peso com embalagem (gramas)", name: peso_g, widget: number, value_type: int, min: 1, required: false, hint: "Usado no cálculo do frete. Vazio = 400 g." }
-                  - { label: "Embalagem: largura (cm)", name: largura_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 11 cm." }
-                  - { label: "Embalagem: altura (cm)", name: altura_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 4 cm." }
-                  - { label: "Embalagem: comprimento (cm)", name: comprimento_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 16 cm." }
       - name: config
         label: Textos e contato
         file: data/loja.json

@@ -12,7 +12,7 @@ export const onRequestGet = async ({ env, request }) => {
   if (r.supabase) { try { await sb(env, "pedidos?select=id&limit=1", { method: "GET" }); await sb(env, "config?select=chave&limit=1", { method: "GET" }); r.banco = true; } catch (e) { r.banco_erro = String(e.message).slice(0, 120); } }
   if (r.melhor_envio) {
     try {
-      const { produtos, loja } = await catalogo(request);
+      const { produtos, loja } = await catalogo(request, env);
       const p = produtos.find(x => x.ativo !== false);
       const itens = montarItens(produtos, [{ nome: p.nome, cor: (p.variantes && p.variantes[0] && p.variantes[0].nome) || "Padrão", qtd: 1 }]);
       const ops = await cotar(env, { cepOrigem: "", cepDestino: "01001000", itens, produtos, loja, subtotal: itens[0].preco });

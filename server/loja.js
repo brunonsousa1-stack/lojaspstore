@@ -40,7 +40,7 @@ export const pronto = env => { const c = cfg(env); return !!(c.sbUrl && c.sbAnon
 export const cartaoPronto = env => { const c = cfg(env); return !!(c.mpToken && c.mpPublic); };
 export async function configPublica(env, request) {
   const c = cfg(env); let loja = {};
-  try { loja = (await catalogo(request)).loja; } catch {}
+  try { loja = (await catalogo(request, env)).loja; } catch {}
   const pix = pixAtivo(loja), cartao = cartaoPronto(env);
   return { pronto: pronto(env) && (pix || cartao), pix, cartao, supabaseUrl: c.sbUrl, supabaseAnonKey: c.sbAnon, mpPublicKey: cartao ? c.mpPublic : "" };
 }
@@ -111,14 +111,58 @@ async function mudarStatus(env, p, novo, extra = {}) {
 }
 
 // ---------- catálogo e preços (sempre do servidor, nunca do navegador) ----------
-export async function catalogo(request) {
+// Produtos: ficam no banco (config "catalogo") depois do primeiro "Salvar" no painel › Produtos.
+// Antes disso, ou se o banco falhar, usa o arquivo data/produtos.json do site.
+export async function catalogoDb(env) {
+  if (!env || !pronto(env)) return null;
+  try {
+    const r = await sb(env, "config?chave=eq.catalogo&select=valor", { method: "GET" });
+    const v = r && r[0] && r[0].valor;
+    return v && Array.isArray(v.produtos) ? v : null;
+  } catch { return null; }
+}
+export async function salvarCatalogoDb(env, produtos, por) {
+  const valor = { produtos, atualizado_em: new Date().toISOString(), por: por || "" };
+  await sb(env, "config?on_conflict=chave", { method: "POST", body: JSON.stringify({ chave: "catalogo", valor }), headers: { prefer: "resolution=merge-duplicates,return=minimal" } });
+  return valor;
+}
+export async function catalogo(request, env) {
   const base = new URL(request.url).origin;
-  const [d, L] = await Promise.all([
-    fetch(base + "/data/produtos.json", { cf: { cacheTtl: 0 } }).then(r => r.json()),
+  const [db, d, L] = await Promise.all([
+    catalogoDb(env),
+    fetch(base + "/data/produtos.json", { cf: { cacheTtl: 0 } }).then(r => r.json()).catch(() => null),
     fetch(base + "/data/loja.json", { cf: { cacheTtl: 0 } }).then(r => r.json()),
   ]);
-  return { produtos: (d && d.produtos) || [], loja: L || {} };
+  return { produtos: (db && db.produtos) || (d && d.produtos) || [], loja: L || {}, fonte: db ? "banco" : "arquivo" };
 }
+
+// ---------- fotos no Supabase Storage (bucket público "loja") ----------
+const BUCKET = "loja";
+function stHeaders(c, extra = {}) {
+  const h = { apikey: c.sbService, ...extra };
+  if (c.sbService.startsWith("eyJ")) h.authorization = "Bearer " + c.sbService;
+  return h;
+}
+export async function enviarFoto(env, nome, bytes) {
+  const c = cfg(env);
+  const up = () => fetch(`${c.sbUrl}/storage/v1/object/${BUCKET}/${nome}`, {
+    method: "POST", body: bytes,
+    headers: stHeaders(c, { "content-type": "image/webp", "cache-control": "31536000", "x-upsert": "true" }),
+  });
+  let r = await up();
+  if (r.status === 404 || r.status === 400) {
+    const t = await r.text();
+    if (/bucket/i.test(t)) {
+      // primeira foto: cria o bucket público
+      await fetch(`${c.sbUrl}/storage/v1/bucket`, { method: "POST", headers: stHeaders(c, { "content-type": "application/json" }),
+        body: JSON.stringify({ id: BUCKET, name: BUCKET, public: true, file_size_limit: 5242880, allowed_mime_types: ["image/webp", "image/jpeg", "image/png"] }) });
+      r = await up();
+    } else throw new Error("Fotos: " + r.status + " " + t.slice(0, 120));
+  }
+  if (!r.ok) throw new Error("Fotos: " + r.status + " " + (await r.text()).slice(0, 120));
+  return `${c.sbUrl}/storage/v1/object/public/${BUCKET}/${nome}`;
+}
+export const urlFotosBase = env => `${cfg(env).sbUrl}/storage/v1/object/public/${BUCKET}/`;
 export function calcularFrete(loja, subtotal) {
   const valor = Math.max(0, Number(loja.frete_valor) || 0);
   const gratisAcima = Math.max(0, Number(loja.frete_gratis_acima) || 0);
@@ -203,7 +247,7 @@ export async function salvarEstoque(env, itens) {
   return lerEstoque(env);
 }
 export async function listaEstoque(env, request) {
-  const [{ produtos }, est] = await Promise.all([catalogo(request), lerEstoque(env)]);
+  const [{ produtos }, est] = await Promise.all([catalogo(request, env), lerEstoque(env)]);
   return produtos.map(p => ({ nome: p.nome, ativo: p.ativo !== false, foto: (p.variantes && p.variantes[0] && p.variantes[0].foto) || "",
     variantes: (p.variantes && p.variantes.length ? p.variantes : [{ nome: "Padrão" }]).map(v => ({ cor: v.nome, foto: v.foto || "", chave: chaveEstoque(p.nome, v.nome), qtd: est[chaveEstoque(p.nome, v.nome)] ?? null })) }));
 }
@@ -404,7 +448,7 @@ export async function checkout(env, request) {
   let entrega, itens, frete, envio, sub;
   try {
     entrega = validarEntrega(b, meAtivo(env));
-    const { produtos, loja } = await catalogo(request);
+    const { produtos, loja } = await catalogo(request, env);
     itens = montarItens(produtos, b.itens);
     conferirEstoque(await lerEstoque(env), itens);
     sub = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
@@ -461,7 +505,7 @@ export async function conferir(env, request, p) {
 export async function opcoesFrete(env, request) {
   let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
   try {
-    const { produtos, loja } = await catalogo(request);
+    const { produtos, loja } = await catalogo(request, env);
     const itens = montarItens(produtos, b.itens);
     const sub = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
     const rem = pronto(env) ? await lerConfig(env, "remetente").catch(() => null) : null;
@@ -485,7 +529,7 @@ export async function etiqueta(env, request, p, b) {
   if (!["pago", "enviado"].includes(p.status)) throw new Error("Só dá para gerar etiqueta de pedido pago.");
   const rem = await lerConfig(env, "remetente");
   if (!rem) throw new Error("Preencha primeiro as Configurações de envio (dados do remetente).");
-  const { produtos } = await catalogo(request);
+  const { produtos } = await catalogo(request, env);
   const r = await gerarEtiqueta(env, { pedido: p, remetente: rem, produtos, nfe: b.nfe });
   const envio = { ...(p.envio || {}), me_ids: r.me_ids, etiqueta_url: r.etiqueta_url, etiqueta_em: (p.envio && p.envio.etiqueta_em) || new Date().toISOString() };
   const extra = { envio };
@@ -502,7 +546,7 @@ export async function pixDireto(env, request) {
   let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
   const p = await buscarPedido(env, b.id);
   if (!p || p.token !== String(b.t || "")) return erro("Pedido não encontrado.", 404);
-  const { loja } = await catalogo(request);
+  const { loja } = await catalogo(request, env);
   if (!pixAtivo(loja)) return erro("Pix indisponível no momento.", 503);
   if (p.status !== "aguardando_pagamento") return json({ ok: true, status: p.status, pedido: publico(p) });
   const codigo = brCode({ chave: loja.pix_chave, nome: loja.pix_nome || "SP STORE", cidade: loja.pix_cidade || "SAO PAULO", valor: p.total, txid: `SPSTORE${p.id}`, mensagem: `Pedido ${p.id}` });

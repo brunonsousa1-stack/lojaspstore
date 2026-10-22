@@ -326,10 +326,11 @@ function sucesso(){
 }
 
 // ---------- início ----------
+const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(d=>Array.isArray(d.produtos)?d:Promise.reject()).catch(()=>fetch("/data/produtos.json",{cache:"no-store"}).then(r=>r.json()));
 (async function(){
   const link=Conta.lerLinkDoEmail();
   try{
-    const [c,dP,L]=await Promise.all([Conta.config(),fetch("/data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("/data/loja.json",{cache:"no-store"}).then(r=>r.json())]);
+    const [c,dP,L]=await Promise.all([Conta.config(),lerProdutos(),fetch("/data/loja.json",{cache:"no-store"}).then(r=>r.json())]);
     CFG=c; PRODUTOS=(dP&&dP.produtos)||[]; LOJA=L||{};
   }catch(e){}
   cart=lerJSON(CART_KEY)||[]; sincronizar();

@@ -1,0 +1,482 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Produtos · Painel SP Store</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/css/loja.css">
+<style>
+.wrap{max-width:1180px}
+.top nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.top nav .back{margin-left:0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+.kpi b{font-family:var(--display);font-weight:400;font-size:26px;font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.bar .in{max-width:280px;min-height:42px;padding:8px 12px}
+.bar .novo{margin-left:auto}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 12px;font:600 13px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip i{font-style:normal;opacity:.65;margin-left:4px}
+
+/* lista */
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.pc.off{opacity:.62}
+.pc .im{aspect-ratio:1;background:var(--bg);position:relative;cursor:pointer}
+.pc .im img{width:100%;height:100%;object-fit:cover;display:block}
+.pc .im .sem{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px;font-weight:600}
+.tags{position:absolute;top:8px;left:8px;display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--dark);color:var(--on-dark);letter-spacing:.04em}
+.tag.off{background:var(--bad);color:#fff}.tag.gold{background:var(--gold);color:#fff}.tag.red{background:#c0392b;color:#fff}
+.pc .bd{padding:12px 14px;display:grid;gap:4px;flex:1}
+.pc .nm{font-weight:700;font-size:15px;line-height:1.3}
+.pc .pr{font-variant-numeric:tabular-nums;font-size:15px}.pc .pr s{color:var(--muted);font-size:13px;margin-right:6px}
+.pc .mt{font-size:13px;color:var(--muted)}
+.dots{display:flex;gap:4px;margin-top:2px}
+.dots span{width:16px;height:16px;border-radius:50%;border:1px solid var(--line);background:center/cover var(--bg)}
+.pc .ac{display:flex;gap:6px;padding:0 14px 14px;flex-wrap:wrap}
+.pc .ac{flex-wrap:nowrap}.pc .ac .btn{flex:1}
+.ico{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;min-width:38px;height:38px;display:inline-grid;place-items:center;cursor:pointer;font:600 15px var(--body);padding:0 10px}
+.ico:hover{border-color:var(--gold)}.ico:disabled{opacity:.4;cursor:default}
+.ico.bad:hover{border-color:var(--bad);color:var(--bad)}
+.mais{position:relative}
+.mais summary{list-style:none}.mais summary::-webkit-details-marker{display:none}
+.mais .menu{position:absolute;right:0;bottom:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:6px;display:grid;min-width:230px;z-index:6}
+.mais .menu button{all:unset;cursor:pointer;padding:9px 12px;border-radius:8px;font-size:14px;font-weight:600}
+.mais .menu button:hover,.mais .menu button:focus-visible{background:var(--bg)}
+.mais .menu button:disabled{opacity:.4;cursor:default;background:none}
+.mais .menu button.bad{color:var(--bad)}
+.vazio{text-align:center;padding:40px 16px}
+
+/* editor */
+.ed{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+@media (max-width:960px){.ed{grid-template-columns:1fr}}
+.ed .card{padding:20px}
+.ed .card h3{font-family:var(--body);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+.side{position:sticky;top:84px;display:grid;gap:14px}
+@media (max-width:960px){.side{position:static}}
+.seg{display:flex;gap:4px;background:var(--bg);border-radius:999px;padding:4px}
+.seg button{flex:1;border:0;background:none;border-radius:999px;padding:10px;font:700 14px var(--body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+textarea.in{min-height:110px;resize:vertical;line-height:1.45}
+.cnt{font-size:12px;color:var(--muted);text-align:right;margin-top:-8px}
+.money{position:relative}.money span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:600}
+.money .in{padding-left:42px}
+.desc{display:inline-flex;align-items:center;gap:6px;background:#c0392b;color:#fff;font-weight:700;font-size:13px;border-radius:999px;padding:4px 10px}
+.sel{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sel .chip[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#fff}
+.sel .add{display:flex;gap:6px}.sel .add .in{min-height:38px;padding:6px 10px;width:150px;font-size:14px}
+.cor{border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:12px}
+.cor + .cor{margin-top:12px}
+.cor .hd{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.cor .hd label.f{flex:1 1 180px}
+.cor .hd .est{flex:0 0 130px}
+.cor .hd .bol{flex:0 0 auto}
+.cor .hd .bol input{width:48px;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:3px;background:var(--bg);cursor:pointer}
+.cor .tools{display:flex;gap:6px;margin-left:auto}
+.fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.ft{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg);border:1.5px solid var(--line);cursor:grab}
+.ft img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.ft.princ{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.ft .lb{position:absolute;left:4px;bottom:4px;background:var(--gold);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px}
+.ft .x,.ft .mv{position:absolute;top:4px;border:0;border-radius:999px;width:26px;height:26px;display:grid;place-items:center;cursor:pointer;font:700 13px var(--body);background:rgba(0,0,0,.6);color:#fff}
+.ft .x{right:4px}.ft .mv{left:4px}
+.ft.drag{opacity:.4}.ft.over{border-color:var(--gold);border-style:dashed}
+.ft.up{display:grid;place-items:center;cursor:default}
+.drop{border:2px dashed var(--line);border-radius:10px;aspect-ratio:1;display:grid;place-items:center;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;padding:6px;background:transparent}
+.drop:hover,.drop.on{border-color:var(--gold);color:var(--gold)}
+.dims{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:560px){.dims{grid-template-columns:1fr 1fr}}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tg{position:relative;width:52px;height:30px;flex:none}
+.tg input{opacity:0;width:0;height:0}
+.tg span{position:absolute;inset:0;background:var(--line);border-radius:999px;cursor:pointer;transition:.15s}
+.tg span::before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.tg input:checked + span{background:var(--wa)}
+.tg input:checked + span::before{transform:translateX(22px)}
+.tg input:focus-visible + span{outline:2px solid var(--gold);outline-offset:2px}
+/* prévia */
+.pv{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.pv .im{aspect-ratio:1;background:var(--bg);position:relative}
+.pv .im img{width:100%;height:100%;object-fit:cover;display:block}
+.pv .bd{padding:14px;display:grid;gap:6px}
+.pv .ey{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.pv .nm{font-weight:600;font-size:15px;line-height:1.3}
+.pv .ds{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pv .pr{display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+.pv .pr strong{font-family:var(--display);font-weight:400;font-size:24px}
+.pv .pr s{color:var(--muted);font-size:13px}
+.pv .pr small{font-size:12px;color:var(--muted)}
+.chk{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:14px}
+.chk li{display:flex;gap:8px;align-items:flex-start}
+.chk li::before{content:"✓";color:var(--wa);font-weight:700;width:16px;flex:none}
+.chk li.no::before{content:"!";color:#b7791f}
+.salvar{position:sticky;bottom:0;z-index:4;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-top:1px solid var(--line);margin-top:18px;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px))}
+.salvar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.salvar .msg{flex:1 1 240px}
+.salvar .btns{display:flex;gap:10px;margin-left:auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:999px;font-weight:600;font-size:14px;z-index:20;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.toast[hidden]{display:none}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:30;padding:16px}
+.modal .card{max-width:420px;width:100%}
+</style>
+</head><body>
+<header class="top"><div class="wrap">
+  <a href="/" aria-label="Ver a loja"><img src="/img/logo.png" alt="SP Store"></a>
+  <b style="font-family:var(--display);font-weight:400;font-size:20px">Produtos</b>
+  <nav>
+    <a class="back" href="/admin/pedidos.html">Pedidos</a>
+    <a class="back" href="/admin/" title="Imagens do banner, textos, WhatsApp, Pix e frete">Banner e textos</a>
+  </nav>
+</div></header>
+<main><div class="wrap" id="app"><p class="muted">Carregando…</p></div></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="/js/conta.js"></script>
+<script>
+const $=s=>document.querySelector(s), app=$("#app");
+const brl=n=>"R$ "+Number(n||0).toFixed(2).replace(".",",");
+const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o));
+const chave=(n,c)=>`${n}|${c}`;
+const CAT={oculos:"Óculos de sol",relogios:"Relógios"};
+const CAT1={oculos:"Óculos de sol",relogios:"Relógio"};
+const SELOS=["Novo","Mais vendido","Promoção","Lançamento","Últimas unidades","Frete grátis"];
+const PADRAO_ENVIO={peso_g:400,comprimento_cm:16,largura_cm:11,altura_cm:4};
+let PRODS=[], VERSAO="", EST={}, FONTE="", filtro="todos", busca="";
+let tela="lista", ed=null, edIdx=-1, orig=null, sujo=false, enviando=0, salvando=false, dragInfo=null;
+
+function toast(t){const e=$("#toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,3200)}
+const fotosDe=v=>[v.foto,...(v.fotos_extras||[])].filter(Boolean);
+const capa=p=>{for(const v of p.variantes||[]){const f=fotosDe(v)[0];if(f)return f}return ""};
+const estTotal=p=>{let t=0,tem=false;for(const v of p.variantes||[]){const q=EST[chave(p.nome,v.nome)];if(typeof q==="number"){t+=q;tem=true}}return tem?t:null};
+const desconto=p=>Number(p.preco_de)>Number(p.preco)?Math.round((1-p.preco/p.preco_de)*100):0;
+
+// ---------- login (mesma conta do painel de pedidos) ----------
+function entrar(msg){
+  app.innerHTML=`<div style="max-width:420px;margin:0 auto" class="card"><div class="eyebrow">Somente a loja</div><h2 style="margin:6px 0 4px">Entrar no painel</h2>
+  <p class="sub">Use a conta com o e-mail da loja (a mesma do painel de pedidos).</p>
+  <form class="form" id="f" novalidate><label class="f">E-mail<input class="in" type="email" name="email" autocomplete="email"></label>
+  <label class="f">Senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="current-password"><button type="button" data-ver>Mostrar</button></span></label>
+  <div class="msg bad" id="m" role="alert">${msg?esc(msg):""}</div><button class="btn btn-dark btn-block" type="submit">Entrar</button></form></div>`;
+  app.querySelector("[data-ver]").addEventListener("click",e=>{const i=e.target.previousElementSibling;i.type=i.type==="password"?"text":"password"});
+  $("#f").addEventListener("submit",async e=>{e.preventDefault();const f=e.target,m=$("#m");m.textContent="";try{await Conta.entrar(f.email.value,f.senha.value);carregar()}catch(err){m.textContent=err.message}});
+}
+async function carregar(){
+  app.innerHTML=`<p class="muted" style="display:flex;gap:10px;align-items:center"><span class="spin"></span>Carregando produtos…</p>`;
+  try{const d=await Conta.api("/api/admin/produtos");PRODS=d.produtos||[];VERSAO=d.versao||"";EST=d.estoque||{};FONTE=d.fonte||"";render()}
+  catch(e){if(e.status===401)return entrar();if(e.status===403){await Conta.sair();return entrar(e.message)}app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
+}
+function render(){ if(tela==="editar") renderEditor(); else renderLista(); }
+
+// ---------- salvar o catálogo inteiro ----------
+async function gravar(lista, estoque, resumo){
+  const d=await Conta.api("/api/admin/produtos",{method:"PUT",body:JSON.stringify({produtos:lista,versao:VERSAO,estoque,resumo})});
+  PRODS=d.produtos;VERSAO=d.versao;EST=d.estoque||EST;FONTE="banco";
+  if(d.aviso) toast(d.aviso);
+  return d;
+}
+async function acaoRapida(fn,msgOk){
+  const lista=clone(PRODS); const est=fn(lista)||[];
+  try{await gravar(lista,est);renderLista();toast(msgOk)}
+  catch(e){toast(e.message);if(e.status===409)carregar()}
+}
+
+// ---------- lista ----------
+function renderLista(){
+  const q=busca.trim().toLowerCase();
+  const cont={todos:PRODS.length,oculos:0,relogios:0,fora:0};
+  PRODS.forEach(p=>{cont[p.categoria]=(cont[p.categoria]||0)+1;if(p.ativo===false)cont.fora++});
+  const lista=PRODS.map((p,i)=>({p,i})).filter(({p})=>(filtro==="todos"||(filtro==="fora"?p.ativo===false:p.categoria===filtro))&&(!q||p.nome.toLowerCase().includes(q)||(p.variantes||[]).some(v=>v.nome.toLowerCase().includes(q))));
+  const noAr=PRODS.filter(p=>p.ativo!==false).length;
+  const esgot=PRODS.reduce((a,p)=>a+(p.variantes||[]).filter(v=>EST[chave(p.nome,v.nome)]===0).length,0);
+  const semFoto=PRODS.filter(p=>!capa(p)).length;
+  app.innerHTML=`
+  ${FONTE!=="banco"?`<div class="msg info" style="margin-bottom:14px">Na primeira vez que você salvar algo aqui, os produtos passam a ser guardados no banco de dados da loja e o site atualiza <b>na hora</b>.</div>`:""}
+  <div class="kpis">
+    <div class="kpi"><small>No ar</small><b>${noAr}</b></div>
+    <div class="kpi"><small>Cores cadastradas</small><b>${PRODS.reduce((a,p)=>a+(p.variantes||[]).length,0)}</b></div>
+    <div class="kpi"><small>Cores esgotadas</small><b>${esgot}</b></div>
+    <div class="kpi"><small>Sem foto</small><b>${semFoto}</b></div>
+  </div>
+  <div class="bar">
+    <input class="in" type="search" id="busca" placeholder="Buscar produto ou cor" value="${esc(busca)}" aria-label="Buscar produto">
+    <div class="chips" role="group" aria-label="Filtrar">${[["todos","Todos"],["oculos","Óculos de sol"],["relogios","Relógios"],["fora","Fora do ar"]].map(([k,t])=>`<button class="chip" data-f="${k}" aria-pressed="${filtro===k}">${t}<i>${cont[k]||0}</i></button>`).join("")}</div>
+    <button class="btn btn-dark btn-sm novo" type="button" id="novo">+ Novo produto</button>
+  </div>
+  ${lista.length?`<div class="grade">${lista.map(({p,i})=>{const c=capa(p),t=estTotal(p),dc=desconto(p);return `<div class="pc${p.ativo===false?" off":""}">
+    <div class="im" data-ed="${i}">${c?`<img src="${esc(c)}" alt="" loading="lazy">`:`<span class="sem">Sem foto</span>`}
+      <div class="tags">${p.ativo===false?`<span class="tag off">Fora do ar</span>`:""}${dc?`<span class="tag red">-${dc}%</span>`:""}${(p.selos||[]).slice(0,2).map((s,k)=>`<span class="tag${k===0?" gold":""}">${esc(s)}</span>`).join("")}</div></div>
+    <div class="bd"><span class="mt">${CAT[p.categoria]||""}</span><span class="nm">${esc(p.nome)}</span>
+      <span class="pr">${dc?`<s>${brl(p.preco_de)}</s>`:""}<b>${brl(p.preco)}</b></span>
+      <span class="mt">${(p.variantes||[]).length} ${(p.variantes||[]).length===1?"cor":"cores"} · ${t==null?"estoque sem controle":t===0?"<b style='color:var(--bad)'>esgotado</b>":t+" em estoque"}</span>
+      <div class="dots">${(p.variantes||[]).slice(0,8).map(v=>{const f=fotosDe(v)[0];return `<span title="${esc(v.nome)}" style="${f?`background-image:url('${esc(f)}')`:`background:${esc((v.avancado&&v.avancado.cor_principal)||v.cor_principal||"#999")}`}"></span>`}).join("")}</div></div>
+    <div class="ac"><button class="btn btn-dark btn-sm" data-ed="${i}">Editar</button>
+      <details class="mais"><summary class="ico" aria-label="Mais ações" title="Mais ações">⋯</summary><div class="menu">
+        <button type="button" data-on="${i}">${p.ativo===false?"Colocar no ar":"Tirar do ar"}</button>
+        <button type="button" data-dup="${i}">Duplicar</button>
+        <button type="button" data-up="${i}" ${i===0?"disabled":""}>Mover para antes na vitrine</button>
+        <button type="button" data-down="${i}" ${i===PRODS.length-1?"disabled":""}>Mover para depois na vitrine</button>
+        <button type="button" data-del="${i}" class="bad">Excluir</button></div></details></div>
+  </div>`}).join("")}</div>`
+  :`<div class="card vazio"><h2>${PRODS.length?"Nada encontrado":"Nenhum produto ainda"}</h2><p class="muted">${PRODS.length?"Mude a busca ou o filtro.":"Clique em <b>+ Novo produto</b> para cadastrar o primeiro."}</p></div>`}`;
+  const b=$("#busca"); b.addEventListener("input",()=>{busca=b.value;const pos=b.selectionStart;renderLista();const nb=$("#busca");nb.focus();nb.setSelectionRange(pos,pos)});
+  app.querySelectorAll("[data-f]").forEach(x=>x.onclick=()=>{filtro=x.dataset.f;renderLista()});
+  $("#novo").onclick=()=>abrir(-1);
+  app.querySelectorAll("[data-ed]").forEach(x=>x.onclick=()=>abrir(+x.dataset.ed));
+  app.querySelectorAll("[data-up]").forEach(x=>x.onclick=()=>acaoRapida(l=>{const i=+x.dataset.up;[l[i-1],l[i]]=[l[i],l[i-1]]},"Ordem da vitrine atualizada."));
+  app.querySelectorAll("[data-down]").forEach(x=>x.onclick=()=>acaoRapida(l=>{const i=+x.dataset.down;[l[i+1],l[i]]=[l[i],l[i+1]]},"Ordem da vitrine atualizada."));
+  app.querySelectorAll("[data-on]").forEach(x=>x.onclick=()=>{const i=+x.dataset.on,on=PRODS[i].ativo===false;acaoRapida(l=>{l[i].ativo=on},on?"Produto colocado no ar.":"Produto tirado do ar.")});
+  app.querySelectorAll("[data-dup]").forEach(x=>x.onclick=()=>duplicar(+x.dataset.dup));
+  app.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>excluir(+x.dataset.del));
+  app.querySelectorAll("details.mais").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)app.querySelectorAll("details.mais[open]").forEach(o=>{if(o!==d)o.open=false})}));
+}
+function nomeLivre(base){let n=base,k=2;const ex=new Set(PRODS.map(p=>p.nome.toLowerCase()));while(ex.has(n.toLowerCase()))n=`${base} (${k++})`;return n}
+function duplicar(i){
+  const p=clone(PRODS[i]); p.nome=nomeLivre(p.nome+" - cópia"); p.ativo=false;
+  edIdx=-1; ed=prepara(p); orig=null; sujo=true; tela="editar"; renderEditor(); scrollTo(0,0);
+  toast("Cópia criada (fora do ar). Ajuste o que quiser e salve.");
+}
+function excluir(i){
+  const p=PRODS[i];
+  confirmarModal(`Excluir "${p.nome}"?`,"O produto sai do site. Pedidos antigos não são afetados. Se só quiser esconder por um tempo, use <b>Tirar do ar</b>.","Excluir",()=>
+    acaoRapida(l=>{l.splice(i,1);return (p.variantes||[]).filter(v=>chave(p.nome,v.nome) in EST).map(v=>({chave:chave(p.nome,v.nome),qtd:null}))},"Produto excluído."));
+}
+function confirmarModal(tit,txt,bt,ok){
+  const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="card" role="dialog" aria-modal="true"><h2 style="font-size:22px">${esc(tit)}</h2><p class="muted" style="font-size:14px">${txt}</p>
+  <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-line btn-sm" data-n>Cancelar</button><button class="btn btn-dark btn-sm" data-s style="background:var(--bad);color:#fff">${esc(bt)}</button></div></div>`;
+  document.body.appendChild(m); const fecha=()=>m.remove();
+  m.querySelector("[data-n]").onclick=fecha; m.onclick=e=>{if(e.target===m)fecha()};
+  m.querySelector("[data-s]").onclick=()=>{fecha();ok()}; m.querySelector("[data-n]").focus();
+}
+
+// ---------- editor ----------
+function prepara(p){
+  const d=clone(p);
+  d.variantes=(d.variantes&&d.variantes.length?d.variantes:[{nome:"Padrão"}]).map(v=>({nome:v.nome,fotos:fotosDe(v),avancado:v.avancado||(v.cor_principal?{cor_principal:v.cor_principal}:undefined),
+    _orig:p.nome&&v.nome?chave(p.nome,v.nome):null,_qtd:p.nome&&v.nome&&typeof EST[chave(p.nome,v.nome)]==="number"?String(EST[chave(p.nome,v.nome)]):""}));
+  d.avancado=d.avancado||{}; if(!d.avancado.desenho&&d.desenho)d.avancado.desenho=d.desenho; delete d.desenho;
+  d.selos=d.selos||[]; d.descricao=d.descricao||"";
+  return d;
+}
+function abrir(i){
+  edIdx=i; orig=i>=0?PRODS[i]:null;
+  ed=i>=0?prepara(PRODS[i]):prepara({nome:"",categoria:filtro==="relogios"?"relogios":"oculos",preco:"",selos:["Novo"],ativo:true,variantes:[{nome:""}],avancado:{}});
+  if(i<0)ed.variantes[0]._orig=null;
+  sujo=false; tela="editar"; renderEditor(); scrollTo(0,0);
+}
+function fechar(){ if(sujo&&!confirm("Sair sem salvar as mudanças?"))return; tela="lista";ed=null;sujo=false;renderLista();scrollTo(0,0) }
+const marcar=()=>{sujo=true;atualizaPrevia()};
+
+function renderEditor(){
+  const d=ed, dc=desconto(d);
+  app.innerHTML=`
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="link" type="button" id="voltar">← Todos os produtos</button>
+    <h1 style="font-size:28px;margin-left:4px;flex-basis:100%">${edIdx>=0?"Editar produto":"Novo produto"}</h1>
+  </div>
+  <div class="ed">
+   <div style="display:grid;gap:16px">
+    <section class="card" aria-labelledby="h-info"><h3 id="h-info">Informações</h3><div class="form">
+      <label class="f">Nome do produto<input class="in" id="nome" maxlength="120" value="${esc(d.nome)}" placeholder="Ex.: Óculos de Sol Feminino Gatinho"></label>
+      <div class="f" style="display:grid;gap:6px;font-size:14px;font-weight:600">Categoria
+        <div class="seg" role="group" aria-label="Categoria">${Object.entries(CAT).map(([k,t])=>`<button type="button" data-cat="${k}" aria-pressed="${d.categoria===k}">${t}</button>`).join("")}</div></div>
+      <label class="f">Descrição <small>Aparece no site, embaixo do nome. Fale do material, proteção UV, tamanho, o que vem na caixa…</small>
+        <textarea class="in" id="descricao" maxlength="2000" placeholder="Ex.: Armação em metal dourado, lentes com proteção UV400. Acompanha estojo e flanela.">${esc(d.descricao)}</textarea></label>
+      <div class="cnt" id="cnt">${d.descricao.length}/2000</div>
+      <div class="f" style="display:grid;gap:8px;font-size:14px;font-weight:600">Selos na foto <small style="font-weight:400;color:var(--muted)">Até 4. O primeiro fica dourado.</small>
+        <div class="sel" id="selos"></div></div>
+    </div></section>
+
+    <section class="card" aria-labelledby="h-preco"><h3 id="h-preco">Preço</h3><div class="row">
+      <label class="f">Preço de venda<span class="money"><span>R$</span><input class="in" id="preco" inputmode="decimal" value="${d.preco===""?"":Number(d.preco).toFixed(2).replace(".",",")}" placeholder="29,99"></span></label>
+      <label class="f">Preço antigo <small>Opcional. Aparece riscado ("de R$ X por…")</small><span class="money"><span>R$</span><input class="in" id="preco_de" inputmode="decimal" value="${d.preco_de?Number(d.preco_de).toFixed(2).replace(".",","):""}" placeholder="49,99"></span></label>
+    </div><p class="hint" id="dc-txt" style="margin-top:10px">${dc?`<span class="desc">-${dc}%</span> de desconto no site`:""}</p></section>
+
+    <section class="card" aria-labelledby="h-cores"><h3 id="h-cores">Cores, fotos e estoque</h3>
+      <p class="hint" style="margin:-6px 0 14px">Cada cor tem as próprias fotos e o próprio estoque. A primeira foto é a <b>principal</b>. Arraste para mudar a ordem. Produto sem opção de cor? Deixe só uma.</p>
+      <div id="cores"></div>
+      <button class="btn btn-line btn-sm" type="button" id="add-cor" style="margin-top:12px">+ Adicionar cor</button>
+    </section>
+
+    <section class="card" aria-labelledby="h-envio"><h3 id="h-envio">Embalagem para o frete</h3>
+      <p class="hint" style="margin:-6px 0 12px">Usado no cálculo do frete. Em branco, vale o padrão da loja (400 g, 16 × 11 × 4 cm).</p>
+      <div class="dims">${[["peso_g","Peso (g)"],["comprimento_cm","Comprimento (cm)"],["largura_cm","Largura (cm)"],["altura_cm","Altura (cm)"]].map(([k,t])=>`<label class="f">${t}<input class="in" data-dim="${k}" inputmode="decimal" value="${d.avancado[k]??""}" placeholder="${PADRAO_ENVIO[k]}"></label>`).join("")}</div>
+    </section>
+   </div>
+
+   <aside class="side">
+    <div class="card" style="padding:16px"><div class="sw"><div><b>Mostrar no site</b><div class="hint" style="margin:2px 0 0">Desligado = produto fica salvo, mas escondido.</div></div>
+      <label class="tg"><input type="checkbox" id="ativo" ${d.ativo!==false?"checked":""}><span></span><b class="sr">Mostrar no site</b></label></div></div>
+    <div><div class="eyebrow" style="margin:0 0 8px 2px">Prévia na loja</div><div class="pv" id="previa"></div></div>
+    <div class="card" style="padding:16px"><div class="eyebrow" style="margin-bottom:8px">Checklist</div><ul class="chk" id="chk"></ul></div>
+   </aside>
+  </div>
+  <div class="salvar"><div class="wrap">
+    <div class="msg" id="msg" role="status"></div>
+    <div class="btns">${edIdx>=0?`<button class="btn btn-line" type="button" id="dup-ed">Duplicar</button>`:""}<button class="btn btn-line" type="button" id="cancelar">Cancelar</button><button class="btn btn-dark" type="button" id="salvar">Salvar produto</button></div>
+  </div></div>`;
+  $("#voltar").onclick=fechar; $("#cancelar").onclick=fechar;
+  if($("#dup-ed")) $("#dup-ed").onclick=()=>{if(sujo&&!confirm("Duplicar sem salvar as mudanças deste produto?"))return;duplicar(edIdx)};
+  $("#nome").addEventListener("input",e=>{d.nome=e.target.value;marcar()});
+  $("#descricao").addEventListener("input",e=>{d.descricao=e.target.value;$("#cnt").textContent=`${d.descricao.length}/2000`;marcar()});
+  app.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{d.categoria=b.dataset.cat;app.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed",x===b));marcar()});
+  const pr=v=>{v=String(v).trim().replace(/\s|R\$/g,"");if(/,\d{1,2}$/.test(v))v=v.replace(/\./g,"").replace(",",".");else v=v.replace(",",".");const n=parseFloat(v);return Number.isFinite(n)?n:""};
+  $("#preco").addEventListener("input",e=>{d.preco=pr(e.target.value);marcar();dcTxt()});
+  $("#preco_de").addEventListener("input",e=>{d.preco_de=pr(e.target.value);marcar();dcTxt()});
+  app.querySelectorAll("[data-dim]").forEach(i=>i.addEventListener("input",()=>{const v=pr(i.value);if(v==="")delete d.avancado[i.dataset.dim];else d.avancado[i.dataset.dim]=v;sujo=true}));
+  $("#ativo").addEventListener("change",e=>{d.ativo=e.target.checked;marcar()});
+  $("#add-cor").onclick=()=>{d.variantes.push({nome:"",fotos:[],_orig:null,_qtd:""});marcar();renderCores();const ins=app.querySelectorAll("[data-cor-nome]");ins[ins.length-1].focus()};
+  $("#salvar").onclick=salvarProduto;
+  renderSelos(); renderCores(); atualizaPrevia();
+}
+function dcTxt(){const dc=desconto(ed);$("#dc-txt").innerHTML=dc?`<span class="desc">-${dc}%</span> de desconto no site`:(Number(ed.preco_de)&&Number(ed.preco_de)<=Number(ed.preco)?`<span style="color:var(--bad)">O preço antigo precisa ser maior que o de venda.</span>`:"")}
+function renderSelos(){
+  const d=ed, todos=[...new Set([...d.selos,...SELOS])];
+  $("#selos").innerHTML=todos.map(s=>`<button type="button" class="chip" data-selo="${esc(s)}" aria-pressed="${d.selos.includes(s)}">${d.selos.includes(s)?`${d.selos.indexOf(s)+1}. `:""}${esc(s)}</button>`).join("")+
+    `<span class="add"><input class="in" id="selo-novo" maxlength="30" placeholder="Outro selo"><button class="ico" type="button" id="selo-add" aria-label="Adicionar selo">+</button></span>`;
+  $("#selos").querySelectorAll("[data-selo]").forEach(b=>b.onclick=()=>{const s=b.dataset.selo,k=d.selos.indexOf(s);
+    if(k>=0)d.selos.splice(k,1);else{if(d.selos.length>=4){toast("Use no máximo 4 selos.");return}d.selos.push(s)}marcar();renderSelos()});
+  const add=()=>{const i=$("#selo-novo"),s=i.value.trim();if(!s)return;if(d.selos.length>=4){toast("Use no máximo 4 selos.");return}if(!d.selos.includes(s))d.selos.push(s);marcar();renderSelos()};
+  $("#selo-add").onclick=add; $("#selo-novo").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add()}});
+}
+function renderCores(){
+  const d=ed, box=$("#cores");
+  box.innerHTML=d.variantes.map((v,i)=>`<div class="cor" data-ci="${i}">
+    <div class="hd">
+      <label class="f">${d.variantes.length>1?`Cor ${i+1}`:"Cor"}<input class="in" data-cor-nome="${i}" maxlength="60" value="${esc(v.nome)}" placeholder="${d.variantes.length>1?"Ex.: Dourado com lente marrom":"Ex.: Preto (ou deixe em branco)"}"></label>
+      <label class="f est">Estoque <small>vazio = sem controle</small><input class="in" data-cor-qtd="${i}" type="number" min="0" step="1" inputmode="numeric" value="${esc(v._qtd)}" placeholder="—"></label>
+      <label class="f bol" title="Cor da bolinha (usada quando a cor não tem foto)">Bolinha<input type="color" data-cor-hex="${i}" value="${esc((v.avancado&&v.avancado.cor_principal)||"#999999")}"></label>
+      <div class="tools">
+        <button class="ico" type="button" data-cor-up="${i}" aria-label="Subir cor" title="Subir" ${i===0?"disabled":""}>↑</button>
+        <button class="ico" type="button" data-cor-down="${i}" aria-label="Descer cor" title="Descer" ${i===d.variantes.length-1?"disabled":""}>↓</button>
+        <button class="ico" type="button" data-cor-dup="${i}" aria-label="Duplicar cor" title="Duplicar cor">⧉</button>
+        <button class="ico bad" type="button" data-cor-del="${i}" aria-label="Remover cor" title="Remover cor" ${d.variantes.length===1?"disabled":""}>🗑</button>
+      </div>
+    </div>
+    <div class="fotos" data-fotos="${i}">${v.fotos.map((f,k)=>`<div class="ft${k===0?" princ":""}" draggable="true" data-ft="${i}:${k}">
+        <img src="${esc(f)}" alt="Foto ${k+1} da cor ${esc(v.nome)}">${k===0?`<span class="lb">Principal</span>`:`<button class="mv" type="button" data-princ="${i}:${k}" title="Tornar principal" aria-label="Tornar principal">★</button>`}
+        <button class="x" type="button" data-rmf="${i}:${k}" aria-label="Remover foto">×</button></div>`).join("")}
+      ${(v._subindo||[]).map(()=>`<div class="ft up"><span class="spin" style="color:var(--gold)"></span></div>`).join("")}
+      <label class="drop" data-drop="${i}">+ Fotos<br><span style="font-weight:400">arraste aqui ou toque</span><input type="file" accept="image/*" multiple hidden data-file="${i}"></label>
+    </div>
+  </div>`).join("");
+  box.querySelectorAll("[data-cor-nome]").forEach(x=>x.addEventListener("input",()=>{d.variantes[+x.dataset.corNome].nome=x.value;marcar()}));
+  box.querySelectorAll("[data-cor-qtd]").forEach(x=>x.addEventListener("input",()=>{d.variantes[+x.dataset.corQtd]._qtd=x.value;marcar()}));
+  box.querySelectorAll("[data-cor-hex]").forEach(x=>x.addEventListener("input",()=>{const v=d.variantes[+x.dataset.corHex];v.avancado={...(v.avancado||{}),cor_principal:x.value};marcar()}));
+  const mover=(i,j)=>{[d.variantes[i],d.variantes[j]]=[d.variantes[j],d.variantes[i]];marcar();renderCores()};
+  box.querySelectorAll("[data-cor-up]").forEach(x=>x.onclick=()=>mover(+x.dataset.corUp,+x.dataset.corUp-1));
+  box.querySelectorAll("[data-cor-down]").forEach(x=>x.onclick=()=>mover(+x.dataset.corDown,+x.dataset.corDown+1));
+  box.querySelectorAll("[data-cor-dup]").forEach(x=>x.onclick=()=>{const i=+x.dataset.corDup,v=clone(d.variantes[i]);v.nome=v.nome?v.nome+" (cópia)":"";v._orig=null;v._subindo=[];d.variantes.splice(i+1,0,v);marcar();renderCores()});
+  box.querySelectorAll("[data-cor-del]").forEach(x=>x.onclick=()=>{const i=+x.dataset.corDel,v=d.variantes[i];if((v.fotos.length||v.nome)&&!confirm(`Remover a cor "${v.nome||"sem nome"}" e as fotos dela?`))return;d.variantes.splice(i,1);marcar();renderCores()});
+  box.querySelectorAll("[data-rmf]").forEach(x=>x.onclick=()=>{const [i,k]=x.dataset.rmf.split(":").map(Number);d.variantes[i].fotos.splice(k,1);marcar();renderCores()});
+  box.querySelectorAll("[data-princ]").forEach(x=>x.onclick=()=>{const [i,k]=x.dataset.princ.split(":").map(Number);const f=d.variantes[i].fotos;f.unshift(...f.splice(k,1));marcar();renderCores()});
+  box.querySelectorAll("[data-file]").forEach(x=>x.addEventListener("change",()=>{subir(+x.dataset.file,[...x.files]);x.value=""}));
+  // arrastar arquivos do computador
+  box.querySelectorAll("[data-fotos]").forEach(z=>{
+    z.addEventListener("dragover",e=>{if(e.dataTransfer.types.includes("Files")){e.preventDefault();z.querySelector(".drop").classList.add("on")}});
+    z.addEventListener("dragleave",()=>z.querySelector(".drop").classList.remove("on"));
+    z.addEventListener("drop",e=>{if(!e.dataTransfer.files.length)return;e.preventDefault();z.querySelector(".drop").classList.remove("on");subir(+z.dataset.fotos,[...e.dataTransfer.files])});
+  });
+  // reordenar fotos arrastando (dentro da mesma cor)
+  box.querySelectorAll("[data-ft]").forEach(el=>{
+    el.addEventListener("dragstart",e=>{dragInfo=el.dataset.ft.split(":").map(Number);el.classList.add("drag");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","ft")});
+    el.addEventListener("dragend",()=>{el.classList.remove("drag");dragInfo=null;box.querySelectorAll(".over").forEach(o=>o.classList.remove("over"))});
+    el.addEventListener("dragover",e=>{if(!dragInfo)return;const [i]=el.dataset.ft.split(":").map(Number);if(i!==dragInfo[0])return;e.preventDefault();el.classList.add("over")});
+    el.addEventListener("dragleave",()=>el.classList.remove("over"));
+    el.addEventListener("drop",e=>{if(!dragInfo)return;e.preventDefault();e.stopPropagation();const [i,k]=el.dataset.ft.split(":").map(Number);if(i!==dragInfo[0])return;
+      const f=d.variantes[i].fotos;const [x]=f.splice(dragInfo[1],1);f.splice(k,0,x);dragInfo=null;marcar();renderCores()});
+  });
+}
+
+// ---------- fotos: converte para WebP no navegador e envia ----------
+function paraWebp(file){
+  return new Promise((ok,falha)=>{
+    const url=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);
+      const max=1000, k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+      const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
+      const g=c.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(img,0,0,c.width,c.height);
+      c.toBlob(b=>{if(!b||b.type!=="image/webp")return falha(new Error("Este navegador não converte fotos. Use o Chrome."));const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(b)},"image/webp",.82);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);falha(new Error(`Não consegui abrir "${file.name}". Envie em JPG, PNG ou WebP.`))};
+    img.src=url;
+  });
+}
+async function subir(i,files){
+  const v=ed.variantes[i]; files=files.filter(f=>f.type.startsWith("image/")); if(!files.length)return;
+  if(v.fotos.length+files.length>15){toast("Cada cor aceita até 15 fotos.");files=files.slice(0,Math.max(0,15-v.fotos.length))}
+  v._subindo=(v._subindo||[]).concat(files.map(()=>1)); enviando+=files.length; renderCores(); estadoSalvar();
+  for(const f of files){
+    try{const b64=await paraWebp(f);const d=await Conta.api("/api/admin/foto",{method:"POST",body:JSON.stringify({nome:(ed.nome||"produto")+" "+(v.nome||""),base64:b64})});v.fotos.push(d.url);marcar()}
+    catch(e){toast(e.message)}
+    finally{v._subindo.pop();enviando--;if(tela==="editar"&&ed&&ed.variantes.includes(v))renderCores();estadoSalvar()}
+  }
+}
+function estadoSalvar(){const b=$("#salvar");if(!b)return;b.disabled=enviando>0||salvando;b.innerHTML=salvando?`<span class="spin"></span>Salvando…`:enviando>0?`<span class="spin"></span>Enviando fotos…`:"Salvar produto"}
+
+// ---------- prévia e checklist ----------
+function atualizaPrevia(){
+  const d=ed, v=d.variantes[0]||{fotos:[]}, f=d.variantes.map(x=>x.fotos[0]).find(Boolean), dc=desconto(d);
+  $("#previa").innerHTML=`<div class="im">${f?`<img src="${esc(f)}" alt="">`:`<span class="sem" style="position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px">Sem foto</span>`}
+    <div class="tags">${d.ativo===false?`<span class="tag off">Fora do ar</span>`:""}${dc?`<span class="tag red">-${dc}%</span>`:""}${d.selos.map((s,k)=>`<span class="tag${k===0?" gold":""}">${esc(s)}</span>`).join("")}</div></div>
+    <div class="bd"><span class="ey">${CAT1[d.categoria]||""}</span><span class="nm">${esc(d.nome)||"<span class='muted'>Nome do produto</span>"}</span>
+    ${d.descricao?`<span class="ds">${esc(d.descricao)}</span>`:""}
+    ${d.variantes.length>1?`<div class="dots">${d.variantes.map(x=>`<span title="${esc(x.nome)}" style="${x.fotos[0]?`background-image:url('${esc(x.fotos[0])}')`:`background:${esc((x.avancado&&x.avancado.cor_principal)||"#999")}`}"></span>`).join("")}</div>`:""}
+    <div class="pr">${dc?`<s>${brl(d.preco_de)}</s>`:""}<strong>${d.preco!==""?brl(d.preco):"R$ —"}</strong><small>no Pix ou cartão</small></div></div>`;
+  const semFoto=d.variantes.filter(x=>!x.fotos.length).length;
+  const itens=[
+    [!!d.nome.trim(),"Nome do produto"],
+    [Number(d.preco)>0,"Preço de venda"],
+    [d.descricao.trim().length>=40,"Descrição com detalhes (ajuda a vender)"],
+    [!semFoto,semFoto?`${semFoto} ${semFoto===1?"cor sem foto":"cores sem foto"}`:"Todas as cores com foto"],
+    [d.variantes.every(x=>x.fotos.length>=3),"3 fotos ou mais por cor"],
+    [d.variantes.length===1||d.variantes.every(x=>x.nome.trim()),"Nome em todas as cores"],
+  ];
+  $("#chk").innerHTML=itens.map(([ok,t])=>`<li class="${ok?"":"no"}">${esc(t)}</li>`).join("");
+}
+
+// ---------- salvar ----------
+async function salvarProduto(){
+  const d=ed, m=$("#msg"); m.className="msg"; m.textContent="";
+  const erroEm=(t,sel)=>{m.className="msg bad";m.textContent=t;if(sel){const e=app.querySelector(sel);if(e){e.focus();e.setAttribute("aria-invalid","true");setTimeout(()=>e.removeAttribute("aria-invalid"),3000)}}};
+  if(!d.nome.trim()) return erroEm("Digite o nome do produto.","#nome");
+  if(PRODS.some((p,i)=>i!==edIdx&&p.nome.trim().toLowerCase()===d.nome.trim().toLowerCase())) return erroEm("Já existe outro produto com esse nome.","#nome");
+  if(!(Number(d.preco)>0)) return erroEm("Digite o preço de venda.","#preco");
+  if(d.preco_de!==""&&d.preco_de!=null&&Number(d.preco_de)>0&&Number(d.preco_de)<=Number(d.preco)) return erroEm("O preço antigo precisa ser maior que o preço de venda (ou deixe em branco).","#preco_de");
+  if(d.variantes.length>1){const k=d.variantes.findIndex(v=>!v.nome.trim());if(k>=0)return erroEm(`Dê um nome para a cor ${k+1}.`,`[data-cor-nome="${k}"]`)}
+  const nomes=d.variantes.map(v=>(v.nome.trim()||"Padrão").toLowerCase()); if(new Set(nomes).size!==nomes.length) return erroEm("Duas cores estão com o mesmo nome.");
+  if(enviando) return;
+
+  const nome=d.nome.trim();
+  const prod={nome,categoria:d.categoria,preco:Number(d.preco),descricao:d.descricao.trim(),selos:d.selos,ativo:d.ativo!==false,
+    variantes:d.variantes.map(v=>{const o={nome:v.nome.trim()||"Padrão",foto:v.fotos[0]||"",fotos_extras:v.fotos.slice(1)};if(v.avancado&&(v.avancado.cor_principal||v.avancado.cor_detalhe))o.avancado={...v.avancado};return o}),
+    avancado:{...d.avancado}};
+  if(Number(d.preco_de)>Number(d.preco)) prod.preco_de=Number(d.preco_de);
+  if(!prod.avancado.desenho) prod.avancado.desenho=prod.categoria==="relogios"?"round":"hex";
+
+  // estoque: grava as chaves novas e apaga as antigas que mudaram de nome ou foram removidas
+  const est=[], novas=new Set();
+  d.variantes.forEach((v,k)=>{const c=chave(nome,prod.variantes[k].nome);novas.add(c);const q=String(v._qtd).trim();
+    est.push({chave:c,qtd:q===""?null:Math.max(0,Math.floor(Number(q)||0))})});
+  if(orig) for(const v of orig.variantes||[]){const c=chave(orig.nome,v.nome);if(!novas.has(c)&&c in EST)est.push({chave:c,qtd:null})}
+  const estFinal=est.filter(e=>!(e.qtd===null&&!(e.chave in EST)));
+
+  const lista=clone(PRODS); if(edIdx>=0) lista[edIdx]=prod; else lista.unshift(prod);
+  salvando=true; estadoSalvar();
+  try{await gravar(lista,estFinal,(edIdx>=0?"edita ":"novo ")+nome);sujo=false;salvando=false;tela="lista";ed=null;renderLista();scrollTo(0,0);
+    toast(edIdx>=0?"Produto salvo! O site já mostra a mudança.":"Produto criado! Já está no site.")}
+  catch(e){salvando=false;estadoSalvar();erroEm(e.message);if(e.status===409){m.innerHTML+=` <button class="link" type="button" id="rec">Recarregar</button>`;$("#rec").onclick=()=>{sujo=false;tela="lista";carregar()}}}
+}
+
+document.addEventListener("click",e=>{if(!e.target.closest("details.mais"))document.querySelectorAll("details.mais[open]").forEach(o=>o.open=false)});
+addEventListener("beforeunload",e=>{if(sujo||enviando){e.preventDefault();e.returnValue=""}});
+(async function(){
+  const c=await Conta.config();
+  if(!c.pronto){app.innerHTML=`<div class="card"><h2>Produtos</h2><p class="muted">Falta configurar o banco de dados no Cloudflare.</p></div>`;return}
+  if(Conta.sessao()) carregar(); else entrar();
+})();
+</script>
+</body></html>

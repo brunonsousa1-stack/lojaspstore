@@ -210,6 +210,8 @@ body.locked{overflow:hidden}
 .add{justify-content:center;background:var(--ink);color:var(--bg);padding:11px 16px;font-size:14px}
 .add.ok{background:var(--gold);color:#1b1a17}
 .buy-alt{background:transparent;color:var(--wa);border:1.5px solid var(--wa);padding:9.5px 16px}
+.price s.de{color:var(--muted);font-size:13px;margin-right:6px;font-weight:500}
+.badge.off{background:#c0392b;color:#fff}
 .buy-now{justify-content:center;background:var(--gold);color:#fff;padding:11px 16px;font-size:14px}
 .pd .buy-now{padding:14px 18px;font-size:16px;margin-top:0}
 .pd .add{padding:14px 18px;font-size:16px;margin-top:4px}
@@ -442,14 +444,14 @@ function render(f){
     const gk=p.id+"-"+i, gi=fotos.length?((gal[gk]||0)%fotos.length):0;
     const media=fotos.length?`<img src="${esc(fotos[gi])}" alt="${esc(p.nome)} - ${esc(v.nome)}" loading="lazy">`+(fotos.length>1?`<button class="gal-btn gal-prev" id="gp-${gk}" data-g="${gk}" data-d="-1" data-n="${fotos.length}" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" id="gn-${gk}" data-g="${gk}" data-d="1" data-n="${fotos.length}" aria-label="Próxima foto">›</button><div class="gal-dots">${fotos.map((_,k)=>`<i class="${k===gi?'on':''}"></i>`).join("")}</div>`:""):art(p.desenho||"hex",v);
     return `<article class="card">
-      <div class="media" data-open="${p.id}"><div class="badges">${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}<button class="see" type="button" data-open="${p.id}" aria-label="Ver detalhes: ${esc(p.nome)}">Ver detalhes</button></div>
+      <div class="media" data-open="${p.id}"><div class="badges">${Number(p.preco_de)>Number(p.preco)?`<span class="badge off">-${Math.round((1-p.preco/p.preco_de)*100)}%</span>`:""}${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}<button class="see" type="button" data-open="${p.id}" aria-label="Ver detalhes: ${esc(p.nome)}">Ver detalhes</button></div>
       <div class="info">
         <h3><button class="open" type="button" data-open="${p.id}">${esc(p.nome)}</button></h3>
         ${p.descricao?`<p style="margin:0;font-size:14px;color:var(--muted)">${esc(p.descricao)}</p>`:""}
         <div class="variant">${esc(v.nome)}</div>
         ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" id="sw-${p.id}-${k}" data-p="${p.id}" data-i="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
         ${estoqueTag(p,v)}
-        <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
+        <div class="price">${Number(p.preco_de)>Number(p.preco)?`<s class="de" aria-label="Preço antigo">${brl(p.preco_de)}</s>`:""}<strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
         <div class="actions">
           ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
           <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
@@ -496,7 +498,7 @@ function fillProduct(p){
   const gk=p.id+"-"+i, gi=fotos.length?((gal[gk]||0)%fotos.length):0;
   const main=fotos.length?`<img src="${esc(fotos[gi])}" alt="${esc(p.nome)} - ${esc(v.nome)}">`+(fotos.length>1?`<button class="gal-btn gal-prev" type="button" data-pg="-1" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" type="button" data-pg="1" aria-label="Próxima foto">›</button>`:""):art(p.desenho||"hex",v);
   pdIn.innerHTML=`<div class="pd-gal">
-    <div class="pd-art"><div class="badges">${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${main}</div>
+    <div class="pd-art"><div class="badges">${Number(p.preco_de)>Number(p.preco)?`<span class="badge off">-${Math.round((1-p.preco/p.preco_de)*100)}%</span>`:""}${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${main}</div>
     ${fotos.length>1?`<div class="pd-thumbs">${fotos.map((f,k)=>`<button type="button" data-pt="${k}" aria-pressed="${k===gi}" aria-label="Foto ${k+1}"><img src="${esc(f)}" alt="" loading="lazy"></button>`).join("")}</div>`:""}
   </div>
   <div class="pd-body">
@@ -506,7 +508,7 @@ function fillProduct(p){
     <div class="pd-label">Cor: <span>${esc(v.nome)}</span></div>
     ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" type="button" data-pi="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
     ${estoqueTag(p,v)}
-    <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
+    <div class="price">${Number(p.preco_de)>Number(p.preco)?`<s class="de" aria-label="Preço antigo">${brl(p.preco_de)}</s>`:""}<strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
     ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
     <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
   </div>${leveTambem(p)}`;
@@ -677,7 +679,8 @@ function flashBtn(b){b.classList.add("ok"); b.textContent="Adicionado ✓"; setT
 window.addEventListener("storage",e=>{ if(e.key===CART_KEY){ try{cart=JSON.parse(e.newValue||"[]")||[]}catch(x){cart=[]} updateBag(); renderCart() } });
 updateBag();
 render("todos");
-Promise.all([fetch("data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
+const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(d=>Array.isArray(d.produtos)?d:Promise.reject()).catch(()=>fetch("/data/produtos.json",{cache:"no-store"}).then(r=>r.json()));
+Promise.all([lerProdutos(),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
   .then(([d,L])=>{if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fromHash();})
   .catch(()=>{fromHash()});
 </script>
