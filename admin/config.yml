@@ -76,6 +76,10 @@ collections:
                       - { label: Relógio redondo, value: round }
                       - { label: Relógio gota, value: drop }
                       - { label: Relógio digital, value: digital }
+                  - { label: "Peso com embalagem (gramas)", name: peso_g, widget: number, value_type: int, min: 1, required: false, hint: "Usado no cálculo do frete. Vazio = 400 g." }
+                  - { label: "Embalagem: largura (cm)", name: largura_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 11 cm." }
+                  - { label: "Embalagem: altura (cm)", name: altura_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 4 cm." }
+                  - { label: "Embalagem: comprimento (cm)", name: comprimento_cm, widget: number, value_type: float, min: 1, required: false, hint: "Vazio = 16 cm." }
       - name: config
         label: Textos e contato
         file: data/loja.json
@@ -84,12 +88,28 @@ collections:
           - { label: WhatsApp como aparece no site, name: whatsapp_exibicao, widget: string }
           - { label: Preço destaque do banner, name: preco_destaque, widget: number, value_type: float, step: 0.01 }
           - { label: Preço do kit óculos + relógio, name: preco_kit, widget: number, value_type: float, step: 0.01 }
+          - { label: "Frete fixo (só se o Melhor Envio estiver desligado)", name: frete_valor, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Com o Melhor Envio ligado, o frete é calculado pelo CEP. Ex.: 15.90" }
+          - { label: "Chave Pix (para receber direto, sem taxa)", name: pix_chave, widget: string, required: false, hint: "E-mail, CPF/CNPJ (só números), celular com +55 ou chave aleatória. Deixe vazio para desligar o Pix direto." }
+          - { label: "Nome do recebedor do Pix", name: pix_nome, widget: string, required: false, hint: "Como aparece no Pix. Ex.: LOJA SP STORE LTDA" }
+          - { label: "Cidade do recebedor do Pix", name: pix_cidade, widget: string, required: false, default: "SAO PAULO" }
+          - label: "Transportadoras que aparecem no site"
+            name: frete_transportadoras
+            widget: select
+            multiple: true
+            required: false
+            hint: "Só estas opções aparecem para o cliente. Deixe vazio para mostrar todas."
+            options:
+              - { label: "Correios PAC", value: correios-pac }
+              - { label: "Correios SEDEX", value: correios-sedex }
+              - { label: "Correios Mini Envios", value: correios-mini }
+              - { label: "Jadlog .Com", value: jadlog-com }
+              - { label: "Jadlog .Package", value: jadlog-package }
+              - { label: "Loggi", value: loggi }
+              - { label: "J&T Express", value: jet }
+          - { label: "Dias para postar o pedido", name: dias_para_postar, widget: number, value_type: int, min: 0, required: false, default: 1, hint: "Somado ao prazo da transportadora que o cliente vê." }
+          - { label: "Frete grátis acima de", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra a partir do qual o frete fica grátis. Use 0 para não usar." }
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }
           - { label: Texto do banner, name: banner_texto, widget: text }
           - { label: "Imagem do banner (computador, 1920 x 600 px)", name: banner_imagem, widget: image, required: false, hint: "Opcional. Com imagem, ela aparece no lugar do banner de texto. Deixe vazio para manter o banner atual." }
           - { label: "Imagem do banner (celular, 1080 x 1080 px)", name: banner_imagem_celular, widget: image, required: false, hint: "Opcional. Se ficar vazio, o celular usa a imagem do computador." }
-          - { label: "Chave Pix da loja", name: pix_chave, widget: string, required: false, hint: "A chave Pix da conta Mercado Pago. CNPJ ou CPF só números; celular com +55 e DDD (ex.: +5511947523834); ou e-mail; ou chave aleatória. Vazio = o site não mostra a opção Pix." }
-          - { label: "Nome que aparece no Pix", name: pix_nome, widget: string, required: false, hint: "Até 25 letras, sem acento. Ex.: SP STORE" }
-          - { label: "Cidade do Pix", name: pix_cidade, widget: string, required: false, hint: "Até 15 letras, sem acento. Ex.: SAO PAULO" }
-          - { label: "Frete fixo (R$)", name: frete_fixo, widget: number, value_type: float, step: 0.01, min: 0, required: false, hint: "Valor somado em todo pedido. Deixe 0 para combinar o frete pelo WhatsApp depois da compra." }

@@ -247,34 +247,18 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
 .link-btn{border:0;background:none;padding:0;font:700 13px var(--body);color:var(--ink);text-decoration:underline;cursor:pointer}
 .cart-more{justify-content:center;background:transparent;color:var(--ink);border:1.5px solid var(--line);padding:11px 16px;font-size:14px}
 .cart-empty{text-align:center;padding:48px 8px;color:var(--muted)}
-/* checkout */
-.ck{display:grid;gap:12px;padding:14px 0 20px}
-.ck h3{margin:6px 0 0;font:700 15px var(--body)}
-.ck label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
-.ck input{font:16px var(--body);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;box-sizing:border-box}
-.ck input:focus{border-color:var(--gold);outline:0}
-.ck .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ck .row3{display:grid;grid-template-columns:2fr 1fr;gap:10px}
-.ck-pay{display:grid;gap:8px}
-.ck-pay label{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;padding:12px;color:var(--ink);font-size:15px;cursor:pointer}
-.ck-pay label:has(input:checked){border-color:var(--gold);background:var(--gold-soft)}
-.ck-pay input{width:auto;accent-color:var(--gold)}
-.ck-pay small{display:block;color:var(--muted);font-size:12px}
-.ck-err{background:#fde8e6;color:#8a1f12;border-radius:10px;padding:10px 12px;font-size:14px}
-.ck-resumo{display:grid;gap:4px;font-size:14px}
-.ck-resumo div{display:flex;justify-content:space-between;gap:10px}
-.ck-resumo .t{font-weight:700;font-size:16px;border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
-.pix{display:grid;gap:12px;justify-items:center;text-align:center;padding:16px 0 20px}
-.pix-qr{background:#fff;border-radius:12px;padding:10px;width:220px;height:220px}
-.pix-qr svg{width:100%;height:100%;display:block}
-.pix-code{width:100%;font:12px monospace;word-break:break-all;background:var(--bg);border:1px dashed var(--line);border-radius:10px;padding:10px;text-align:left;max-height:84px;overflow:auto}
-.pix-val{font-family:var(--display);font-size:32px}
-.pix ol{text-align:left;margin:0;padding-left:20px;font-size:14px;color:var(--muted);display:grid;gap:4px}
-.ret{text-align:center;padding:28px 4px;display:grid;gap:10px;justify-items:center}
-.ret-ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:28px;background:var(--gold-soft)}
 .cart-empty svg{color:var(--line);margin-bottom:8px}
 .cart-empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
 
+.acct{flex:none;width:42px;height:42px;border-radius:50%;border:1.5px solid #d6d4ce;background:#fbfaf7;color:#1b1a17;display:grid;place-items:center;text-decoration:none}
+.acct:hover{border-color:#b08a3e}
+.acct.on{background:#1b1a17;color:#d1ab5e;border-color:#1b1a17}
+.so-site{display:none}
+body.pag-site .so-site{display:revert}
+body.pag-site .acct{display:grid}
+body.pag-site .so-wa{display:none}
+.cart-wa{font-size:13px;text-align:center;color:var(--muted)}
+.cart-wa a{color:var(--wa);font-weight:700}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:30;transform:translate(-50%,16px);opacity:0;pointer-events:none;background:#1b1a17;color:#f3f1ec;border-radius:14px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:14px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);width:max-content;max-width:calc(100% - 32px);transition:opacity .2s,transform .2s}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{border:0;border-radius:999px;background:#d1ab5e;color:#1b1a17;font:700 13px var(--body);padding:8px 14px;cursor:pointer;white-space:nowrap}
@@ -297,6 +281,7 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
     <a href="#duvidas">Dúvidas</a>
   </nav>
   <a class="cart-btn" href="https://wa.me/5511947523834?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20SP%20Store." target="_blank" rel="noopener">Fale conosco</a>
+  <a class="acct so-site" id="acct" href="/conta.html" aria-label="Minha conta" title="Minha conta"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
   <button class="bag" id="bag-btn" type="button" aria-label="Abrir carrinho"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><span class="bag-n" id="bag-n" hidden>0</span></button>
 </div></header>
 
@@ -304,7 +289,7 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
   <div>
     <div class="eyebrow" id="hero-eyebrow">Óculos de sol e relógios</div>
     <h1><span id="hero-titulo">Estilo pra todo dia por</span> <em class="js-preco">R$&nbsp;29,99</em></h1>
-    <p id="hero-texto">Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e pague com Pix ou cartão.</p>
+    <p id="hero-texto">Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp.</p>
     <div class="hero-ctas">
       <a class="btn btn-gold" href="#vitrine">Ver produtos</a>
       <a class="btn btn-ghost" href="#como-comprar">Como comprar</a>
@@ -359,7 +344,8 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
   <div class="steps">
     <div class="step"><b>Escolha o produto e a cor</b><p>Toque nas bolinhas de cor para ver as versões disponíveis.</p></div>
     <div class="step"><b>Adicione ao carrinho</b><p>Junte quantos produtos e cores quiser. Se preferir um só, toque em "Comprar no WhatsApp".</p></div>
-    <div class="step"><b>Finalize e pague</b><p>No carrinho, informe o endereço de entrega e pague com Pix ou cartão de crédito pelo Mercado Pago, direto no site.</p></div>
+    <div class="step so-wa"><b>Finalize e pague</b><p>O pedido completo vai pelo WhatsApp. Enviamos o link do Mercado Pago para pagar com Pix ou cartão.</p></div>
+    <div class="step so-site"><b>Pague no site</b><p>Pix ou cartão em até 12x, direto no site e com segurança do Mercado Pago. Você acompanha o pedido e o rastreio na sua conta.</p></div>
   </div>
 </div></section>
 
@@ -367,9 +353,11 @@ dialog.cart::backdrop{background:rgba(12,12,11,.55)}
 <section class="shop" id="duvidas"><div class="wrap">
   <div class="sec-head"><h2>Dúvidas frequentes</h2></div>
   <div class="faq">
-    <details><summary>Como faço o pagamento?</summary><p>No carrinho, toque em "Finalizar compra", preencha o endereço e escolha Pix (QR Code ou copia e cola) ou cartão de crédito em até 12x pelo Mercado Pago. Você não precisa ter conta no Mercado Pago.</p></details>
-    <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho.</p></details>
-    <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e pague tudo de uma vez.</p></details>
+    <details class="so-site"><summary>Como faço o pagamento?</summary><p>No carrinho, toque em "Finalizar compra", crie sua conta (ou entre) e pague com Pix ou cartão de crédito direto no site. O pagamento é processado pelo Mercado Pago e você não precisa ter conta lá.</p></details>
+    <details class="so-site"><summary>Como acompanho meu pedido?</summary><p>Entre em "Minha conta" (o ícone de pessoa no topo do site). Lá aparecem todos os seus pedidos, o status e o código de rastreio. Você também recebe cada atualização por e-mail.</p></details>
+    <details class="so-wa"><summary>Como faço o pagamento?</summary><p>Depois que você envia o pedido pelo WhatsApp, enviamos um link do Mercado Pago. Você paga com Pix ou cartão de crédito.</p></details>
+    <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho e para a mensagem do WhatsApp.</p></details>
+    <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e finalize o pedido de uma vez pelo WhatsApp.</p></details>
     <details><summary>Como o produto chega?</summary><p>Cada item vai em caixa protegida. Combinamos a forma de envio e o prazo pelo WhatsApp.</p></details>
     <details><summary>Os relógios são originais DK?</summary><p>Sim, são da linha DK Original, com máquina quartz.</p></details>
   </div>
@@ -420,7 +408,7 @@ let WA = "5511947523834";
 // cores: frame (armação), lens (lente) | case, dial (mostrador), strap
 const FALLBACK = {"produtos": [{"nome": "Óculos de Sol Feminino Hexagonal", "categoria": "oculos", "preco": 29.99, "descricao": "", "selos": ["Mais vendido"], "desenho": "hex", "ativo": true, "variantes": [{"nome": "Dourado com lente marrom", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#6b4423"}, {"nome": "Dourado com lente preta", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#222"}, {"nome": "Dourado com lente verde", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#3f5a3a"}, {"nome": "Preto", "foto": "", "cor_principal": "#1d1d1d", "cor_detalhe": "#2a2a2a"}]}, {"nome": "Óculos de Sol Aviador", "categoria": "oculos", "preco": 29.99, "descricao": "", "selos": ["Clássico"], "desenho": "avi", "ativo": true, "variantes": [{"nome": "Preto", "foto": "", "cor_principal": "#1d1d1d", "cor_detalhe": "#2a2a2a"}, {"nome": "Dourado com lente marrom", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#6b4423"}, {"nome": "Dourado com lente preta", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#222"}]}, {"nome": "Relógio Feminino DK Original", "categoria": "relogios", "preco": 29.99, "descricao": "", "selos": ["Quartz"], "desenho": "round", "ativo": true, "variantes": [{"nome": "Dourado, mostrador creme", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#f1e6cf"}, {"nome": "Dourado, mostrador preto", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#1d1d1d"}, {"nome": "Prateado, mostrador creme", "foto": "", "cor_principal": "#b9bcc0", "cor_detalhe": "#f1e6cf"}, {"nome": "Prateado, mostrador preto", "foto": "", "cor_principal": "#b9bcc0", "cor_detalhe": "#1d1d1d"}]}, {"nome": "Relógio Feminino DK Original Gota", "categoria": "relogios", "preco": 29.99, "descricao": "", "selos": ["Novo"], "desenho": "drop", "ativo": true, "variantes": [{"nome": "Dourado, mostrador branco", "foto": "", "cor_principal": "#c9a24f", "cor_detalhe": "#fafafa"}, {"nome": "Prateado, mostrador branco", "foto": "", "cor_principal": "#b9bcc0", "cor_detalhe": "#fafafa"}]}, {"nome": "Relógio Unissex DK Original Digital", "categoria": "relogios", "preco": 29.99, "descricao": "", "selos": ["Unissex"], "desenho": "digital", "ativo": true, "variantes": [{"nome": "Preto", "foto": "", "cor_principal": "#1d1d1d", "cor_detalhe": "#9fb39a"}]}]};
 let P = FALLBACK.produtos;
-const FALLBACK_LOJA = {"whatsapp": "5511947523834", "whatsapp_exibicao": "(11) 94752-3834", "preco_destaque": 29.99, "preco_kit": 59.98, "banner_etiqueta": "Óculos de sol e relógios", "banner_titulo": "Estilo pra todo dia por", "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e pague com Pix ou cartão."};
+const FALLBACK_LOJA = {"whatsapp": "5511947523834", "whatsapp_exibicao": "(11) 94752-3834", "preco_destaque": 29.99, "preco_kit": 59.98, "banner_etiqueta": "Óculos de sol e relógios", "banner_titulo": "Estilo pra todo dia por", "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp."};
 
 function art(kind,v){
   const x={frame:v.cor_principal,lens:v.cor_detalhe,c:v.cor_principal,d:v.cor_detalhe};
@@ -435,6 +423,12 @@ const gal = {};
 const brl=n=>"R$ "+Number(n).toFixed(2).replace(".",",");
 const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function link(p,v){return `https://wa.me/${WA}?text=${encodeURIComponent(`Olá! Quero comprar: ${p.nome} - ${v.nome} (${brl(p.preco)}).`)}`}
+let EST={};
+const estDe=(p,v)=>{const n=EST[p.nome+"|"+v.nome];return typeof n==="number"?n:null};
+const esgotado=(p,v)=>estDe(p,v)===0;
+const limiteDe=(nome,cor)=>{const n=EST[nome+"|"+cor];return typeof n==="number"?Math.min(99,n):99};
+function estoqueTag(p,v){const n=estDe(p,v);if(n===0)return `<div class="stock" style="color:var(--muted)">○ Esgotado</div>`;if(n!=null&&n<=3)return `<div class="stock" style="color:var(--gold)">● ${n===1?"Última unidade":`Últimas ${n} unidades`}</div>`;return `<div class="stock">● Pronta entrega</div>`}
+function aviseLink(p,v){return `https://wa.me/${WA}?text=${encodeURIComponent(`Olá! Quero ser avisado(a) quando chegar: ${p.nome} - ${v.nome}.`)}`}
 function swColor(p,v){return `linear-gradient(135deg,${v.cor_principal||"#999"} 50%,${v.cor_detalhe||"#ccc"} 50%)`}
 function render(f){
   const g=document.getElementById("grid");
@@ -452,11 +446,11 @@ function render(f){
         ${p.descricao?`<p style="margin:0;font-size:14px;color:var(--muted)">${esc(p.descricao)}</p>`:""}
         <div class="variant">${esc(v.nome)}</div>
         ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" id="sw-${p.id}-${k}" data-p="${p.id}" data-i="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
-        <div class="stock">● Pronta entrega</div>
+        ${estoqueTag(p,v)}
         <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
         <div class="actions">
-          <button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
-          <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
+          ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
+          <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>`}
         </div>
       </div></article>`;
   }).join("") || '<p style="color:var(--muted)">Nenhum produto nesta categoria.</p>';
@@ -478,7 +472,6 @@ function applyLoja(L){
     document.getElementById("hero-img-m").srcset=bm||bd;
     document.getElementById("hero-img").hidden=false; document.querySelector("section.hero").hidden=true;
   }
-  LOJA=L;
   if(L.whatsapp_exibicao) document.getElementById("wa-text").textContent=L.whatsapp_exibicao;
   document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a=>{a.href=a.href.replace(/wa\.me\/\d+/,"wa.me/"+WA)});
 }
@@ -486,7 +479,7 @@ let current="todos";
 function setFilter(f){current=f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===f));render(f)}
 document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setFilter(c.dataset.f)));
 document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=>setFilter(a.dataset.go)));
-document.getElementById("grid").addEventListener("click",e=>{const a=e.target.closest("[data-add]");if(a){addToCart(a.dataset.add);flashBtn(a);showToast();return}const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const o=e.target.closest("[data-open]");if(o){openProduct(o.dataset.open);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
+document.getElementById("grid").addEventListener("click",e=>{const a=e.target.closest("[data-add]");if(a){if(addToCart(a.dataset.add)){flashBtn(a);showToast()}return}const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const o=e.target.closest("[data-open]");if(o){openProduct(o.dataset.open);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
 
 // ---------- janela do produto ----------
 const dlg=document.getElementById("pd"), pdIn=document.getElementById("pd-in");
@@ -510,10 +503,10 @@ function fillProduct(p){
     ${p.descricao?`<p class="pd-desc">${esc(p.descricao)}</p>`:""}
     <div class="pd-label">Cor: <span>${esc(v.nome)}</span></div>
     ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" type="button" data-pi="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
-    <div class="stock">● Pronta entrega</div>
+    ${estoqueTag(p,v)}
     <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
-    <button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
-    <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>
+    ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
+    <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>`}
   </div>${leveTambem(p)}`;
 }
 // ---------- "Leve também": mesma categoria, outros modelos primeiro ----------
@@ -555,7 +548,7 @@ dlg.addEventListener("click",e=>{
   const n=[v.foto,...(v.fotos_extras||[])].filter(Boolean).length;
   const la=e.target.closest("[data-lt-add]"); if(la){addToCart(la.dataset.ltAdd);la.classList.add("ok");la.textContent="Adicionado ✓";setTimeout(()=>{if(la.isConnected){la.classList.remove("ok");la.textContent="Adicionar"}},1400);return}
   const lo=e.target.closest("[data-lt-open]"); if(lo){openProduct(lo.dataset.ltOpen);dlg.scrollTop=0;pdIn.scrollTop=0;return}
-  const ad=e.target.closest("[data-add]"); if(ad){addToCart(ad.dataset.add);closeProduct();openCart();return}
+  const ad=e.target.closest("[data-add]"); if(ad){if(addToCart(ad.dataset.add)){closeProduct();openCart()}return}
   const sw=e.target.closest("[data-pi]"); if(sw){sel[p.id]=+sw.dataset.pi;fillProduct(p);return}
   const pg=e.target.closest("[data-pg]"); if(pg&&n){gal[gk]=((gal[gk]||0)+(+pg.dataset.pg)+n)%n;fillProduct(p);return}
   const pt=e.target.closest("[data-pt]"); if(pt){gal[gk]=+pt.dataset.pt;fillProduct(p);return}
@@ -576,9 +569,13 @@ document.getElementById("copy-wa").addEventListener("click",function(){
 // ---------- carrinho ----------
 const CART_KEY="spstore_carrinho";
 const cartDlg=document.getElementById("cart"), cartList=document.getElementById("cart-list"), cartFoot=document.getElementById("cart-foot");
-let cart=[], sent=false, step="carrinho", ckErr="", ckBusy=false, pixInfo=null;
-let LOJA={};
-const DADOS_KEY="spstore_dados", PEDIDO_KEY="spstore_pedido";
+let cart=[], sent=false, PAG_SITE=false;
+function carregarEstoque(){fetch("/api/estoque",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.estoque)return;EST=d.estoque;
+  cart.forEach(it=>{it.qtd=Math.min(it.qtd,limiteDe(it.nome,it.cor))});cart=cart.filter(it=>it.qtd>0);saveCart();renderCart();render(current);if(typeof openId!=="undefined"&&openId){const p=prodById(openId);if(p)fillProduct(p)}}).catch(()=>{})}
+fetch("/api/config",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(c=>{
+  if(!c||!c.pronto) return; carregarEstoque(); PAG_SITE=true; document.body.classList.add("pag-site"); renderCart();
+  try{ if(localStorage.getItem("spstore_sessao")) document.getElementById("acct").classList.add("on") }catch(e){}
+}).catch(()=>{});
 try{const c=JSON.parse(localStorage.getItem(CART_KEY)||"[]");if(Array.isArray(c)) cart=c.filter(x=>x&&x.nome&&x.qtd>0)}catch(e){}
 const cents=n=>Math.round(Number(n)*100);
 const cartCount=()=>cart.reduce((a,x)=>a+x.qtd,0);
@@ -590,11 +587,14 @@ function addToCart(id){
   const p=prodById(id); if(!p) return;
   const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
   const v=vs[Math.min(sel[p.id]||0,vs.length-1)];
-  const it=cart.find(x=>x.nome===p.nome&&x.cor===v.nome);
-  if(it) it.qtd=Math.min(99,it.qtd+1); else cart.push({...itemFrom(p,v),qtd:1});
+  const it=cart.find(x=>x.nome===p.nome&&x.cor===v.nome), lim=limiteDe(p.nome,v.nome);
+  if(lim<=0||(it&&it.qtd>=lim)){avisoLimite(lim);return false}
+  if(it) it.qtd=Math.min(lim,it.qtd+1); else cart.push({...itemFrom(p,v),qtd:1});
   sent=false; saveCart(); renderCart();
   const n=document.getElementById("bag-n"); n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop");
+  return true;
 }
+function avisoLimite(lim){const t=document.getElementById("toast-t");t.textContent=lim<=0?"Este produto esgotou.":`Temos só ${lim} ${lim===1?"unidade":"unidades"} desta cor.`;showToast();setTimeout(()=>{t.textContent="Adicionado ao carrinho"},3600)}
 // atualiza preço e fotos com o que está no painel; tira produtos que saíram do site
 function syncCart(){
   cart=cart.map(it=>{
@@ -612,150 +612,31 @@ function waOrder(){
   return `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
 }
 function thumb(x){return x.foto?`<img src="${esc(x.foto)}" alt="" loading="lazy">`:art(x.desenho,{cor_principal:x.cp||"#999",cor_detalhe:x.cd||"#ccc"})}
-const frete=()=>cents(LOJA.frete_fixo||0)/100;
-const temPix=()=>!!String(LOJA.pix_chave||"").trim();
-function freteTxt(){return frete()>0?brl(frete()):"A combinar"}
-function getDados(){try{return JSON.parse(localStorage.getItem(DADOS_KEY)||"{}")||{}}catch(e){return {}}}
-function itensTxt(itens){return itens.map(x=>`• ${x.qtd}x ${x.nome}${corTxt(x.cor)?` - ${x.cor}`:""} (${brl(cents(x.preco)*x.qtd/100)})`).join("\n")}
-function endTxt(d){return `${d.endereco}, ${d.numero}${d.complemento?" - "+d.complemento:""}, ${d.bairro} - ${d.cidade}/${d.uf} - CEP ${d.cep}`}
-function waPedido(o,extra){
-  const t=`Olá! Fiz o pedido ${o.pedido} pelo site da SP Store.\n\n${itensTxt(o.itens)}\n\nFrete: ${o.frete>0?brl(o.frete):"a combinar"}\nTotal: ${brl(o.total)}\nPagamento: ${o.forma}\n\nEntrega para: ${o.dados.nome}\n${endTxt(o.dados)}\nTel: ${o.dados.telefone}${extra?"\n\n"+extra:""}`;
-  return `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
-}
-function novoPedidoId(){return "SP"+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,5).toUpperCase()}
-function resumoHtml(){return `<div class="ck-resumo"><div><span>Produtos (${cartCount()})</span><span>${brl(cartTotal())}</span></div><div><span>Frete</span><span>${freteTxt()}</span></div><div class="t"><span>Total</span><span>${brl(cartTotal()+frete())}</span></div></div>`}
 function renderCart(){
   const n=cartCount();
-  const title=document.getElementById("cart-title");
-  if(step==="retorno"){ return renderRetorno() }
-  if(step==="pix"&&pixInfo){ title.textContent="Pagar com Pix"; document.getElementById("cart-sub").textContent=`Pedido ${pixInfo.pedido}`; return renderPix() }
-  if(!n) step="carrinho";
-  title.textContent=step==="dados"?"Entrega e pagamento":"Seu carrinho";
   document.getElementById("cart-sub").textContent=n?`${n} ${n===1?"item":"itens"}`:"";
   if(!n){
     cartList.innerHTML=`<div class="cart-empty"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><b>Seu carrinho está vazio</b>Escolha um óculos ou relógio e toque em "Adicionar ao carrinho".</div>`;
     cartFoot.innerHTML=`<button class="btn cart-more" type="button" data-cart="fechar">Ver produtos</button>`;
     return;
   }
-  if(step==="dados"){ return renderDados() }
   cartList.innerHTML=cart.map((x,k)=>`<div class="ci">
     <div class="ci-img">${thumb(x)}</div>
     <div>
       <div class="ci-top"><div><b>${esc(x.nome)}</b>${corTxt(x.cor)?`<div class="ci-cor">${esc(x.cor)}</div>`:""}</div>
         <button class="ci-rm" type="button" data-rm="${k}" aria-label="Remover ${esc(x.nome)}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>
       <div class="ci-bot">
-        <div class="qty"><button type="button" data-q="${k}" data-d="-1" aria-label="Diminuir" ${x.qtd<=1?"disabled":""}>−</button><span>${x.qtd}</span><button type="button" data-q="${k}" data-d="1" aria-label="Aumentar" ${x.qtd>=99?"disabled":""}>+</button></div>
+        <div class="qty"><button type="button" data-q="${k}" data-d="-1" aria-label="Diminuir" ${x.qtd<=1?"disabled":""}>−</button><span>${x.qtd}</span><button type="button" data-q="${k}" data-d="1" aria-label="Aumentar" ${x.qtd>=limiteDe(x.nome,x.cor)?"disabled":""}>+</button></div>
         <strong>${brl(cents(x.preco)*x.qtd/100)}</strong>
       </div>
     </div></div>`).join("");
   cartFoot.innerHTML=`<div class="cart-tot"><span>Total</span><strong>${brl(cartTotal())}</strong></div>
-    <button class="btn buy" type="button" data-cart="dados" style="justify-content:center">Finalizar compra</button>
-    <p class="cart-note">Pix ou cartão de crédito em até 12x pelo Mercado Pago</p>
+    ${sent?`<div class="cart-sent"><span>Pedido enviado pelo WhatsApp?</span><button class="link-btn" type="button" data-cart="limpar">Esvaziar carrinho</button></div>`:""}
+    ${PAG_SITE?`<a class="btn buy" href="/checkout.html">Finalizar compra</a>
+    <p class="cart-note">Pix ou cartão em até 12x, direto no site.</p>
+    <p class="cart-wa">ou <a id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">finalizar pelo WhatsApp</a></p>`:`<a class="btn buy" id="cart-go" href="${waOrder()}" target="_blank" rel="noopener">Finalizar pedido no WhatsApp</a>
+    <p class="cart-note">Você recebe o link do Mercado Pago para pagar com Pix ou cartão.</p>`}
     <button class="btn cart-more" type="button" data-cart="fechar">Continuar comprando</button>`;
-}
-function renderDados(){
-  const d=getDados(), v=k=>esc(d[k]||"");
-  const forma=d.forma==="cartao"||!temPix()?"cartao":"pix";
-  cartList.innerHTML=`<form class="ck" id="ck" novalidate>
-    ${ckErr?`<div class="ck-err" role="alert">${esc(ckErr)}</div>`:""}
-    <h3>Seus dados</h3>
-    <label>Nome completo<input name="nome" autocomplete="name" required value="${v("nome")}"></label>
-    <label>E-mail<input name="email" type="email" autocomplete="email" required value="${v("email")}"></label>
-    <label>WhatsApp<input name="telefone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(11) 90000-0000" value="${v("telefone")}"></label>
-    <h3>Endereço de entrega</h3>
-    <div class="row"><label>CEP<input name="cep" inputmode="numeric" autocomplete="postal-code" required placeholder="00000-000" value="${v("cep")}"></label><span></span></div>
-    <label>Rua<input name="endereco" autocomplete="address-line1" required value="${v("endereco")}"></label>
-    <div class="row"><label>Número<input name="numero" required value="${v("numero")}"></label><label>Complemento<input name="complemento" placeholder="Opcional" value="${v("complemento")}"></label></div>
-    <label>Bairro<input name="bairro" required value="${v("bairro")}"></label>
-    <div class="row3"><label>Cidade<input name="cidade" autocomplete="address-level2" required value="${v("cidade")}"></label><label>UF<input name="uf" maxlength="2" autocomplete="address-level1" required value="${v("uf")}"></label></div>
-    <h3>Pagamento</h3>
-    <div class="ck-pay">
-      ${temPix()?`<label><input type="radio" name="forma" value="pix" ${forma==="pix"?"checked":""}><span>Pix<small>QR Code ou copia e cola, na hora</small></span></label>`:""}
-      <label><input type="radio" name="forma" value="cartao" ${forma==="cartao"?"checked":""}><span>Cartão de crédito<small>Em até 12x, na página segura do Mercado Pago</small></span></label>
-    </div>
-    ${resumoHtml()}
-    ${frete()>0?"":`<p class="cart-note" style="text-align:left">O frete é combinado com você pelo WhatsApp depois da compra.</p>`}
-  </form>`;
-  cartFoot.innerHTML=`<button class="btn buy" type="submit" form="ck" style="justify-content:center" ${ckBusy?"disabled":""}>${ckBusy?"Abrindo o Mercado Pago…":"Ir para o pagamento"}</button>
-    <button class="btn cart-more" type="button" data-cart="voltar">Voltar ao carrinho</button>`;
-}
-function lerForm(f){const d={};new FormData(f).forEach((x,k)=>d[k]=String(x).trim());d.cep=d.cep.replace(/\D/g,"");d.uf=(d.uf||"").toUpperCase();return d}
-function validar(d){
-  if(d.nome.split(/\s+/).length<2) return "Digite seu nome completo.";
-  if(!/^\S+@\S+\.\S+$/.test(d.email)) return "Confira o e-mail.";
-  if(d.telefone.replace(/\D/g,"").length<10) return "Digite o WhatsApp com DDD.";
-  if(d.cep.length!==8) return "O CEP precisa ter 8 números.";
-  if(!d.endereco||!d.numero||!d.bairro||!d.cidade||d.uf.length!==2) return "Preencha o endereço completo.";
-  return "";
-}
-async function enviarDados(f){
-  const d=lerForm(f); try{localStorage.setItem(DADOS_KEY,JSON.stringify(d))}catch(e){}
-  ckErr=validar(d); if(ckErr){renderCart();cartList.scrollTop=0;return}
-  const itens=cart.map(x=>({nome:x.nome,cor:x.cor,qtd:x.qtd,preco:x.preco}));
-  const base={itens,dados:d,frete:frete(),total:cartTotal()+frete()};
-  if(d.forma==="pix"){
-    pixInfo={...base,pedido:novoPedidoId(),forma:"Pix"};
-    step="pix"; renderCart(); cartList.scrollTop=0; return;
-  }
-  ckBusy=true; renderCart();
-  try{
-    const r=await fetch("/api/pagamento",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({itens,cliente:d})});
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok||!j.url) throw new Error(j.erro||"Não foi possível abrir o pagamento. Tente de novo.");
-    try{localStorage.setItem(PEDIDO_KEY,JSON.stringify({...base,pedido:j.pedido,forma:"Cartão de crédito (Mercado Pago)"}))}catch(e){}
-    location.href=j.url;
-  }catch(e){ ckBusy=false; ckErr=e.message||"Não foi possível abrir o pagamento."; renderCart(); cartList.scrollTop=0 }
-}
-// ---- Pix (código copia e cola no padrão do Banco Central) ----
-function semAcento(t){return String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9 ]/g,"").toUpperCase()}
-function chavePix(k){k=String(k||"").trim();if(k.includes("@"))return k.toLowerCase();if(/^\+/.test(k))return "+"+k.replace(/\D/g,"");if(/^[\d.\-\/() ]+$/.test(k))return k.replace(/\D/g,"");return k}
-function crc16(t){let c=0xFFFF;for(let i=0;i<t.length;i++){c^=t.charCodeAt(i)<<8;for(let j=0;j<8;j++)c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF}return c.toString(16).toUpperCase().padStart(4,"0")}
-function pixCode(valor,txid){
-  const f=(id,v)=>id+String(v.length).padStart(2,"0")+v;
-  const nome=semAcento(LOJA.pix_nome||"SP STORE").slice(0,25)||"SP STORE";
-  const cid=semAcento(LOJA.pix_cidade||"SAO PAULO").slice(0,15)||"SAO PAULO";
-  const t=f("00","01")+f("26",f("00","br.gov.bcb.pix")+f("01",chavePix(LOJA.pix_chave)))+f("52","0000")+f("53","986")+f("54",valor.toFixed(2))+f("58","BR")+f("59",nome)+f("60",cid)+f("62",f("05",semAcento(txid).replace(/ /g,"").slice(0,25)||"***"))+"6304";
-  return t+crc16(t);
-}
-let qrLib=null;
-function carregaQR(){return qrLib||(qrLib=new Promise((ok,er)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js";sc.onload=()=>ok(window.qrcode);sc.onerror=er;document.head.appendChild(sc)}))}
-function renderPix(){
-  const o=pixInfo, code=pixCode(o.total,o.pedido);
-  cartList.innerHTML=`<div class="pix">
-    <div class="pix-val">${brl(o.total)}</div>
-    ${o.frete>0?"":`<p class="cart-note">Valor dos produtos. O frete é combinado pelo WhatsApp.</p>`}
-    <div class="pix-qr" id="pix-qr" aria-label="QR Code do Pix"></div>
-    <div class="pix-code" id="pix-code">${esc(code)}</div>
-    <button class="btn cart-more" type="button" data-cart="copiar" style="justify-content:center;width:100%">Copiar código Pix</button>
-    <ol><li>Abra o app do seu banco e escolha Pix.</li><li>Escaneie o QR Code ou cole o código.</li><li>Confira o valor e o nome ${esc(LOJA.pix_nome||"SP Store")} e pague.</li><li>Toque abaixo para enviar o comprovante no WhatsApp.</li></ol>
-  </div>`;
-  cartFoot.innerHTML=`<a class="btn buy" id="pix-wa" href="${waPedido(o,"Já paguei com Pix. Segue o comprovante:")}" target="_blank" rel="noopener" style="justify-content:center">Enviar comprovante no WhatsApp</a>
-    <button class="btn cart-more" type="button" data-cart="voltar-dados">Trocar forma de pagamento</button>`;
-  carregaQR().then(q=>{const el=document.getElementById("pix-qr");if(!el)return;const qr=q(0,"M");qr.addData(code);qr.make();el.innerHTML=qr.createSvgTag({cellSize:4,margin:0,scalable:true})}).catch(()=>{const el=document.getElementById("pix-qr");if(el)el.style.display="none"});
-}
-let retorno=null;
-function renderRetorno(){
-  const r=retorno, o=r.pedido;
-  const title=document.getElementById("cart-title"); document.getElementById("cart-sub").textContent=o?`Pedido ${o.pedido}`:"";
-  const map={
-    aprovado:["✓","Pagamento aprovado!","Obrigado pela compra. Toque abaixo para nos mandar o pedido no WhatsApp e combinar o envio."],
-    pendente:["…","Pagamento em análise","Assim que o Mercado Pago aprovar, separamos seu pedido. Se quiser, avise a gente no WhatsApp."],
-    recusado:["!","Pagamento não concluído","Nada foi cobrado. Seus produtos continuam no carrinho para você tentar de novo."]};
-  const [ic,t,txt]=map[r.status]||map.pendente;
-  title.textContent=t;
-  cartList.innerHTML=`<div class="ret"><div class="ret-ic">${ic}</div><b style="font-size:20px">${t}</b><p class="cart-note">${txt}</p></div>`;
-  cartFoot.innerHTML=(o&&r.status!=="recusado"?`<a class="btn buy" href="${waPedido(o,r.status==="aprovado"?"Pagamento aprovado no cartão.":"Pagamento no cartão em análise.")}" target="_blank" rel="noopener" style="justify-content:center">Enviar pedido no WhatsApp</a>`:"")+
-    (r.status==="recusado"&&cartCount()?`<button class="btn buy" type="button" data-cart="dados" style="justify-content:center">Tentar de novo</button>`:"")+
-    `<button class="btn cart-more" type="button" data-cart="fim">${r.status==="recusado"?"Ver carrinho":"Continuar comprando"}</button>`;
-}
-function verRetorno(){
-  const q=new URLSearchParams(location.search), st=q.get("pagamento"); if(!st) return;
-  let o=null; try{o=JSON.parse(localStorage.getItem(PEDIDO_KEY)||"null")}catch(e){}
-  if(o&&q.get("pedido")&&o.pedido!==q.get("pedido")) o=null;
-  if(st==="aprovado"||st==="pendente"){cart=[];saveCart()}
-  retorno={status:st,pedido:o}; step="retorno";
-  history.replaceState(null,"",location.pathname+location.hash);
-  openCart();
 }
 function updateBag(){
   const n=cartCount(), b=document.getElementById("bag-n");
@@ -765,29 +646,13 @@ function updateBag(){
 }
 function openCart(){renderCart(); if(!cartDlg.open){ if(cartDlg.showModal) cartDlg.showModal(); else cartDlg.setAttribute("open",""); } document.body.classList.add("locked"); hideToast()}
 function closeCart(){ if(cartDlg.open){ if(cartDlg.close) cartDlg.close(); else cartDlg.removeAttribute("open"); } }
-cartDlg.addEventListener("close",()=>{ if(!dlg.open) document.body.classList.remove("locked"); if(step==="pix"&&!cartCount()){step="carrinho";pixInfo=null} if(step==="retorno"){step="carrinho";retorno=null} });
-cartDlg.addEventListener("submit",e=>{ if(e.target.id==="ck"){ e.preventDefault(); if(!ckBusy) enviarDados(e.target) } });
-cartDlg.addEventListener("input",e=>{
-  const i=e.target; if(ckErr&&i.form&&i.form.id==="ck"){ckErr="";const er=cartList.querySelector(".ck-err");if(er)er.remove()}
-  if(i.name!=="cep") return;
-  const c=i.value.replace(/\D/g,""); if(c.length!==8) return;
-  fetch(`https://viacep.com.br/ws/${c}/json/`).then(r=>r.json()).then(j=>{ if(!j||j.erro) return; const f=i.form;
-    if(j.logradouro) f.endereco.value=j.logradouro; if(j.bairro) f.bairro.value=j.bairro; if(j.localidade) f.cidade.value=j.localidade; if(j.uf) f.uf.value=j.uf;
-    (j.logradouro?f.numero:f.endereco).focus() }).catch(()=>{});
-});
+cartDlg.addEventListener("close",()=>{ if(!dlg.open) document.body.classList.remove("locked"); });
 cartDlg.addEventListener("click",e=>{
   if(e.target===cartDlg){closeCart();return}
-  const q=e.target.closest("[data-q]"); if(q){const it=cart[+q.dataset.q]; if(it){it.qtd=Math.max(1,Math.min(99,it.qtd+(+q.dataset.d)));sent=false;saveCart();renderCart()} return}
+  const q=e.target.closest("[data-q]"); if(q){const it=cart[+q.dataset.q]; if(it){it.qtd=Math.max(1,Math.min(limiteDe(it.nome,it.cor),it.qtd+(+q.dataset.d)));sent=false;saveCart();renderCart()} return}
   const r=e.target.closest("[data-rm]"); if(r){cart.splice(+r.dataset.rm,1);sent=false;saveCart();renderCart();return}
-  const c=e.target.closest("[data-cart]"); if(c){ const a=c.dataset.cart;
-    if(a==="dados"){step="dados";ckErr="";renderCart();cartList.scrollTop=0}
-    else if(a==="voltar"){step="carrinho";ckErr="";renderCart()}
-    else if(a==="voltar-dados"){step="dados";pixInfo=null;renderCart()}
-    else if(a==="copiar"){const t=document.getElementById("pix-code").textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{c.textContent="Código copiado ✓"},()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("pix-code"));const s=getSelection();s.removeAllRanges();s.addRange(r);c.textContent="Selecionado: toque e copie"})}
-    else if(a==="fim"){retorno=null;step="carrinho";if(cartCount())renderCart();else closeCart()}
-    else closeCart();
-    return}
-  if(e.target.closest("#pix-wa")){ try{localStorage.removeItem(PEDIDO_KEY)}catch(x){} setTimeout(()=>{cart=[];saveCart()},300) }
+  const c=e.target.closest("[data-cart]"); if(c){ if(c.dataset.cart==="limpar"){cart=[];sent=false;saveCart();renderCart()} else closeCart(); return}
+  if(e.target.closest("#cart-go")){ setTimeout(()=>{sent=true;renderCart()},300) }
 });
 document.getElementById("cart-close").addEventListener("click",closeCart);
 document.getElementById("bag-btn").addEventListener("click",openCart);
@@ -801,7 +666,7 @@ window.addEventListener("storage",e=>{ if(e.key===CART_KEY){ try{cart=JSON.parse
 updateBag();
 render("todos");
 Promise.all([fetch("data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
-  .then(([d,L])=>{applyLoja(L); if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} render(current); fromHash(); verRetorno();})
-  .catch(()=>{fromHash(); verRetorno()});
+  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fromHash();})
+  .catch(()=>{fromHash()});
 </script>
 </html>

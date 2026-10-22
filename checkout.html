@@ -1,0 +1,353 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Finalizar compra · SP Store</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/css/loja.css">
+<style>
+.lay{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.side{position:sticky;top:88px}
+@media (max-width:880px){.lay{grid-template-columns:1fr}.side{position:static;order:-1}}
+.step{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.step .n{flex:none;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--display)}
+.step.done .n{background:var(--wa);color:#fff}
+.step h2{font-size:22px}
+.lockd{opacity:.5;pointer-events:none}
+.who{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--bg);border-radius:12px;padding:12px 14px;font-size:14px}
+.resumo summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.resumo summary::-webkit-details-marker{display:none}
+.resumo summary .chev{transition:transform .2s}
+.resumo[open] summary .chev{transform:rotate(180deg)}
+@media (min-width:881px){.resumo summary{pointer-events:none}.resumo summary .chev{display:none}}
+.pix{display:grid;gap:14px;justify-items:center;text-align:center}
+.pix img{width:min(260px,100%);height:auto;border-radius:12px;background:#fff;padding:8px;border:1px solid var(--line)}
+.pix .code{width:100%;text-align:left}
+.wait{display:inline-flex;gap:10px;align-items:center;font-weight:600;color:var(--muted)}
+.okbox{text-align:center;display:grid;gap:12px;justify-items:center;padding:12px 0}
+.okbox .ic{width:72px;height:72px;border-radius:50%;background:var(--ok-soft);color:#17703c;display:grid;place-items:center}
+.seguro{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin-top:12px}
+#pay-brick{min-height:120px}
+.fretes{display:grid;gap:8px}
+.fr{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--surface)}
+.fr:has(input:checked){border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.fr input{width:18px;height:18px;accent-color:var(--ink);margin:0}
+.fr b{display:block;font-size:14px}
+.fr small{color:var(--muted);font-size:13px}
+.fr .pr{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fr .pr.free{color:var(--wa)}
+.fr img{height:16px;width:auto;vertical-align:-3px;margin-right:6px}
+</style>
+</head><body>
+<header class="top"><div class="wrap">
+  <a href="/" aria-label="SP Store, voltar à loja"><img src="/img/logo.png" alt="SP Store"></a>
+  <span class="lock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Compra segura</span>
+  <a class="back" href="/">← Continuar comprando</a>
+</div></header>
+
+<main><div class="wrap" id="app"><p class="muted">Carregando…</p></div></main>
+<footer class="foot"><div class="wrap"><span>© 2026 SP Store</span><span>Pagamento seguro · Pix ou cartão</span></div></footer>
+
+<script src="/js/conta.js"></script>
+<script>
+const CART_KEY="spstore_carrinho", ABERTO_KEY="spstore_pedido_aberto";
+const $=s=>document.querySelector(s);
+const app=$("#app");
+const brl=n=>"R$ "+Number(n||0).toFixed(2).replace(".",",");
+const cents=n=>Math.round(Number(n)*100);
+const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const digitos=t=>String(t||"").replace(/\D/g,"");
+const corTxt=c=>c&&c!=="Padrão"?c:"";
+const lerJSON=(k,store=localStorage)=>{try{return JSON.parse(store.getItem(k)||"null")}catch(e){return null}};
+const gravarJSON=(k,v,store=localStorage)=>{try{v==null?store.removeItem(k):store.setItem(k,JSON.stringify(v))}catch(e){}};
+
+let metodo=null, CFG={}, LOJA={}, PRODUTOS=[], cart=[], pedido=null, aba="criar", brick=null, pollT=null, freteOps=null, freteSel=null, freteCep="", exigeCpf=true, freteSeq=0;
+const qs=new URLSearchParams(location.search);
+
+function sincronizar(){ // preço atual e itens que ainda existem
+  cart=(cart||[]).map(it=>{const p=PRODUTOS.find(x=>x.nome===it.nome&&x.ativo!==false);if(!p)return null;const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];const v=vs.find(x=>x.nome===it.cor);if(!v)return null;return{...it,preco:p.preco,foto:v.foto||it.foto||""}}).filter(Boolean);
+}
+const assinatura=()=>JSON.stringify(cart.map(x=>[x.nome,x.cor,x.qtd]));
+function totais(){
+  if(pedido) return {sub:pedido.subtotal,frete:pedido.frete,total:pedido.total,itens:pedido.itens};
+  const sub=cart.reduce((a,x)=>a+cents(x.preco)*x.qtd,0)/100, frete=freteSel?freteSel.preco:null;
+  return {sub,frete,total:Math.round((sub+(frete||0))*100)/100,itens:cart};
+}
+function resumoHTML(){
+  const t=totais(), n=t.itens.reduce((a,x)=>a+x.qtd,0);
+  const falta=Number(LOJA.frete_gratis_acima)>0&&!pedido&&t.sub<Number(LOJA.frete_gratis_acima)?Number(LOJA.frete_gratis_acima)-t.sub:0;
+  return `<details class="card resumo" open><summary><span>Resumo · ${n} ${n===1?"item":"itens"} · ${brl(t.total)}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></summary>
+    <ul class="itens" style="margin-top:12px">${t.itens.map(x=>`<li><div class="th">${x.foto?`<img src="${esc(x.foto)}" alt="">`:""}</div><div><b>${esc(x.nome)}</b><span>${corTxt(x.cor)?esc(x.cor)+" · ":""}${x.qtd}×</span></div><div class="v">${brl(cents(x.preco)*x.qtd/100)}</div></li>`).join("")}</ul>
+    <div class="tot"><div><span class="muted">Subtotal</span><span>${brl(t.sub)}</span></div><div><span class="muted">Frete${pedido&&pedido.envio&&pedido.envio.nome?` · ${esc(pedido.envio.nome)}`:freteSel&&freteSel.nome?` · ${esc(freteSel.nome)}`:""}</span><span>${t.frete==null?`<span class="muted">${CFG.pronto?"informe o CEP":"a combinar"}</span>`:t.frete>0?brl(t.frete):"Grátis"}</span></div>
+    ${falta>0?`<div style="font-size:13px;color:var(--gold)">Faltam ${brl(falta)} para frete grátis</div>`:""}
+    <div class="grand"><span>Total</span><strong>${brl(t.total)}</strong></div></div>
+    ${pedido?`<p class="hint" style="margin-top:10px">Pedido #${pedido.id}</p>`:`<p class="hint" style="margin-top:10px"><a href="/#vitrine">Alterar itens no carrinho</a></p>`}</details>`;
+}
+function waLink(){
+  const lines=cart.map(x=>`• ${x.qtd}x ${x.nome}${corTxt(x.cor)?` - ${x.cor}`:""} (${brl(cents(x.preco)*x.qtd/100)})`);
+  const t=`Olá! Quero fazer este pedido pelo site da SP Store:\n\n${lines.join("\n")}\n\nTotal: ${brl(totais().total)}`;
+  return `https://wa.me/${digitos(LOJA.whatsapp||"5511947523834")}?text=${encodeURIComponent(t)}`;
+}
+
+// ---------- telas ----------
+function telaSimples(html){app.innerHTML=`<div style="max-width:560px;margin:0 auto">${html}</div>`}
+function render(){
+  const u=Conta.usuario(), logado=!!u||!!pedido, quem=u?u.email:(pedido&&pedido.email), d=(u&&u.user_metadata)||{}, end=d.endereco||{};
+  app.innerHTML=`<div class="lay"><div>
+    <section class="card" id="s-conta"><div class="step ${logado?"done":""}"><span class="n">${logado?"✓":"1"}</span><h2>Sua conta</h2></div>
+      ${logado?`<div class="who"><span>Comprando como <b>${esc(quem)}</b></span>${pedido?"":`<button class="link" type="button" id="sair">Trocar de conta</button>`}</div>`:contaHTML()}
+    </section>
+    <section class="card ${logado?"":"lockd"}" id="s-entrega"><div class="step ${pedido?"done":""}"><span class="n">${pedido?"✓":"2"}</span><h2>Entrega</h2></div>
+      ${pedido?entregaResumo(pedido):`<form class="form" id="f-entrega" novalidate>
+        <label class="f">Nome completo<input class="in" name="nome" autocomplete="name" required value="${esc(d.nome||"")}"></label>
+        <label class="f">Celular com DDD<input class="in" name="telefone" inputmode="tel" autocomplete="tel-national" placeholder="(11) 90000-0000" required value="${esc(fmtTel(d.telefone||""))}"></label>
+        <label class="f">CPF <small>(vai na etiqueta de envio e na nota)</small><input class="in" name="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" value="${esc(fmtCpf(d.cpf||""))}"></label>
+        <div class="row r3"><label class="f">CEP<input class="in" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" required value="${esc(fmtCep(end.cep||""))}"></label><span></span><span></span></div>
+        <p class="hint" id="cep-msg"></p>
+        <label class="f">Rua / Avenida<input class="in" name="rua" autocomplete="address-line1" required value="${esc(end.rua||"")}"></label>
+        <div class="row"><label class="f">Número<input class="in" name="numero" inputmode="numeric" required value="${esc(end.numero||"")}"></label><label class="f">Complemento <small>(opcional)</small><input class="in" name="complemento" autocomplete="address-line2" value="${esc(end.complemento||"")}"></label></div>
+        <label class="f">Bairro<input class="in" name="bairro" required value="${esc(end.bairro||"")}"></label>
+        <div class="row r3"><label class="f">Cidade<input class="in" name="cidade" autocomplete="address-level2" required value="${esc(end.cidade||"")}"></label><span></span><label class="f">UF<input class="in" name="uf" maxlength="2" autocomplete="address-level1" required value="${esc(end.uf||"")}" style="text-transform:uppercase"></label></div>
+        <div class="f" style="font-size:14px;font-weight:600">Forma de entrega</div>
+        <div class="fretes" id="fretes"><p class="hint" style="margin:0">Digite o CEP para ver as opções de entrega.</p></div>
+        <div class="msg bad" id="e-msg" role="alert"></div>
+        <button class="btn btn-dark btn-block" type="submit" id="e-go">Continuar para o pagamento</button>
+      </form>`}
+    </section>
+    <section class="card ${pedido?"":"lockd"}" id="s-pag"><div class="step"><span class="n">3</span><h2>Pagamento</h2></div>
+      ${pedido?`${CFG.pix&&CFG.cartao?`<div class="tabs" role="tablist" id="metodos"><button role="tab" type="button" data-met="pix" aria-selected="${metodo==="pix"}">Pix</button><button role="tab" type="button" data-met="cartao" aria-selected="${metodo==="cartao"}">Cartão de crédito</button></div>`:""}
+      <div class="msg bad" id="p-msg" role="alert"></div><div id="pay-area"></div>
+      <p class="seguro" id="seguro"></p>`
+      :`<p class="muted" style="margin:0">${CFG.pix&&CFG.cartao?"Pix ou cartão de crédito, sem sair do site.":CFG.cartao?"Cartão de crédito em até 12x, sem sair do site.":"Pix direto, sem sair do site."}</p>`}
+    </section>
+  </div><aside class="side">${resumoHTML()}</aside></div>`;
+  ligar();
+  if(pedido) iniciarPagamento();
+}
+function contaHTML(){
+  return `<div class="tabs" role="tablist"><button role="tab" type="button" data-aba="criar" aria-selected="${aba==="criar"}">Criar conta</button><button role="tab" type="button" data-aba="entrar" aria-selected="${aba==="entrar"}">Já tenho conta</button></div>
+  ${aba==="criar"?`<form class="form" id="f-conta" novalidate>
+    <p class="sub" style="margin:0">Com a conta você acompanha seus pedidos e o rastreio no site.</p>
+    <label class="f">E-mail<input class="in" type="email" name="email" autocomplete="email" required></label>
+    <label class="f">Crie uma senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="new-password" required minlength="8"><button type="button" data-ver>Mostrar</button></span></label>
+    <p class="hint">Pelo menos 8 caracteres, com letras e números.</p>
+    <div class="msg bad" id="c-msg" role="alert"></div>
+    <button class="btn btn-dark btn-block" type="submit">Criar conta e continuar</button></form>`
+  :aba==="entrar"?`<form class="form" id="f-conta" novalidate>
+    <label class="f">E-mail<input class="in" type="email" name="email" autocomplete="email" required></label>
+    <label class="f">Senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="current-password" required><button type="button" data-ver>Mostrar</button></span></label>
+    <div class="msg bad" id="c-msg" role="alert"></div>
+    <button class="btn btn-dark btn-block" type="submit">Entrar e continuar</button>
+    <button class="link" type="button" data-aba="esqueci" style="justify-self:start">Esqueci a senha</button></form>`
+  :`<form class="form" id="f-conta" novalidate><p class="sub" style="margin:0">Enviamos um link para você criar uma senha nova.</p>
+    <label class="f">E-mail da conta<input class="in" type="email" name="email" autocomplete="email" required></label>
+    <div class="msg" id="c-msg" role="alert"></div>
+    <button class="btn btn-dark btn-block" type="submit">Enviar link</button>
+    <button class="link" type="button" data-aba="entrar" style="justify-self:start">Voltar</button></form>`}`;
+}
+function entregaResumo(p){const a=p.endereco||{};return `<div class="who" style="display:block"><b>${esc(p.nome)}</b> · ${esc(fmtTel(p.telefone))}<br>${esc(a.rua)}, ${esc(a.numero)}${a.complemento?" - "+esc(a.complemento):""} · ${esc(a.bairro)}<br>${esc(a.cidade)}/${esc(a.uf)} · CEP ${esc(fmtCep(a.cep))}${p.envio&&p.envio.nome?`<br><span class="muted">Envio: ${esc(p.envio.nome)}${p.envio.empresa&&p.envio.empresa!==p.envio.nome?" · "+esc(p.envio.empresa):""}${p.envio.prazo?` · até ${p.envio.prazo} dias úteis`:""}</span>`:""}</div>`}
+const fmtCep=v=>{v=digitos(v).slice(0,8);return v.length>5?v.slice(0,5)+"-"+v.slice(5):v};
+const fmtCpf=v=>{v=digitos(v).slice(0,11);return v.replace(/(\d{3})(\d)/,"$1.$2").replace(/(\d{3})\.(\d{3})(\d)/,"$1.$2.$3").replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,"$1.$2.$3-$4")};
+function cpfOk(c){c=digitos(c);if(c.length!==11||/^(\d)\1+$/.test(c))return false;for(const t of [9,10]){let s=0;for(let i=0;i<t;i++)s+=+c[i]*(t+1-i);if(((s*10)%11)%10!==+c[t])return false}return true}
+const fmtTel=v=>{v=digitos(v).slice(0,11);if(v.length<3)return v;if(v.length<=6)return `(${v.slice(0,2)}) ${v.slice(2)}`;return v.length===11?`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`:`(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`};
+
+function carregando(btn,on,txt){if(!btn)return;if(on){btn.dataset.t=btn.innerHTML;btn.disabled=true;btn.innerHTML=`<span class="spin"></span>${txt||"Aguarde…"}`}else{btn.disabled=false;if(btn.dataset.t)btn.innerHTML=btn.dataset.t}}
+function ligar(){
+  app.querySelectorAll("[data-aba]").forEach(b=>b.addEventListener("click",()=>{aba=b.dataset.aba;render()}));
+  app.querySelectorAll("[data-ver]").forEach(b=>b.addEventListener("click",()=>{const i=b.previousElementSibling;i.type=i.type==="password"?"text":"password";b.textContent=i.type==="password"?"Mostrar":"Ocultar"}));
+  const s=$("#sair"); if(s) s.addEventListener("click",async()=>{await Conta.sair();aba="entrar";render()});
+  const fc=$("#f-conta"); if(fc) fc.addEventListener("submit",enviarConta);
+  const fe=$("#f-entrega"); if(fe){
+    fe.addEventListener("submit",enviarEntrega);
+    fe.cep.addEventListener("input",()=>{fe.cep.value=fmtCep(fe.cep.value);const c=digitos(fe.cep.value);if(c.length===8){buscarCep(fe);cotarFrete(c)}else if(freteCep){freteOps=null;freteSel=null;freteCep="";desenharFretes()}});
+    fe.cpf.addEventListener("input",()=>{fe.cpf.value=fmtCpf(fe.cpf.value)});
+    fe.querySelectorAll(".in").forEach(i=>i.addEventListener("input",()=>i.removeAttribute("aria-invalid")));
+    if(digitos(fe.cep.value).length===8){ if(freteOps&&freteCep===digitos(fe.cep.value)) desenharFretes(); else cotarFrete(digitos(fe.cep.value)); }
+    fe.telefone.addEventListener("input",()=>{fe.telefone.value=fmtTel(fe.telefone.value)});
+  }
+}
+async function enviarConta(e){
+  e.preventDefault(); const f=e.target, m=$("#c-msg"), btn=f.querySelector("[type=submit]"); m.textContent=""; m.className="msg bad";
+  const email=f.email.value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){m.textContent="Digite um e-mail válido.";f.email.focus();return}
+  try{
+    if(aba==="esqueci"){carregando(btn,true,"Enviando…");await Conta.esqueci(email);m.className="msg ok";m.textContent=`Pronto! Se existir uma conta com ${email}, o link chega em instantes. Confira também o spam.`;carregando(btn,false);return}
+    const senha=f.senha.value;
+    if(aba==="criar"&&Conta.senhaFraca(senha)){m.textContent="A senha precisa ter pelo menos 8 caracteres, com letras e números.";f.senha.focus();return}
+    carregando(btn,true,aba==="criar"?"Criando conta…":"Entrando…");
+    if(aba==="criar"){
+      const r=await Conta.criar(email,senha,{},location.origin+"/checkout.html");
+      if(!r.entrou){ $("#s-conta").innerHTML=`<div class="step"><span class="n">1</span><h2>Confirme seu e-mail</h2></div>
+        <div class="msg info"><b>Falta só um passo.</b> Enviamos um link de confirmação para <b>${esc(email)}</b>. Abra o e-mail da SP Store e toque em <b>Confirmar e-mail</b>: você volta para cá com o carrinho guardado.<br><br>Não chegou? Confira o spam ou a aba Promoções.</div>
+        <p style="margin:14px 0 0"><button class="link" type="button" id="ja-confirmei">Já confirmei, quero entrar</button></p>`;
+        $("#ja-confirmei").addEventListener("click",()=>{aba="entrar";render()}); return }
+    }else await Conta.entrar(email,senha);
+    await Conta.carregarUsuario(); render(); const n=document.querySelector("#f-entrega [name=nome]"); if(n&&!n.value) n.focus();
+  }catch(err){carregando(btn,false);m.textContent=err.message}
+}
+async function buscarCep(f){
+  const msg=$("#cep-msg"), cep=digitos(f.cep.value);
+  msg.textContent="Buscando endereço…";
+  try{const d=await fetch(`https://viacep.com.br/ws/${cep}/json/`).then(r=>r.json());
+    if(d.erro){msg.textContent="CEP não encontrado. Preencha o endereço abaixo.";return}
+    if(d.logradouro)f.rua.value=d.logradouro; if(d.bairro)f.bairro.value=d.bairro; f.cidade.value=d.localidade||""; f.uf.value=d.uf||"";
+    msg.textContent=""; (d.logradouro?f.numero:f.rua).focus();
+  }catch(e){msg.textContent="Não foi possível buscar o CEP. Preencha o endereço abaixo."}
+}
+async function cotarFrete(cep){
+  const box=$("#fretes"); if(!box) return; const seq=++freteSeq;
+  freteCep=cep; freteSel=null; atualizarResumo();
+  box.innerHTML=`<p class="wait" style="margin:0"><span class="spin"></span>Calculando o frete…</p>`;
+  try{const d=await Conta.api("/api/frete",{method:"POST",body:JSON.stringify({cep,itens:cart.map(x=>({nome:x.nome,cor:x.cor,qtd:x.qtd}))})});
+    if(seq!==freteSeq) return; freteOps=d.opcoes||[]; exigeCpf=d.exigeCpf!==false; freteSel=freteOps[0]||null; desenharFretes();
+  }catch(err){if(seq!==freteSeq)return;freteOps=null;box.innerHTML=`<div class="msg bad">${esc(err.message)}</div>`}
+}
+function desenharFretes(){
+  const box=$("#fretes"); if(!box) return;
+  if(!freteOps){box.innerHTML=`<p class="hint" style="margin:0">Digite o CEP para ver as opções de entrega.</p>`;atualizarResumo();return}
+  box.innerHTML=freteOps.map(o=>`<label class="fr"><input type="radio" name="frete" value="${esc(o.id)}" ${freteSel&&freteSel.id===o.id?"checked":""}>
+    <span><b>${o.logo?`<img src="${esc(o.logo)}" alt="">`:""}${esc(o.nome)}${o.empresa&&o.empresa!==o.nome?` · ${esc(o.empresa)}`:""}</b><small>${o.prazo?`Chega em até ${o.prazo} dias úteis`:"Prazo combinado após o pagamento"}</small></span>
+    <span class="pr ${o.preco===0?"free":""}">${o.preco===0?"Grátis":brl(o.preco)}</span></label>`).join("");
+  box.querySelectorAll("input[name=frete]").forEach(i=>i.addEventListener("change",()=>{freteSel=freteOps.find(o=>o.id===i.value);atualizarResumo()}));
+  atualizarResumo();
+}
+function atualizarResumo(){const a=document.querySelector(".side");if(a){const aberto=a.querySelector("details")?a.querySelector("details").open:true;a.innerHTML=resumoHTML();a.querySelector("details").open=aberto}}
+async function enviarEntrega(e){
+  e.preventDefault(); const f=e.target, m=$("#e-msg"), btn=$("#e-go"); m.textContent="";
+  const req=["nome","telefone","cep","rua","numero","bairro","cidade","uf"]; let falta=null;
+  req.forEach(k=>{const v=f[k].value.trim();const ruim=!v||(k==="cep"&&digitos(v).length!==8)||(k==="telefone"&&digitos(v).length<10)||(k==="uf"&&!/^[a-zA-Z]{2}$/.test(v))||(k==="nome"&&v.length<3);f[k].setAttribute("aria-invalid",ruim);if(ruim&&!falta)falta=f[k]});
+  const cpfRuim=(exigeCpf||f.cpf.value.trim())&&!cpfOk(f.cpf.value); f.cpf.setAttribute("aria-invalid",!!cpfRuim);
+  if(!falta&&cpfRuim) falta=f.cpf;
+  if(falta){m.textContent=falta===f.cpf?"CPF inválido. Confira os números.":"Confira os campos destacados.";falta.focus();return}
+  if(!freteSel){m.textContent=freteOps?"Escolha a forma de entrega.":"Digite um CEP válido para calcular o frete.";return}
+  if(!cart.length){m.textContent="Seu carrinho está vazio.";return}
+  carregando(btn,true,"Registrando pedido…");
+  const corpo={nome:f.nome.value,telefone:f.telefone.value,cpf:f.cpf.value,frete_id:freteSel.id,endereco:{cep:f.cep.value,rua:f.rua.value,numero:f.numero.value,complemento:f.complemento.value,bairro:f.bairro.value,cidade:f.cidade.value,uf:f.uf.value},itens:cart.map(x=>({nome:x.nome,cor:x.cor,qtd:x.qtd}))};
+  try{
+    const r=await Conta.api("/api/checkout",{method:"POST",body:JSON.stringify(corpo)});
+    const d=await Conta.api(`/api/pedido?id=${r.id}&t=${r.token}`);
+    pedido=d.pedido; gravarJSON(ABERTO_KEY,{id:r.id,t:r.token,sig:assinatura()},sessionStorage);
+    history.replaceState(null,"",`/checkout.html?pedido=${r.id}&t=${r.token}`);
+    render(); $("#s-pag").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(err){carregando(btn,false);m.textContent=err.status===401?"Sua sessão expirou. Entre de novo na conta.":err.message;if(err.status===401)render();else if(/entrega|frete|CEP/i.test(err.message)&&freteCep)cotarFrete(freteCep)}
+}
+
+// ---------- pagamento: Pix direto na chave da loja e/ou cartão pelo Mercado Pago ----------
+const CADEADO=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
+function iniciarPagamento(){
+  if(!metodo) metodo=CFG.pix&&(!CFG.cartao||!pedido.forma_pagamento||pedido.forma_pagamento==="Pix direto")?"pix":"cartao";
+  document.querySelectorAll("[data-met]").forEach(b=>b.setAttribute("aria-selected",b.dataset.met===metodo));
+  document.querySelectorAll("[data-met]").forEach(b=>b.addEventListener("click",()=>{if(metodo===b.dataset.met)return;metodo=b.dataset.met;document.querySelectorAll("[data-met]").forEach(x=>x.setAttribute("aria-selected",x.dataset.met===metodo));abrirMetodo()}));
+  abrirMetodo();
+}
+function abrirMetodo(){
+  $("#p-msg").textContent=""; desmontar();
+  if(metodo==="pix"){ $("#seguro").innerHTML=`${CADEADO}Pix direto para a conta da SP Store. Sem cadastro em nenhum outro site.`; pixDireto(); }
+  else { $("#seguro").innerHTML=`${CADEADO}Pagamento processado pelo Mercado Pago. Os dados do cartão não ficam salvos na SP Store. Não precisa ter conta no Mercado Pago.`; montarCartao(); }
+}
+function carregarScript(src,teste){return new Promise((ok,falha)=>{if(teste())return ok();const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>falha(new Error("script"));document.head.appendChild(s)})}
+async function montarCartao(){
+  const area=$("#pay-area"), pm=$("#p-msg");
+  area.innerHTML=`<div id="pay-brick"><p class="wait"><span class="spin"></span>Carregando o pagamento com cartão…</p></div>`;
+  try{await carregarScript("https://sdk.mercadopago.com/js/v2",()=>window.MercadoPago)}catch(e){area.innerHTML="";pm.textContent="Não conseguimos carregar o pagamento com cartão. Confira sua internet ou use o Pix.";return}
+  try{
+    const mp=new MercadoPago(CFG.mpPublicKey,{locale:"pt-BR"});
+    const [nome,...resto]=String(pedido.nome||"").split(" ");
+    $("#pay-brick").innerHTML="";
+    brick=await mp.bricks().create("payment","pay-brick",{
+      initialization:{amount:Number(pedido.total),payer:{email:pedido.email,firstName:nome,lastName:resto.join(" ")}},
+      customization:{paymentMethods:{creditCard:"all",debitCard:"all",maxInstallments:12},visual:{style:{theme:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"default",customVariables:{baseColor:"#b08a3e"}}}},
+      callbacks:{
+        onReady(){},
+        onError(err){console.error(err)},
+        onSubmit:({selectedPaymentMethod,formData})=>new Promise(async(ok,falha)=>{
+          pm.textContent="";
+          try{const r=await Conta.api("/api/pagar",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token,tipo:selectedPaymentMethod,formData})});
+            pedido=r.pedido||pedido;
+            if(r.status==="pago"){ok();sucesso();return}
+            if(r.status==="pendente"){ok();emAnalise(r.aviso);return}
+            pm.textContent=r.erro||"Pagamento recusado. Tente outro cartão ou o Pix.";falha();
+          }catch(err){pm.textContent=err.message;falha()}
+        })
+      }
+    });
+  }catch(e){area.innerHTML="";pm.textContent="Não conseguimos abrir o pagamento com cartão. Recarregue a página ou use o Pix."}
+}
+function desmontar(){clearTimeout(pollT);try{brick&&brick.unmount()}catch(e){} brick=null; const a=$("#pay-area"); if(a) a.innerHTML=""}
+async function pixDireto(){
+  const area=$("#pay-area"), pm=$("#p-msg");
+  area.innerHTML=`<p class="wait"><span class="spin"></span>Gerando o Pix…</p>`;
+  try{const r=await Conta.api("/api/pix",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token})});
+    pedido=r.pedido||pedido; if(r.status&&r.status!=="pendente"){sucesso();return}
+    mostrarPixDireto(r.pix);
+  }catch(err){area.innerHTML="";pm.textContent=err.message}
+}
+function mostrarPixDireto(px){
+  const area=$("#pay-area"); if(!area||metodo!=="pix") return;
+  const informado=pedido.pix_informado;
+  area.innerHTML=`<div class="pix">
+    <div class="eyebrow">Pague com Pix</div>
+    <h2 style="font-size:28px">${brl(pedido.total)}</h2>
+    ${informado?`<div class="msg ok" style="text-align:left"><b>Recebemos seu aviso de pagamento!</b> Estamos conferindo o Pix. Assim que confirmarmos, você recebe o e-mail de compra confirmada em <b>${esc(pedido.email)}</b>. Pode fechar esta página.</div>`
+    :`<p class="muted" style="margin:0;max-width:42ch">Abra o app do seu banco, escolha <b>Pix › Ler QR Code</b> ou <b>Pix Copia e Cola</b>. O valor já vem preenchido.</p>`}
+    <div id="pix-qr" style="${informado?"display:none":""}"></div>
+    <div class="code" style="${informado?"display:none":""}"><span id="pix-code">${esc(px.qr)}</span><button class="btn btn-gold btn-sm" type="button" id="copiar">Copiar código</button></div>
+    ${px.nome?`<p class="hint" style="margin:0">Recebedor: <b>${esc(px.nome)}</b> · chave ${esc(px.chave)}</p>`:""}
+    ${informado?`<p class="wait"><span class="spin"></span>Aguardando a confirmação… esta tela atualiza sozinha.</p>`
+    :`<button class="btn btn-green btn-block" type="button" id="ja-paguei">Já fiz o Pix</button><p class="hint" style="margin:0">Depois de pagar, toque em <b>Já fiz o Pix</b> para avisarmos a loja.</p>`}
+  </div>`;
+  if(!informado){
+    carregarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js",()=>window.qrcode).then(()=>{const q=qrcode(0,"M");q.addData(px.qr);q.make();const box=$("#pix-qr");if(box)box.innerHTML=`<img src="${q.createDataURL(6,2)}" alt="QR Code do Pix" width="260" height="260" style="width:min(260px,100%);height:auto;border-radius:12px;background:#fff;padding:8px;border:1px solid var(--line)">`}).catch(()=>{});
+    $("#copiar").addEventListener("click",function(){const t=$("#pix-code").textContent,b=this;navigator.clipboard.writeText(t).then(()=>{b.textContent="Copiado ✓"}).catch(()=>{const r=document.createRange();r.selectNodeContents($("#pix-code"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Selecionado"})});
+    $("#ja-paguei").addEventListener("click",async function(){const b=this;b.disabled=true;b.innerHTML=`<span class="spin"></span>Avisando a loja…`;
+      try{const r=await Conta.api("/api/pix",{method:"POST",body:JSON.stringify({id:pedido.id,t:pedido.token,informar:true})});pedido=r.pedido||pedido;limparCarrinho();
+        const tabs=$("#metodos"); if(tabs) tabs.remove(); mostrarPixDireto(px);}
+      catch(err){b.disabled=false;b.textContent="Já fiz o Pix";$("#p-msg").textContent=err.message}});
+  }else{ limparCarrinho(); const tabs=$("#metodos"); if(tabs) tabs.remove(); }
+  esperarPagamento();
+}
+function emAnalise(aviso){desmontar();$("#pay-area").innerHTML=`<div class="msg info">${esc(aviso||"Pagamento em análise. Avisamos por e-mail assim que for aprovado.")}</div><p style="margin:14px 0 0"><a class="btn btn-dark" href="/conta.html#pedido-${pedido.id}">Acompanhar pedido</a></p>`;limparCarrinho();esperarPagamento()}
+function esperarPagamento(){
+  clearTimeout(pollT); let n=0;
+  const tick=async()=>{n++;try{const d=await Conta.api(`/api/pedido?id=${pedido.id}&t=${pedido.token}`);pedido=d.pedido;if(pedido.status!=="aguardando_pagamento"){sucesso();return}}catch(e){}
+    if(n<360) pollT=setTimeout(tick,n<60?5000:15000)};
+  pollT=setTimeout(tick,5000);
+}
+function limparCarrinho(){cart=[];gravarJSON(CART_KEY,[]);gravarJSON(ABERTO_KEY,null,sessionStorage)}
+function sucesso(){
+  clearTimeout(pollT); desmontar(); limparCarrinho();
+  if(pedido.status==="cancelado"){telaSimples(`<div class="card"><h2>Pedido cancelado</h2><p class="muted">Este pedido foi cancelado. Se precisar de ajuda, fale com a gente no WhatsApp.</p><a class="btn btn-dark" href="/">Voltar à loja</a></div>`);return}
+  telaSimples(`<div class="card okbox">
+    <div class="ic"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+    <div class="eyebrow">Pedido #${pedido.id}</div>
+    <h1 style="font-size:32px">Compra confirmada!</h1>
+    <p class="muted" style="margin:0;max-width:42ch">Pagamento aprovado${pedido.forma_pagamento?` (${esc(pedido.forma_pagamento)})`:""}. Enviamos os detalhes para <b>${esc(pedido.email)}</b>. Você acompanha o pedido e o rastreio na sua conta.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px"><a class="btn btn-dark" href="/conta.html#pedido-${pedido.id}">Ver meu pedido</a><a class="btn btn-line" href="/">Voltar à loja</a></div></div>
+    <div class="card">${resumoHTML()}</div>`);
+  const d=document.querySelector(".card .resumo"); if(d){d.classList.remove("card");d.style.padding="0"}
+}
+
+// ---------- início ----------
+(async function(){
+  const link=Conta.lerLinkDoEmail();
+  try{
+    const [c,dP,L]=await Promise.all([Conta.config(),fetch("/data/produtos.json",{cache:"no-store"}).then(r=>r.json()),fetch("/data/loja.json",{cache:"no-store"}).then(r=>r.json())]);
+    CFG=c; PRODUTOS=(dP&&dP.produtos)||[]; LOJA=L||{};
+  }catch(e){}
+  cart=lerJSON(CART_KEY)||[]; sincronizar();
+  if(!CFG.pronto){
+    telaSimples(`<div class="card"><h2>Finalize pelo WhatsApp</h2><p class="muted">O pagamento direto no site estará disponível em breve. Por enquanto, envie seu pedido pelo WhatsApp e mandamos o link de pagamento.</p>${cart.length?resumoHTML()+`<a class="btn btn-green btn-block" style="margin-top:16px" href="${waLink()}" target="_blank" rel="noopener">Enviar pedido no WhatsApp</a>`:`<a class="btn btn-dark" href="/">Ver produtos</a>`}</div>`);
+    const r=document.querySelector(".resumo"); if(r){r.classList.remove("card");r.style.padding="0"} return;
+  }
+  if(Conta.sessao()) await Conta.carregarUsuario();
+  if(link&&link.erro) aba="entrar";
+  // pedido já criado (voltou para a página ou veio de "Pagar agora")
+  let ref=qs.get("pedido")&&qs.get("t")?{id:qs.get("pedido"),t:qs.get("t")}:null;
+  const aberto=lerJSON(ABERTO_KEY,sessionStorage);
+  if(!ref&&aberto&&aberto.sig===assinatura()) ref=aberto;
+  if(ref){try{const d=await Conta.api(`/api/pedido?id=${encodeURIComponent(ref.id)}&t=${encodeURIComponent(ref.t)}`);pedido=d.pedido;if(pedido.status!=="aguardando_pagamento"){sucesso();return}}catch(e){pedido=null;gravarJSON(ABERTO_KEY,null,sessionStorage)}}
+  if(!pedido&&!cart.length){telaSimples(`<div class="card" style="text-align:center"><h2>Seu carrinho está vazio</h2><p class="muted">Escolha um óculos ou relógio e toque em "Adicionar ao carrinho".</p><a class="btn btn-dark" href="/#vitrine">Ver produtos</a></div>`);return}
+  render();
+  if(link&&link.erro){const m=$("#c-msg");if(m)m.textContent=link.erro}
+  if(link&&link.tipo==="signup"&&Conta.usuario()){const w=document.querySelector("#s-conta .who");if(w)w.insertAdjacentHTML("beforebegin",`<div class="msg ok" style="margin-bottom:10px">E-mail confirmado! Sua conta está pronta.</div>`)}
+})();
+</script>
+</body></html>
