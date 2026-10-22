@@ -185,7 +185,7 @@ export function montarItens(produtos, pedidos) {
     if (!(preco > 0)) throw new Error(`${p.nome} está sem preço.`);
     const ja = itens.find(i => i.nome === p.nome && i.cor === v.nome);
     if (ja) ja.qtd = Math.min(99, ja.qtd + qtd);
-    else itens.push({ nome: p.nome, cor: v.nome, qtd, preco, foto: v.foto || "" });
+    else itens.push({ nome: p.nome, cor: v.nome, qtd, preco, foto: v.foto || "", ...(v.sku ? { sku: String(v.sku).slice(0, 40) } : {}) });
   }
   return itens;
 }

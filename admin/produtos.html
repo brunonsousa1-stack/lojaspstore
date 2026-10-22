@@ -73,6 +73,9 @@ textarea.in{min-height:110px;resize:vertical;line-height:1.45}
 .cor .hd{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
 .cor .hd label.f{flex:1 1 180px}
 .cor .hd .est{flex:0 0 130px}
+.cor .hd .sku{flex:0 0 170px}
+.cor .hd .sku .in{text-transform:uppercase}
+@media (max-width:560px){.cor .hd .sku,.cor .hd .est{flex:1 1 140px}}
 .cor .hd .bol{flex:0 0 auto}
 .cor .hd .bol input{width:48px;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:3px;background:var(--bg);cursor:pointer}
 .cor .tools{display:flex;gap:6px;margin-left:auto}
@@ -189,7 +192,7 @@ function renderLista(){
   const q=busca.trim().toLowerCase();
   const cont={todos:PRODS.length,oculos:0,relogios:0,fora:0};
   PRODS.forEach(p=>{cont[p.categoria]=(cont[p.categoria]||0)+1;if(p.ativo===false)cont.fora++});
-  const lista=PRODS.map((p,i)=>({p,i})).filter(({p})=>(filtro==="todos"||(filtro==="fora"?p.ativo===false:p.categoria===filtro))&&(!q||p.nome.toLowerCase().includes(q)||(p.variantes||[]).some(v=>v.nome.toLowerCase().includes(q))));
+  const lista=PRODS.map((p,i)=>({p,i})).filter(({p})=>(filtro==="todos"||(filtro==="fora"?p.ativo===false:p.categoria===filtro))&&(!q||p.nome.toLowerCase().includes(q)||(p.variantes||[]).some(v=>v.nome.toLowerCase().includes(q)||(v.sku||"").toLowerCase().includes(q))));
   const noAr=PRODS.filter(p=>p.ativo!==false).length;
   const esgot=PRODS.reduce((a,p)=>a+(p.variantes||[]).filter(v=>EST[chave(p.nome,v.nome)]===0).length,0);
   const semFoto=PRODS.filter(p=>!capa(p)).length;
@@ -202,7 +205,7 @@ function renderLista(){
     <div class="kpi"><small>Sem foto</small><b>${semFoto}</b></div>
   </div>
   <div class="bar">
-    <input class="in" type="search" id="busca" placeholder="Buscar produto ou cor" value="${esc(busca)}" aria-label="Buscar produto">
+    <input class="in" type="search" id="busca" placeholder="Buscar produto, cor ou SKU" value="${esc(busca)}" aria-label="Buscar produto">
     <div class="chips" role="group" aria-label="Filtrar">${[["todos","Todos"],["oculos","Óculos de sol"],["relogios","Relógios"],["fora","Fora do ar"]].map(([k,t])=>`<button class="chip" data-f="${k}" aria-pressed="${filtro===k}">${t}<i>${cont[k]||0}</i></button>`).join("")}</div>
     <button class="btn btn-dark btn-sm novo" type="button" id="novo">+ Novo produto</button>
   </div>
@@ -235,7 +238,7 @@ function renderLista(){
 }
 function nomeLivre(base){let n=base,k=2;const ex=new Set(PRODS.map(p=>p.nome.toLowerCase()));while(ex.has(n.toLowerCase()))n=`${base} (${k++})`;return n}
 function duplicar(i){
-  const p=clone(PRODS[i]); p.nome=nomeLivre(p.nome+" - cópia"); p.ativo=false;
+  const p=clone(PRODS[i]); p.nome=nomeLivre(p.nome+" - cópia"); p.ativo=false; (p.variantes||[]).forEach(v=>delete v.sku);
   edIdx=-1; ed=prepara(p); orig=null; sujo=true; tela="editar"; renderEditor(); scrollTo(0,0);
   toast("Cópia criada (fora do ar). Ajuste o que quiser e salve.");
 }
@@ -255,7 +258,7 @@ function confirmarModal(tit,txt,bt,ok){
 // ---------- editor ----------
 function prepara(p){
   const d=clone(p);
-  d.variantes=(d.variantes&&d.variantes.length?d.variantes:[{nome:"Padrão"}]).map(v=>({nome:v.nome,fotos:fotosDe(v),avancado:v.avancado||(v.cor_principal?{cor_principal:v.cor_principal}:undefined),
+  d.variantes=(d.variantes&&d.variantes.length?d.variantes:[{nome:"Padrão"}]).map(v=>({nome:v.nome,sku:v.sku||"",fotos:fotosDe(v),avancado:v.avancado||(v.cor_principal?{cor_principal:v.cor_principal}:undefined),
     _orig:p.nome&&v.nome?chave(p.nome,v.nome):null,_qtd:p.nome&&v.nome&&typeof EST[chave(p.nome,v.nome)]==="number"?String(EST[chave(p.nome,v.nome)]):""}));
   d.avancado=d.avancado||{}; if(!d.avancado.desenho&&d.desenho)d.avancado.desenho=d.desenho; delete d.desenho;
   d.selos=d.selos||[]; d.descricao=d.descricao||"";
@@ -347,6 +350,7 @@ function renderCores(){
   box.innerHTML=d.variantes.map((v,i)=>`<div class="cor" data-ci="${i}">
     <div class="hd">
       <label class="f">${d.variantes.length>1?`Cor ${i+1}`:"Cor"}<input class="in" data-cor-nome="${i}" maxlength="60" value="${esc(v.nome)}" placeholder="${d.variantes.length>1?"Ex.: Dourado com lente marrom":"Ex.: Preto (ou deixe em branco)"}"></label>
+      <label class="f sku">SKU <small>código interno</small><input class="in" data-cor-sku="${i}" maxlength="40" value="${esc(v.sku||"")}" placeholder="Ex.: OC-HEX-PRT" autocapitalize="characters" spellcheck="false"></label>
       <label class="f est">Estoque <small>vazio = sem controle</small><input class="in" data-cor-qtd="${i}" type="number" min="0" step="1" inputmode="numeric" value="${esc(v._qtd)}" placeholder="—"></label>
       <label class="f bol" title="Cor da bolinha (usada quando a cor não tem foto)">Bolinha<input type="color" data-cor-hex="${i}" value="${esc((v.avancado&&v.avancado.cor_principal)||"#999999")}"></label>
       <div class="tools">
@@ -364,12 +368,13 @@ function renderCores(){
     </div>
   </div>`).join("");
   box.querySelectorAll("[data-cor-nome]").forEach(x=>x.addEventListener("input",()=>{d.variantes[+x.dataset.corNome].nome=x.value;marcar()}));
+  box.querySelectorAll("[data-cor-sku]").forEach(x=>x.addEventListener("input",()=>{d.variantes[+x.dataset.corSku].sku=x.value.trim();sujo=true}));
   box.querySelectorAll("[data-cor-qtd]").forEach(x=>x.addEventListener("input",()=>{d.variantes[+x.dataset.corQtd]._qtd=x.value;marcar()}));
   box.querySelectorAll("[data-cor-hex]").forEach(x=>x.addEventListener("input",()=>{const v=d.variantes[+x.dataset.corHex];v.avancado={...(v.avancado||{}),cor_principal:x.value};marcar()}));
   const mover=(i,j)=>{[d.variantes[i],d.variantes[j]]=[d.variantes[j],d.variantes[i]];marcar();renderCores()};
   box.querySelectorAll("[data-cor-up]").forEach(x=>x.onclick=()=>mover(+x.dataset.corUp,+x.dataset.corUp-1));
   box.querySelectorAll("[data-cor-down]").forEach(x=>x.onclick=()=>mover(+x.dataset.corDown,+x.dataset.corDown+1));
-  box.querySelectorAll("[data-cor-dup]").forEach(x=>x.onclick=()=>{const i=+x.dataset.corDup,v=clone(d.variantes[i]);v.nome=v.nome?v.nome+" (cópia)":"";v._orig=null;v._subindo=[];d.variantes.splice(i+1,0,v);marcar();renderCores()});
+  box.querySelectorAll("[data-cor-dup]").forEach(x=>x.onclick=()=>{const i=+x.dataset.corDup,v=clone(d.variantes[i]);v.nome=v.nome?v.nome+" (cópia)":"";v._orig=null;v.sku="";v._subindo=[];d.variantes.splice(i+1,0,v);marcar();renderCores()});
   box.querySelectorAll("[data-cor-del]").forEach(x=>x.onclick=()=>{const i=+x.dataset.corDel,v=d.variantes[i];if((v.fotos.length||v.nome)&&!confirm(`Remover a cor "${v.nome||"sem nome"}" e as fotos dela?`))return;d.variantes.splice(i,1);marcar();renderCores()});
   box.querySelectorAll("[data-rmf]").forEach(x=>x.onclick=()=>{const [i,k]=x.dataset.rmf.split(":").map(Number);d.variantes[i].fotos.splice(k,1);marcar();renderCores()});
   box.querySelectorAll("[data-princ]").forEach(x=>x.onclick=()=>{const [i,k]=x.dataset.princ.split(":").map(Number);const f=d.variantes[i].fotos;f.unshift(...f.splice(k,1));marcar();renderCores()});
@@ -448,11 +453,14 @@ async function salvarProduto(){
   if(d.preco_de!==""&&d.preco_de!=null&&Number(d.preco_de)>0&&Number(d.preco_de)<=Number(d.preco)) return erroEm("O preço antigo precisa ser maior que o preço de venda (ou deixe em branco).","#preco_de");
   if(d.variantes.length>1){const k=d.variantes.findIndex(v=>!v.nome.trim());if(k>=0)return erroEm(`Dê um nome para a cor ${k+1}.`,`[data-cor-nome="${k}"]`)}
   const nomes=d.variantes.map(v=>(v.nome.trim()||"Padrão").toLowerCase()); if(new Set(nomes).size!==nomes.length) return erroEm("Duas cores estão com o mesmo nome.");
+  const meus=d.variantes.map(v=>(v.sku||"").trim().toLowerCase()).filter(Boolean);
+  if(new Set(meus).size!==meus.length) return erroEm("Duas cores estão com o mesmo SKU.");
+  for(const [i,p] of PRODS.entries()){if(i===edIdx)continue;const v=(p.variantes||[]).find(v=>v.sku&&meus.includes(v.sku.toLowerCase()));if(v)return erroEm(`O SKU "${v.sku}" já é usado em ${p.nome} - ${v.nome}.`)}
   if(enviando) return;
 
   const nome=d.nome.trim();
   const prod={nome,categoria:d.categoria,preco:Number(d.preco),descricao:d.descricao.trim(),selos:d.selos,ativo:d.ativo!==false,
-    variantes:d.variantes.map(v=>{const o={nome:v.nome.trim()||"Padrão",foto:v.fotos[0]||"",fotos_extras:v.fotos.slice(1)};if(v.avancado&&(v.avancado.cor_principal||v.avancado.cor_detalhe))o.avancado={...v.avancado};return o}),
+    variantes:d.variantes.map(v=>{const o={nome:v.nome.trim()||"Padrão",foto:v.fotos[0]||"",fotos_extras:v.fotos.slice(1)};if((v.sku||"").trim())o.sku=v.sku.trim().replace(/\s+/g,"-").toUpperCase();if(v.avancado&&(v.avancado.cor_principal||v.avancado.cor_detalhe))o.avancado={...v.avancado};return o}),
     avancado:{...d.avancado}};
   if(Number(d.preco_de)>Number(d.preco)) prod.preco_de=Number(d.preco_de);
   if(!prod.avancado.desenho) prod.avancado.desenho=prod.categoria==="relogios"?"round":"hex";

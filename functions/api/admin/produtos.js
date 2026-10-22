@@ -38,6 +38,8 @@ function limpaProduto(p, i, baseFotos) {
     nomesCor.add(cor.toLowerCase());
     const fotos = (Array.isArray(v.fotos) ? v.fotos : [v.foto, ...(v.fotos_extras || [])]).map(foto).filter(Boolean).slice(0, 15);
     const o = { nome: cor, foto: fotos[0] || "", fotos_extras: fotos.slice(1) };
+    const sku = txt(v.sku, 40).replace(/\s+/g, "-").toUpperCase();
+    if (sku) o.sku = sku;
     const a = {};
     const cp = corHex(v.avancado && v.avancado.cor_principal), cd = corHex(v.avancado && v.avancado.cor_detalhe);
     if (cp) a.cor_principal = cp;
@@ -82,6 +84,12 @@ export const onRequestPut = async ({ env, request }) => {
       const k = p.nome.toLowerCase();
       if (nomes.has(k)) throw new Error(`Há dois produtos com o nome "${p.nome}". Os nomes precisam ser diferentes.`);
       nomes.add(k);
+    }
+    const skus = new Map();
+    for (const p of produtos) for (const v of p.variantes) if (v.sku) {
+      const k = v.sku.toLowerCase();
+      if (skus.has(k)) throw new Error(`O SKU "${v.sku}" está repetido (${skus.get(k)} e ${p.nome} - ${v.nome}). Cada cor precisa de um SKU diferente.`);
+      skus.set(k, `${p.nome} - ${v.nome}`);
     }
   } catch (e) {
     return erro(e.message || "Dados inválidos.");
