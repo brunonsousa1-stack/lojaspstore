@@ -46,7 +46,17 @@ collections:
               - { label: "Loggi", value: loggi }
               - { label: "J&T Express", value: jet }
           - { label: "Dias para postar o pedido", name: dias_para_postar, widget: number, value_type: int, min: 0, required: false, default: 1, hint: "Somado ao prazo da transportadora que o cliente vê." }
-          - { label: "Frete grátis acima de", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra a partir do qual o frete fica grátis. Use 0 para não usar." }
+          - { label: "Frete grátis a partir de (valor real)", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra (já com a promoção) a partir do qual o frete fica grátis. 0 = não usar." }
+          - { label: "Frete grátis: valor anunciado no site", name: frete_gratis_exibir, widget: number, value_type: float, step: 0.01, min: 0, required: false, hint: "O valor que aparece escrito no site (ex.: 120). Em branco = o mesmo do valor real." }
+          - { label: "Promoção: leve quantos óculos e ganhe 1", name: promo_leve, widget: number, value_type: int, min: 0, max: 10, required: false, default: 4, hint: "4 = leve 4 e pague 3 (o mais barato sai grátis). 0 = promoção desligada." }
+          - label: "Promoção vale para"
+            name: promo_categoria
+            widget: select
+            required: false
+            default: oculos
+            options:
+              - { label: Óculos de sol, value: oculos }
+              - { label: Relógios, value: relogios }
           - { label: "Desconto no Pix (%)", name: desconto_pix, widget: number, value_type: int, min: 0, max: 30, required: false, default: 5, hint: "Desconto sobre os produtos (não sobre o frete) quando o cliente paga no Pix. 0 = sem desconto." }
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }

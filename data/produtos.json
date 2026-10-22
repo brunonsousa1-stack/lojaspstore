@@ -3,7 +3,7 @@
     {
       "nome": "Óculos de Sol Feminino Hexagonal Marrom",
       "categoria": "oculos",
-      "preco": 29.99,
+      "preco": 39.99,
       "descricao": "",
       "selos": [
         "Mais vendido"
@@ -43,7 +43,7 @@
           ]
         }
       ],
-      "preco": 29.99,
+      "preco": 39.99,
       "selos": [
         "Mais vendido"
       ]
@@ -54,7 +54,7 @@
         "desenho": "hex"
       },
       "nome": "Óculos de Sol Feminino Hexagonal Dourado",
-      "preco": 29.97,
+      "preco": 39.99,
       "categoria": "oculos",
       "selos": [
         "Maisvendido"

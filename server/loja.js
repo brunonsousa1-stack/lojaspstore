@@ -174,6 +174,18 @@ export function calcularFrete(loja, subtotal) {
   if (gratisAcima > 0 && subtotal >= gratisAcima) return 0;
   return valor;
 }
+// Promoção "leve N, pague N-1" (painel › Banner e textos). As unidades grátis vão para os itens mais baratos da categoria.
+export function aplicarPromo(itens, produtos, loja) {
+  for (const i of itens) delete i.gratis;
+  const leve = Math.floor(Number(loja && loja.promo_leve) || 0);
+  if (leve < 2) return itens;
+  const cat = (loja && loja.promo_categoria) || "oculos";
+  const eleg = itens.filter(i => { const p = produtos.find(q => q.nome === i.nome); return p && p.categoria === cat; });
+  let livres = Math.floor(eleg.reduce((a, i) => a + i.qtd, 0) / leve);
+  for (const i of [...eleg].sort((a, b) => a.preco - b.preco)) { if (!livres) break; const g = Math.min(livres, i.qtd); i.gratis = g; livres -= g; }
+  return itens;
+}
+export const subtotalItens = itens => itens.reduce((a, i) => a + cents(i.preco) * (i.qtd - (i.gratis || 0)), 0) / 100;
 export function montarItens(produtos, pedidos) {
   if (!Array.isArray(pedidos) || !pedidos.length) throw new Error("Seu carrinho está vazio.");
   if (pedidos.length > 30) throw new Error("Carrinho com itens demais.");
@@ -401,7 +413,7 @@ function moldura(titulo, corpo, origem) {
 </div></div></body></html>`;
 }
 function tabelaItens(p) {
-  const linhas = (p.itens || []).map(i => `<tr><td style="padding:8px 0;border-bottom:1px solid #e6e3dc">${i.qtd}× ${esc(i.nome)}${i.cor && i.cor !== "Padrão" ? `<br><span style="color:#6a675f;font-size:13px">${esc(i.cor)}</span>` : ""}</td><td style="padding:8px 0;border-bottom:1px solid #e6e3dc;text-align:right;white-space:nowrap">${reais(i.preco * i.qtd)}</td></tr>`).join("");
+  const linhas = (p.itens || []).map(i => `<tr><td style="padding:8px 0;border-bottom:1px solid #e6e3dc">${i.qtd}× ${esc(i.nome)}${i.cor && i.cor !== "Padrão" ? `<br><span style="color:#6a675f;font-size:13px">${esc(i.cor)}</span>` : ""}${i.gratis ? `<br><span style="color:#17703c;font-size:13px">${i.gratis} grátis na promoção</span>` : ""}</td><td style="padding:8px 0;border-bottom:1px solid #e6e3dc;text-align:right;white-space:nowrap">${reais(i.preco * (i.qtd - (i.gratis || 0)))}</td></tr>`).join("");
   return `<table style="width:100%;border-collapse:collapse;font-size:15px;margin:14px 0">${linhas}
 <tr><td style="padding:8px 0;color:#6a675f">Frete</td><td style="padding:8px 0;text-align:right">${Number(p.frete) > 0 ? reais(p.frete) : "Grátis"}</td></tr>
 ${Number(p.subtotal) + Number(p.frete) - Number(p.total) > 0.004 ? `<tr><td style="padding:8px 0;color:#17703c">Desconto no Pix</td><td style="padding:8px 0;text-align:right;color:#17703c">- ${reais(Number(p.subtotal) + Number(p.frete) - Number(p.total))}</td></tr>` : ""}
@@ -455,9 +467,9 @@ export async function checkout(env, request) {
   try {
     entrega = validarEntrega(b, meAtivo(env));
     const { produtos, loja } = await catalogo(request, env);
-    itens = montarItens(produtos, b.itens);
+    itens = aplicarPromo(montarItens(produtos, b.itens), produtos, loja);
     conferirEstoque(await lerEstoque(env), itens);
-    sub = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
+    sub = subtotalItens(itens);
     const rem = await lerConfig(env, "remetente");
     const ops = await cotar(env, { cepOrigem: rem && rem.cep, cepDestino: entrega.endereco.cep, itens, produtos, loja, subtotal: sub });
     const op = ops.find(o => o.id === String(b.frete_id || "")) || (ops.length === 1 ? ops[0] : null);
@@ -519,8 +531,8 @@ export async function opcoesFrete(env, request) {
   let b; try { b = await request.json(); } catch { return erro("Pedido inválido."); }
   try {
     const { produtos, loja } = await catalogo(request, env);
-    const itens = montarItens(produtos, b.itens);
-    const sub = itens.reduce((a, i) => a + cents(i.preco) * i.qtd, 0) / 100;
+    const itens = aplicarPromo(montarItens(produtos, b.itens), produtos, loja);
+    const sub = subtotalItens(itens);
     const rem = pronto(env) ? await lerConfig(env, "remetente").catch(() => null) : null;
     const ops = await cotar(env, { cepOrigem: rem && rem.cep, cepDestino: b.cep, itens, produtos, loja, subtotal: sub });
     return json({ opcoes: ops.map(({ pacotes, ...o }) => o), exigeCpf: meAtivo(env) });

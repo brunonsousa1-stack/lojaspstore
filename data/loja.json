@@ -5,11 +5,11 @@
   "banner_etiqueta": "Óculos de sol e relógios",
   "banner_titulo": "Estilo pra todo dia por",
   "banner_texto": "Óculos hexagonal e aviador, relógios DK Original analógicos, digital e formato gota. Escolha a cor e finalize a compra pelo WhatsApp.",
-  "preco_destaque": 29.99,
+  "preco_destaque": 39.99,
   "whatsapp": "5511947523834",
   "banner_imagem_celular": "/img/coleção-de-óculos-premium-ao-sol.webp",
   "frete_valor": 0,
-  "frete_gratis_acima": 120,
+  "frete_gratis_acima": 119,
   "dias_para_postar": 1,
   "pix_chave": "brunospstore@gmail.com",
   "pix_nome": "LOJA SP STORE LTDA",
@@ -24,5 +24,8 @@
   "razao_social": "LOJA SP STORE LTDA",
   "cnpj": "27.866.411/0001-10",
   "endereco_loja": "Rua Décio Angelo Chiuvitti, 33 · São Paulo/SP · CEP 08020-360",
-  "email_atendimento": "lojaspstore@gmail.com"
+  "email_atendimento": "lojaspstore@gmail.com",
+  "frete_gratis_exibir": 120,
+  "promo_leve": 4,
+  "promo_categoria": "oculos"
 }
