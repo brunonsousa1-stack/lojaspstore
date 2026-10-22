@@ -1,0 +1,14 @@
+# Dispara de hora em hora os lembretes da loja (pedido não pago e pedido de avaliação).
+name: Lembretes da loja
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lembretes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar a loja
+        run: curl -fsS --max-time 60 -X POST https://lojaspstore.com.br/api/lembretes

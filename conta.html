@@ -115,7 +115,7 @@ function pedidoHTML(p){
       ${p.forma_pagamento?`<h3 style="margin-top:14px">Pagamento</h3><p style="margin:0;font-size:14px">${esc(p.forma_pagamento)}</p>`:""}</div>
     <div class="full"><h3>Itens</h3><ul class="itens">${p.itens.map(x=>`<li><div class="th">${x.foto?`<img src="${esc(x.foto)}" alt="">`:""}</div><div><b>${esc(x.nome)}</b><span>${corTxt(x.cor)?esc(x.cor)+" · ":""}${x.qtd}×</span>${x.gratis?`<span style="display:block;color:#17703c;font-weight:600">🎁 ${x.gratis} grátis na promoção</span>`:""}</div><div class="v">${(x.gratis?`<s style="font-weight:400;font-size:12px;opacity:.7;display:block">${brl(x.preco*x.qtd)}</s>`:"")+brl(x.preco*(x.qtd-(x.gratis||0)))}</div></li>`).join("")}</ul>
       <div class="tot"><div><span class="muted">Frete</span><span>${p.frete>0?brl(p.frete):"Grátis"}</span></div><div class="grand"><span>Total</span><strong>${brl(p.total)}</strong></div></div></div>
-    <div class="full" style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-line btn-sm" href="https://wa.me/${WA}?text=${encodeURIComponent(`Olá! Tenho uma dúvida sobre o pedido #${p.id}.`)}" target="_blank" rel="noopener">Falar sobre este pedido no WhatsApp</a></div>
+    <div class="full" style="display:flex;gap:10px;flex-wrap:wrap">${["enviado","entregue"].includes(p.status)?`<a class="btn btn-gold btn-sm" href="/avaliar.html?pedido=${p.id}&t=${encodeURIComponent(p.token)}">★ Avaliar compra</a>`:""}<a class="btn btn-line btn-sm" href="https://wa.me/${WA}?text=${encodeURIComponent(`Olá! Tenho uma dúvida sobre o pedido #${p.id}.`)}" target="_blank" rel="noopener">Falar sobre este pedido no WhatsApp</a></div>
   </div>`:""}</article>`;
 }
 function telaLogado(){

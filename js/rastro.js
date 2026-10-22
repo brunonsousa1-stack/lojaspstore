@@ -2,7 +2,7 @@
 // Guarda só ids aleatórios do navegador (nada de nome, e-mail ou IP).
 (function () {
   const L = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
-  if (L("spstore_admin") === "1") { window.SPA = { ev() {} }; return; } // visitas do dono não contam
+  if (L("spstore_admin") === "1") { window.SPA = { ev() {}, observar() {}, px() {} }; return; } // visitas do dono não contam
   const novoId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/gi, "");
   const agora = Date.now();
 
@@ -39,8 +39,34 @@
     try { if (!(navigator.sendBeacon && navigator.sendBeacon("/api/ev", new Blob([corpo], { type: "text/plain" })))) fetch("/api/ev", { method: "POST", body: corpo, keepalive: true }).catch(() => {}); } catch (e) {}
     if (fila.length) enviar();
   }
+  // ---- Pixel do Meta e Google Analytics (só se os códigos estiverem no painel) ----
+  const px = { fb: false, ga: false, fila: [] };
+  function pxEnviar(nome, d) {
+    d = d || {};
+    const val = Number(d.val) || undefined, item = d.p ? [{ item_name: d.p, item_variant: d.c, price: val, quantity: d.q || 1 }] : undefined;
+    const FB = { produto: "ViewContent", carrinho: "AddToCart", checkout: "InitiateCheckout", pago: "Purchase" };
+    const GA = { produto: "view_item", carrinho: "add_to_cart", checkout: "begin_checkout", pago: "purchase" };
+    try { if (px.fb && FB[nome]) window.fbq("track", FB[nome], { content_name: d.p, content_type: "product", value: val, currency: "BRL", ...(d.id ? { order_id: String(d.id) } : {}) }, d.id ? { eventID: "pedido-" + d.id } : undefined); } catch (e) {}
+    try { if (px.ga && GA[nome]) window.gtag("event", GA[nome], { currency: "BRL", value: val, items: item, ...(d.id ? { transaction_id: String(d.id) } : {}) }); } catch (e) {}
+  }
+  function px_(nome, d) { if (px.pronto) pxEnviar(nome, d); else px.fila.push([nome, d]); }
+  fetch("/data/loja.json").then(r => r.ok ? r.json() : {}).then(L => {
+    const fbId = String(L.meta_pixel_id || "").replace(/\D/g, ""), gaId = String(L.ga4_id || "").trim().toUpperCase();
+    if (fbId) {
+      !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments) }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s) }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+      window.fbq("init", fbId); window.fbq("track", "PageView"); px.fb = true;
+    }
+    if (/^G-[A-Z0-9]{4,}$/.test(gaId)) {
+      const s = document.createElement("script"); s.async = true; s.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId; document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || []; window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag("js", new Date()); window.gtag("config", gaId); px.ga = true;
+    }
+    px.pronto = true; px.fila.splice(0).forEach(([n, d]) => pxEnviar(n, d));
+  }).catch(() => { px.pronto = true; });
+
   function ev(t, d) {
     d = d || {};
+    if (t === "produto" || t === "carrinho" || t === "checkout") px_(t, d);
     if (t === "impressao") { const k = "i:" + d.p; if (sess.vistos.includes(k)) return; sess.vistos.push(k); if (sess.vistos.length > 300) sess.vistos.shift(); }
     fila.push({ t, p: d.p, c: d.c, q: d.q, val: d.val, o: d.o, d: d.d, pg: location.pathname });
     L("spstore_sess", JSON.stringify(sess));
@@ -60,5 +86,5 @@
   }), { threshold: [0.5] });
   function observar(raiz) { if (!obs) return; (raiz || document).querySelectorAll("[data-nome]:not([data-obs])").forEach(el => { el.setAttribute("data-obs", "1"); obs.observe(el); }); }
 
-  window.SPA = { ev, observar };
+  window.SPA = { ev, observar, px: px_ };
 })();

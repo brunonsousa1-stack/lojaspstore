@@ -21,6 +21,12 @@ collections:
         fields:
           - { label: WhatsApp (só números, com 55 e DDD), name: whatsapp, widget: string }
           - { label: WhatsApp como aparece no site, name: whatsapp_exibicao, widget: string }
+          - { label: "Mercado Livre: nota da loja", name: ml_nota, widget: string, required: false, hint: "Ex.: 4,8. Aparece na faixa 'Loja oficial no Mercado Livre'. Vazio = faixa não aparece." }
+          - { label: "Mercado Livre: vendas", name: ml_vendas, widget: string, required: false, hint: "Ex.: +5 mil. Use o número real mostrado no Mercado Livre." }
+          - { label: "Mercado Livre: link da sua loja", name: ml_link, widget: string, required: false, hint: "Ex.: https://www.mercadolivre.com.br/loja/spstore" }
+          - { label: "Mercado Livre: título da faixa", name: ml_titulo, widget: string, required: false, hint: "Padrão: Loja oficial no Mercado Livre" }
+          - { label: "Pixel do Meta (Facebook/Instagram): ID", name: meta_pixel_id, widget: string, required: false, hint: "Só os números. Gerenciador de Eventos do Meta > Fontes de dados." }
+          - { label: "Google Analytics 4: ID", name: ga4_id, widget: string, required: false, hint: "Começa com G-. Ex.: G-ABC123XYZ" }
           - { label: "Razão social (rodapé)", name: razao_social, widget: string, required: false }
           - { label: "CNPJ (rodapé)", name: cnpj, widget: string, required: false }
           - { label: "Endereço (rodapé)", name: endereco_loja, widget: string, required: false }

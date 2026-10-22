@@ -25,7 +25,7 @@ function limpaProduto(p, i, baseFotos) {
   const de = num(p.preco_de, 0, 100000);
   if (de && de > out.preco) out.preco_de = Math.round(de * 100) / 100;
   out.descricao = txt(p.descricao, 2000);
-  out.selos = (Array.isArray(p.selos) ? p.selos : []).map(s => txt(s, 30)).filter(Boolean).slice(0, 4);
+  out.selos = [...new Set((Array.isArray(p.selos) ? p.selos : []).map(s => txt(s, 30)).map(s => /^maisvendido$/i.test(s) ? "Mais vendido" : s).filter(Boolean))].slice(0, 4);
   out.ativo = p.ativo !== false;
 
   const vs = (Array.isArray(p.variantes) ? p.variantes : []).slice(0, 30);

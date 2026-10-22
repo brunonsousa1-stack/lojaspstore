@@ -2,6 +2,7 @@
 // Entrega a mesma loja (index.html) já com título, foto, preço e dados estruturados do produto,
 // para o Google Shopping e para o link compartilhado no WhatsApp/Instagram mostrar foto e preço.
 import { catalogo, lerEstoque, chaveEstoque, pronto } from "../../server/loja.js";
+import { resumoPublico } from "../../server/avaliacoes.js";
 import { slug, abs, fotosDe, preco2, CAT_NOME, descricao, titulo as tituloDe } from "../../server/seo.js";
 
 const attr = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -18,6 +19,8 @@ export const onRequestGet = async ({ env, request, params }) => {
     if (p && pronto(env)) est = await lerEstoque(env);
   } catch {}
   if (!p) return Response.redirect(origem + "/#vitrine", 302);
+  let nota = null;
+  try { if (pronto(env)) { const r = (await resumoPublico(env)).produtos[p.nome]; if (r && r.qtd) nota = r; } } catch {}
 
   const vs = p.variantes && p.variantes.length ? p.variantes : [{ nome: "Padrão" }];
   const corPedida = url.searchParams.get("cor");
@@ -34,6 +37,8 @@ export const onRequestGet = async ({ env, request, params }) => {
     "@type": "ProductGroup",
     name: p.nome, description: desc, url: canon, productGroupID: slug(p.nome),
     brand: { "@type": "Brand", name: "SP Store" },
+    ...(nota ? { aggregateRating: { "@type": "AggregateRating", ratingValue: nota.media, reviewCount: nota.qtd, bestRating: 5, worstRating: 1 },
+      review: nota.ultimas.slice(0, 5).map(a => ({ "@type": "Review", reviewRating: { "@type": "Rating", ratingValue: a.nota, bestRating: 5 }, author: { "@type": "Person", name: String(a.nome).split(" · ")[0] }, datePublished: String(a.em).slice(0, 10), ...(a.texto ? { reviewBody: a.texto } : {}) })) } : {}),
     category: CAT_NOME[p.categoria] || "",
     variesBy: vs.length > 1 ? ["https://schema.org/color"] : undefined,
     hasVariant: vs.map(x => ({

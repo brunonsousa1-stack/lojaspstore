@@ -337,6 +337,7 @@ function esperarPagamento(){
 }
 function limparCarrinho(){cart=[];gravarJSON(CART_KEY,[]);gravarJSON(ABERTO_KEY,null,sessionStorage)}
 function sucesso(){
+  try{const k="spstore_px_"+pedido.id;if(!sessionStorage.getItem(k)){sessionStorage.setItem(k,"1");SPA.px("pago",{val:pedido.total,id:pedido.id})}}catch(e){}
   clearTimeout(pollT); desmontar(); limparCarrinho();
   if(pedido.status==="cancelado"){telaSimples(`<div class="card"><h2>Pedido cancelado</h2><p class="muted">Este pedido foi cancelado. Se precisar de ajuda, fale com a gente no WhatsApp.</p><a class="btn btn-dark" href="/">Voltar à loja</a></div>`);return}
   telaSimples(`<div class="card okbox">

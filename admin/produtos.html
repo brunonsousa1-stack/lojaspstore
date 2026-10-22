@@ -192,6 +192,18 @@ async function acaoRapida(op,msgOk){
 }
 
 // ---------- lista ----------
+// avisos: selo "Mais vendido" em excesso e preço "de" em quase tudo (o cliente desconfia e o CDC exige preço anterior real)
+const ehMaisVend=t=>/^mais\s*vendido$/i.test(String(t).trim());
+function alertasSelos(){
+  const ativos=PRODS.filter(p=>p.ativo!==false); if(ativos.length<3) return "";
+  const mv=ativos.filter(p=>(p.selos||[]).some(ehMaisVend)).length, de=ativos.filter(p=>Number(p.preco_de)>Number(p.preco)).length;
+  const typo=PRODS.filter(p=>(p.selos||[]).some(x=>/^maisvendido$/i.test(String(x).trim()))).length;
+  const av=[];
+  if(mv>3) av.push(`<b>${mv} produtos</b> estão com o selo "Mais vendido". Deixe só nos 2 ou 3 que mais vendem, para o selo voltar a chamar atenção.`);
+  if(de>ativos.length*0.6) av.push(`<b>${de} de ${ativos.length}</b> produtos têm preço antigo riscado. Use só em promoções reais: pelo Código de Defesa do Consumidor, o preço "de" precisa ter sido praticado antes.`);
+  if(typo) av.push(`${typo===1?"Um produto":typo+" produtos"} com o selo escrito "Maisvendido": ao abrir e salvar, ele é corrigido para "Mais vendido".`);
+  return av.length?`<div class="msg" style="background:var(--warn-soft);margin-bottom:14px"><b>Dica para passar mais confiança</b><ul style="margin:6px 0 0;padding-left:18px">${av.map(x=>`<li>${x}</li>`).join("")}</ul></div>`:"";
+}
 function renderLista(){
   const q=busca.trim().toLowerCase();
   const cont={todos:PRODS.length,oculos:0,relogios:0,fora:0};
@@ -201,6 +213,7 @@ function renderLista(){
   const esgot=PRODS.reduce((a,p)=>a+(p.variantes||[]).filter(v=>EST[chave(p.nome,v.nome)]===0).length,0);
   const semFoto=PRODS.filter(p=>!capa(p)).length;
   app.innerHTML=`
+  ${alertasSelos()}
   ${FONTE!=="banco"?`<div class="msg info" style="margin-bottom:14px">Na primeira vez que você salvar algo aqui, os produtos passam a ser guardados no banco de dados da loja e o site atualiza <b>na hora</b>.</div>`:""}
   <div class="kpis">
     <div class="kpi"><small>No ar</small><b>${noAr}</b></div>
@@ -309,7 +322,7 @@ function renderEditor(){
 
     <section class="card" aria-labelledby="h-preco"><h3 id="h-preco">Preço</h3><div class="row">
       <label class="f">Preço de venda<span class="money"><span>R$</span><input class="in" id="preco" inputmode="decimal" value="${d.preco===""?"":Number(d.preco).toFixed(2).replace(".",",")}" placeholder="29,99"></span></label>
-      <label class="f">Preço antigo <small>Opcional. Aparece riscado ("de R$ X por…")</small><span class="money"><span>R$</span><input class="in" id="preco_de" inputmode="decimal" value="${d.preco_de?Number(d.preco_de).toFixed(2).replace(".",","):""}" placeholder="49,99"></span></label>
+      <label class="f">Preço antigo <small>Opcional. Aparece riscado ("de R$ X por…"). Use só se o produto já foi vendido por esse preço.</small><span class="money"><span>R$</span><input class="in" id="preco_de" inputmode="decimal" value="${d.preco_de?Number(d.preco_de).toFixed(2).replace(".",","):""}" placeholder="49,99"></span></label>
     </div><p class="hint" id="dc-txt" style="margin-top:10px">${dc?`<span class="desc">-${dc}%</span> de desconto no site`:""}</p></section>
 
     <section class="card" aria-labelledby="h-cores"><h3 id="h-cores">Cores, fotos e estoque</h3>
@@ -473,7 +486,7 @@ async function salvarProduto(){
   if(enviando) return;
 
   const nome=d.nome.trim();
-  const prod={nome,categoria:d.categoria,preco:Number(d.preco),descricao:d.descricao.trim(),selos:d.selos,ativo:d.ativo!==false,
+  const prod={nome,categoria:d.categoria,preco:Number(d.preco),descricao:d.descricao.trim(),selos:[...new Set(d.selos.map(x=>/^maisvendido$/i.test(String(x).trim())?"Mais vendido":x))],ativo:d.ativo!==false,
     variantes:d.variantes.map(v=>{const o={nome:v.nome.trim()||"Padrão",foto:v.fotos[0]||"",fotos_extras:v.fotos.slice(1)};if((v.sku||"").trim())o.sku=v.sku.trim().replace(/\s+/g,"-").toUpperCase();if(v.avancado&&(v.avancado.cor_principal||v.avancado.cor_detalhe))o.avancado={...v.avancado};return o}),
     avancado:{...d.avancado}};
   if(Number(d.preco_de)>Number(d.preco)) prod.preco_de=Number(d.preco_de);

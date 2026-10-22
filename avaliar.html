@@ -1,0 +1,66 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Avaliar compra · SP Store</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/css/loja.css">
+<style>
+.av{max-width:640px;margin:0 auto}
+.it{display:grid;grid-template-columns:72px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--line)}
+.it:first-of-type{border-top:0}
+.it .th{width:72px;height:72px;border-radius:12px;overflow:hidden;background:var(--bg)}
+.it .th img{width:100%;height:100%;object-fit:cover}
+.it b{display:block;font-size:15px;line-height:1.3}
+.it small{color:var(--muted)}
+.stars{display:flex;gap:4px;margin:8px 0}
+.stars button{border:0;background:none;padding:2px;cursor:pointer;font-size:30px;line-height:1;color:var(--line)}
+.stars button[aria-pressed="true"]{color:#d1ab5e}
+.stars button:focus-visible{outline:2px solid #d1ab5e;border-radius:6px}
+.nt{font-size:13px;color:var(--muted);min-height:18px}
+textarea.in{min-height:84px;resize:vertical}
+.feita{font-size:14px;background:var(--ok-soft);border-radius:10px;padding:8px 12px}
+</style>
+</head><body>
+<header class="top"><div class="wrap">
+  <a href="/" aria-label="SP Store, voltar à loja"><img src="/img/logo.png" alt="SP Store"></a>
+  <a class="back" href="/">← Voltar à loja</a>
+</div></header>
+<main><div class="wrap av" id="app"><p class="muted">Carregando…</p></div></main>
+<footer class="foot"><div class="wrap"><span>© 2026 SP Store</span><span><a href="/trocas.html">Trocas e devoluções</a></span></div></footer>
+<script>
+const $=s=>document.querySelector(s), app=$("#app");
+const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const q=new URLSearchParams(location.search), id=q.get("pedido"), tk=q.get("t");
+const TXT=["","Ruim","Regular","Bom","Muito bom","Excelente"];
+let dados=null, notas={};
+async function api(u,o){const r=await fetch(u,{...o,headers:{"content-type":"application/json"},cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.erro||"Erro de conexão.");return d}
+function render(){
+  const p=dados.pedido, feitas=dados.feitas||[];
+  if(!p.pode){app.innerHTML=`<div class="card"><h2>Quase lá!</h2><p class="muted">Você poderá avaliar o pedido #${p.id} assim que ele for enviado. Avisamos por e-mail.</p></div>`;return}
+  const chave=i=>i.produto+"|"+i.cor;
+  app.innerHTML=`<div class="card"><div class="eyebrow">Pedido #${p.id}</div><h2 style="margin:6px 0 4px">Como foi sua compra, ${esc(p.nome)}?</h2>
+    <p class="sub">Sua avaliação ajuda outras clientes a escolher. Ela aparece no site depois de conferida pela loja.</p>
+    <form id="f">${p.itens.map((i,k)=>{const f=feitas.find(x=>x.produto===i.produto&&x.cor===i.cor);const n=notas[chave(i)]??(f?f.nota:0);
+      return `<div class="it"><div class="th">${i.foto?`<img src="${esc(i.foto)}" alt="">`:""}</div><div>
+      <b>${esc(i.produto)}</b>${i.cor&&i.cor!=="Padrão"?`<small>${esc(i.cor)}</small>`:""}
+      ${f&&f.status==="aprovada"?`<p class="feita">✓ Avaliação publicada (${"★".repeat(f.nota)}). Obrigado!</p>`:`
+      <div class="stars" role="radiogroup" aria-label="Nota para ${esc(i.produto)}">${[1,2,3,4,5].map(s=>`<button type="button" role="radio" data-k="${k}" data-s="${s}" aria-pressed="${s<=n}" aria-checked="${s===n}" aria-label="${s} ${s===1?"estrela":"estrelas"}">★</button>`).join("")}</div>
+      <div class="nt" id="nt-${k}">${n?TXT[n]:"Toque nas estrelas"}</div>
+      <label class="f" style="margin-top:6px">Conte o que achou <small>(opcional)</small><textarea class="in" data-tx="${k}" maxlength="600" placeholder="Qualidade, tamanho, se chegou bem…">${esc(f?f.texto:"")}</textarea></label>
+      ${f?`<p class="hint" style="margin-top:6px">${f.status==="pendente"?"Recebemos sua avaliação. Você pode corrigir e enviar de novo.":""}</p>`:""}`}
+      </div></div>`}).join("")}
+    <div class="msg" id="m" role="status" style="margin-top:8px"></div>
+    <button class="btn btn-dark btn-block" type="submit" style="margin-top:12px">Enviar avaliação</button></form></div>`;
+  app.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const k=+b.dataset.k,s=+b.dataset.s,i=p.itens[k];notas[chave(i)]=s;
+    app.querySelectorAll(`[data-k="${k}"]`).forEach(x=>{x.setAttribute("aria-pressed",+x.dataset.s<=s);x.setAttribute("aria-checked",+x.dataset.s===s)});$("#nt-"+k).textContent=TXT[s]});
+  $("#f").addEventListener("submit",async e=>{e.preventDefault();const m=$("#m"),bt=e.target.querySelector("[type=submit]");
+    const itens=p.itens.map((i,k)=>{const f=feitas.find(x=>x.produto===i.produto&&x.cor===i.cor);const tx=app.querySelector(`[data-tx="${k}"]`);return {produto:i.produto,cor:i.cor,nota:notas[chave(i)]??(f?f.nota:0),texto:tx?tx.value:""}}).filter(x=>x.nota);
+    if(!itens.length){m.className="msg bad";m.textContent="Toque nas estrelas para dar uma nota.";return}
+    bt.disabled=true;try{await api("/api/avaliacoes",{method:"POST",body:JSON.stringify({id,t:tk,itens})});
+      app.innerHTML=`<div class="card" style="text-align:center"><div style="font-size:44px;color:#d1ab5e">★★★★★</div><h2>Obrigado pela avaliação!</h2><p class="muted">Ela aparece no site assim que a loja conferir.</p><a class="btn btn-gold" href="/">Voltar à loja</a></div>`}
+    catch(err){bt.disabled=false;m.className="msg bad";m.textContent=err.message}});
+}
+(async()=>{if(!id||!tk){app.innerHTML=`<div class="card"><h2>Link incompleto</h2><p class="muted">Abra o link do e-mail ou entre em <a href="/conta.html">Minha conta</a>.</p></div>`;return}
+  try{dados=await api(`/api/avaliacoes?pedido=${encodeURIComponent(id)}&t=${encodeURIComponent(tk)}`);render()}
+  catch(e){app.innerHTML=`<div class="card"><h2>Não encontramos o pedido</h2><p class="muted">${esc(e.message)}</p></div>`}})();
+</script>
+</body></html>
