@@ -47,6 +47,7 @@
 <footer class="foot"><div class="wrap"><span>© 2026 SP Store</span><span>Pagamento seguro · Pix ou cartão</span></div></footer>
 
 <script src="/js/conta.js"></script>
+<script src="/js/rastro.js"></script>
 <script>
 const CART_KEY="spstore_carrinho", ABERTO_KEY="spstore_pedido_aberto";
 const $=s=>document.querySelector(s);
@@ -244,6 +245,7 @@ async function enviarEntrega(e){
   const corpo={nome:f.nome.value,telefone:f.telefone.value,cpf:f.cpf.value,frete_id:freteSel.id,endereco:{cep:f.cep.value,rua:f.rua.value,numero:f.numero.value,complemento:f.complemento.value,bairro:f.bairro.value,cidade:f.cidade.value,uf:f.uf.value},itens:cart.map(x=>({nome:x.nome,cor:x.cor,qtd:x.qtd}))};
   try{
     const r=await Conta.api("/api/checkout",{method:"POST",body:JSON.stringify(corpo)});
+    try{SPA.ev("pedido",{val:r.total})}catch(e){}
     const d=await Conta.api(`/api/pedido?id=${r.id}&t=${r.token}`);
     pedido=d.pedido; gravarJSON(ABERTO_KEY,{id:r.id,t:r.token,sig:assinatura()},sessionStorage);
     history.replaceState(null,"",`/checkout.html?pedido=${r.id}&t=${r.token}`);
@@ -356,6 +358,7 @@ const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.j
     CFG=c; PRODUTOS=(dP&&dP.produtos)||[]; LOJA=L||{};
   }catch(e){}
   cart=lerJSON(CART_KEY)||[]; sincronizar();
+  try{if(cart.length&&!qs.get("pedido"))SPA.ev("checkout",{val:totais().total})}catch(e){}
   if(!CFG.pronto){
     telaSimples(`<div class="card"><h2>Finalize pelo WhatsApp</h2><p class="muted">O pagamento direto no site estará disponível em breve. Por enquanto, envie seu pedido pelo WhatsApp e mandamos o link de pagamento.</p>${cart.length?resumoHTML()+`<a class="btn btn-green btn-block" style="margin-top:16px" href="${waLink()}" target="_blank" rel="noopener">Enviar pedido no WhatsApp</a>`:`<a class="btn btn-dark" href="/">Ver produtos</a>`}</div>`);
     const r=document.querySelector(".resumo"); if(r){r.classList.remove("card");r.style.padding="0"} return;

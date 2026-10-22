@@ -1,0 +1,224 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Análise · Painel SP Store</title>
+<meta name="robots" content="noindex,nofollow">
+<script>try{localStorage.setItem("spstore_admin","1")}catch(e){}</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/css/loja.css">
+<style>
+:root{--bar:#b08a3e}
+.wrap{max-width:1180px}
+.top nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.top nav .back{margin-left:0}
+@media (max-width:640px){.top .wrap{flex-wrap:wrap;row-gap:8px}.top nav{order:3;width:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.top nav .back{flex:none;padding:6px 12px;font-size:13px}}
+@media (max-width:640px){.tb .mini{display:none}.tb th,.tb td{padding:8px 4px}}
+
+.top nav .back[aria-current]{background:#1b1a17;color:#f3f1ec;border-color:#1b1a17}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 12px;font:600 13px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.per{margin-left:auto;font-size:13px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi small{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);font-weight:600}
+.kpi b{display:block;font-family:var(--display);font-weight:400;font-size:28px;font-variant-numeric:tabular-nums;line-height:1.2;margin-top:2px}
+.kpi span{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px;align-items:start}
+.grid2 .card+.card{margin-top:0}
+section.card+section.card{margin-top:0}
+@media (max-width:960px){.grid2{grid-template-columns:1fr}}
+.card h2{font-size:20px;margin-bottom:2px}
+.card .sub{margin-bottom:14px}
+/* gráfico de colunas */
+.cols{position:relative;display:flex;align-items:flex-end;gap:2px;height:180px;border-bottom:1px solid var(--line);padding-top:8px}
+.cols .c{flex:1;display:flex;align-items:flex-end;height:100%;position:relative;cursor:default}
+.cols .c i{display:block;width:100%;max-width:28px;margin:0 auto;background:var(--bar);border-radius:4px 4px 0 0;min-height:2px}
+.cols .c.zero i{background:var(--line)}
+.cols .c:hover i,.cols .c:focus-visible i{filter:brightness(1.12)}
+.xl{display:flex;gap:2px;margin-top:6px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.xl span{flex:1;text-align:center;white-space:nowrap;overflow:hidden}
+.tip{position:fixed;z-index:30;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;padding:8px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.2);line-height:1.4}
+.tip[hidden]{display:none}
+/* barras horizontais */
+.hb{display:grid;gap:10px}
+.hb .r{display:grid;grid-template-columns:150px 1fr 120px;gap:10px;align-items:center;font-size:14px}
+@media (max-width:560px){.hb .r{grid-template-columns:100px 1fr 92px}}
+.hb .r .t{height:22px;background:var(--bg);border-radius:4px;overflow:hidden}
+.hb .r .t i{display:block;height:100%;background:var(--bar);border-radius:0 4px 4px 0;min-width:2px}
+.hb .r .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.hb .r .v small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.drop{font-size:12px;color:var(--muted);padding-left:160px;margin:-6px 0 -2px}
+@media (max-width:560px){.drop{padding-left:110px}}
+/* tabelas */
+.tb{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tb th{text-align:right;font-size:12px;color:var(--muted);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tb td{text-align:right;padding:9px 6px;border-bottom:1px solid var(--line)}
+.tb th:first-child,.tb td:first-child{text-align:left}
+.tb tr:last-child td{border-bottom:0}
+.tb .mini{display:inline-block;height:8px;background:var(--bar);border-radius:0 3px 3px 0;vertical-align:middle;margin-right:6px}
+.scroll{overflow-x:auto}
+.vazio{padding:28px;text-align:center;color:var(--muted)}
+.sql{width:100%;min-height:140px;font:13px/1.4 ui-monospace,Menlo,monospace;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--ink)}
+.dica{font-size:13px;color:var(--muted);margin-top:10px}
+</style>
+</head><body>
+<header class="top"><div class="wrap">
+  <a href="/" aria-label="Ver a loja"><img src="/img/logo.png" alt="SP Store"></a>
+  <b style="font-family:var(--display);font-weight:400;font-size:20px">Análise</b>
+  <nav>
+    <a class="back" href="/admin/pedidos.html">Pedidos</a>
+    <a class="back" href="/admin/produtos.html">Produtos</a>
+    <a class="back" href="/admin/analise.html" aria-current="page">Análise</a>
+    <a class="back" href="/admin/">Banner e textos</a>
+  </nav>
+</div></header>
+<main><div class="wrap" id="app"><p class="muted">Carregando…</p></div></main>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+
+<script src="/js/conta.js"></script>
+<script>
+const $=s=>document.querySelector(s), app=$("#app"), tip=$("#tip");
+const esc=t=>String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const brl=n=>"R$ "+Number(n||0).toFixed(2).replace(".",",").replace(/\B(?=(\d{3})+(?!\d))/g,".");
+const num=n=>Number(n||0).toLocaleString("pt-BR");
+const pl=(n,s,p)=>`${num(n)} ${n===1?s:p}`;
+const pct=(a,b)=>!(b>0)?"–":!a?"0%":(a/b*100).toFixed(a/b<0.1?1:0).replace(".",",")+"%";
+const PERIODOS=[["hoje","Hoje"],["ontem","Ontem"],["7","7 dias"],["15","15 dias"],["30","30 dias"]];
+const ORIG={direto:"Direto / digitou o site",instagram:"Instagram",facebook:"Facebook","instagram/facebook":"Anúncio Meta",google:"Google",whatsapp:"WhatsApp",mercadolivre:"Mercado Livre",tiktok:"TikTok",youtube:"YouTube",shopee:"Shopee","outras buscas":"Outras buscas","outros sites":"Outros sites","x/twitter":"X / Twitter"};
+let periodo="7", dados=null;
+try{periodo=localStorage.getItem("spstore_an_per")||"7"}catch(e){}
+
+function entrar(msg){
+  app.innerHTML=`<div style="max-width:420px;margin:0 auto" class="card"><div class="eyebrow">Somente a loja</div><h2 style="margin:6px 0 4px">Entrar no painel</h2>
+  <p class="sub">Use a conta com o e-mail da loja.</p>
+  <form class="form" id="f" novalidate><label class="f">E-mail<input class="in" type="email" name="email" autocomplete="email"></label>
+  <label class="f">Senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="current-password"><button type="button" data-ver>Mostrar</button></span></label>
+  <div class="msg bad" id="m" role="alert">${msg?esc(msg):""}</div><button class="btn btn-dark btn-block" type="submit">Entrar</button></form></div>`;
+  app.querySelector("[data-ver]").addEventListener("click",e=>{const i=e.target.previousElementSibling;i.type=i.type==="password"?"text":"password"});
+  $("#f").addEventListener("submit",async e=>{e.preventDefault();const f=e.target,m=$("#m");m.textContent="";try{await Conta.entrar(f.email.value,f.senha.value);carregar()}catch(err){m.textContent=err.message}});
+}
+async function carregar(){
+  if(!dados) app.innerHTML=`<p class="muted" style="display:flex;gap:10px;align-items:center"><span class="spin"></span>Carregando análise…</p>`;
+  try{dados=await Conta.api("/api/admin/analise?periodo="+encodeURIComponent(periodo));render()}
+  catch(e){if(e.status===401)return entrar();if(e.status===403){await Conta.sair();return entrar(e.message)}app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
+}
+
+// ---------- tooltip ----------
+function ligarTips(raiz){
+  raiz.querySelectorAll("[data-tip]").forEach(el=>{
+    const mostra=e=>{tip.innerHTML=el.dataset.tip;tip.hidden=false;const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;
+      let x=r.left+r.width/2-w/2,y=r.top-h-8;x=Math.max(8,Math.min(innerWidth-w-8,x));if(y<8)y=r.bottom+8;tip.style.left=x+"px";tip.style.top=y+"px"};
+    el.addEventListener("mouseenter",mostra);el.addEventListener("focus",mostra);
+    el.addEventListener("mouseleave",()=>tip.hidden=true);el.addEventListener("blur",()=>tip.hidden=true);
+  });
+}
+
+// ---------- telas ----------
+function telaSql(){
+  return `<div class="card" style="max-width:820px;margin:0 auto"><div class="eyebrow">Falta 1 passo</div><h2 style="margin:6px 0 4px">Ativar a análise de visitas</h2>
+    <p class="sub">Cole este código uma única vez no seu banco de dados. Ele cria a tabela de visitas (anônimas) e o resumo do painel.</p>
+    <ol style="font-size:15px;line-height:1.7;padding-left:20px;margin:0 0 12px">
+      <li>Abra <a href="https://supabase.com/dashboard/project/_/sql/new" target="_blank" rel="noopener"><b>Supabase › SQL Editor › New query</b></a> no projeto da loja.</li>
+      <li>Toque em <b>Copiar código</b> abaixo, cole no editor e clique em <b>Run</b>.</li>
+      <li>Volte aqui e recarregue a página.</li></ol>
+    <textarea class="sql" id="sql" readonly>Carregando…</textarea>
+    <div style="display:flex;gap:10px;margin-top:10px"><button class="btn btn-dark" type="button" id="copiar">Copiar código</button><button class="btn btn-line" type="button" id="rec">Já colei, recarregar</button></div></div>`;
+}
+function render(){
+  const d=dados;
+  if(d.faltaTabela){
+    app.innerHTML=telaSql();
+    fetch("/server/analise.sql",{cache:"no-store"}).then(r=>r.text()).then(t=>{$("#sql").value=t});
+    $("#copiar").onclick=()=>{const t=$("#sql");t.select();navigator.clipboard.writeText(t.value).then(()=>{$("#copiar").textContent="Copiado ✓"}).catch(()=>document.execCommand("copy"))};
+    $("#rec").onclick=()=>{dados=null;carregar()};
+    return;
+  }
+  const r=d.resumo||{}, T=r.totais||{}, V=d.vendas||{};
+  const vis=T.visitas||0, imp=(r.produtos||[]).reduce((a,p)=>a+p.impressoes,0), cli=(r.produtos||[]).reduce((a,p)=>a+p.cliques,0);
+  const fmtD=s=>{const [y,m,dd]=s.split("-");return `${dd}/${m}`};
+  app.innerHTML=`
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Período">${PERIODOS.map(([k,t])=>`<button class="chip" data-per="${k}" aria-pressed="${periodo===k}">${t}</button>`).join("")}</div>
+    <span class="per">${d.periodo.de===d.periodo.ate?fmtD(d.periodo.de):`${fmtD(d.periodo.de)} a ${fmtD(d.periodo.ate)}`}</span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><small>Visitas</small><b>${num(vis)}</b><span>${num(T.visitantes)} ${T.visitantes===1?"pessoa":"pessoas"} · ${num(T.paginas)} páginas</span></div>
+    <div class="kpi"><small>Taxa de conversão</small><b>${pct(V.pedidos,vis)}</b><span>${num(V.pedidos)} ${V.pedidos===1?"venda paga":"vendas pagas"} ÷ visitas</span></div>
+    <div class="kpi"><small>Faturamento</small><b>${brl(V.faturamento)}</b><span>ticket médio ${V.pedidos?brl(V.faturamento/V.pedidos):"–"}</span></div>
+    <div class="kpi"><small>CTR da vitrine</small><b>${pct(cli,imp)}</b><span>${num(cli)} cliques em ${num(imp)} produtos vistos</span></div>
+  </div>
+  ${vis===0?`<div class="card vazio"><h2 style="font-size:22px;color:var(--ink)">Ainda sem visitas neste período</h2><p>Os números aparecem conforme as pessoas entram no site. As suas visitas (de quem abre o painel neste navegador) não contam.</p></div>`:`
+  <div class="grid2">
+    <section class="card"><h2>Visitas por ${d.periodo.de===d.periodo.ate?"hora":"dia"}</h2><p class="sub">Passe o dedo ou o mouse nas colunas para ver os números.</p>${colunas(d,r)}</section>
+    <section class="card"><h2>Funil de compra</h2><p class="sub">De cada 100 visitas, quantas chegam a cada etapa.</p>${funil(T,V)}</section>
+  </div>
+  <div class="grid2">
+    <section class="card"><h2>De onde vêm as visitas</h2><p class="sub">Para medir um link seu, acrescente <b>?utm_source=nome</b> no fim (ex.: lojaspstore.com.br/?utm_source=instagram).</p>${origens(r.origens||[],vis)}</section>
+    <section class="card"><h2>Aparelho</h2><p class="sub">Visitas e pedidos por tipo de aparelho.</p>${aparelhos(r.dispositivos||[],vis)}</section>
+  </div>
+  <section class="card"><h2>Produtos</h2><p class="sub"><b>Vistos</b> = apareceram na tela · <b>Cliques</b> = abriram o produto · <b>CTR</b> = cliques ÷ vistos · <b>Carrinho</b> = visitas que adicionaram · <b>Vendidos</b> = unidades em pedidos pagos.</p>${produtos(r.produtos||[],V.vendidos||{},d.produtos_ativos||[])}</section>`}`;
+  app.querySelectorAll("[data-per]").forEach(b=>b.onclick=()=>{periodo=b.dataset.per;try{localStorage.setItem("spstore_an_per",periodo)}catch(e){}carregar()});
+  ligarTips(app);
+}
+function colunas(d,r){
+  let pts;
+  if(d.periodo.de===d.periodo.ate){
+    const h={};(r.horas||[]).forEach(x=>h[x.hora]=x.visitas);
+    pts=[...Array(24)].map((_,i)=>({k:String(i).padStart(2,"0")+"h",v:h[i]||0,tip:`<b>${i}h às ${i}h59</b><br>${pl(h[i]||0,"visita","visitas")}`,lab:i%3===0}));
+  }else{
+    const m={},p={};(r.dias||[]).forEach(x=>m[x.dia]=x);(r.pedidos_dia||[]).forEach(x=>p[x.dia]=x.pedidos);
+    const vd=d.vendas.por_dia||{};pts=[];
+    for(let t=new Date(d.periodo.de+"T12:00:00");t<=new Date(d.periodo.ate+"T12:00:00");t.setDate(t.getDate()+1)){
+      const k=t.toISOString().slice(0,10),x=m[k]||{visitas:0,visitantes:0},dd=k.slice(8)+"/"+k.slice(5,7);
+      const sem=["dom","seg","ter","qua","qui","sex","sáb"][t.getDay()];
+      pts.push({k:dd,v:x.visitas,tip:`<b>${sem}, ${dd}</b><br>${pl(x.visitas,"visita","visitas")} · ${pl(x.visitantes,"pessoa","pessoas")}<br>${pl((vd[k]||{}).pedidos||0,"venda paga","vendas pagas")}${(vd[k]||{}).faturamento?" · "+brl(vd[k].faturamento):""}`});
+    }
+    const passo=Math.ceil(pts.length/8);pts.forEach((x,i)=>x.lab=i%passo===0||i===pts.length-1);
+  }
+  const max=Math.max(1,...pts.map(x=>x.v));
+  return `<div class="cols" role="img" aria-label="Visitas: ${pts.map(x=>x.k+" "+x.v).join(", ")}">${pts.map(x=>`<div class="c${x.v?"":" zero"}" tabindex="0" data-tip="${esc(x.tip)}"><i style="height:${Math.max(1,x.v/max*100)}%"></i></div>`).join("")}</div>
+    <div class="xl" aria-hidden="true">${pts.map(x=>`<span>${x.lab?x.k:""}</span>`).join("")}</div>
+    <p class="dica">Maior número: <b>${num(max===1&&!pts.some(x=>x.v)?0:max)}</b> visitas.</p>`;
+}
+function funil(T,V){
+  const et=[["Visitas",T.visitas],["Viram um produto",T.viu_produto],["Adicionaram ao carrinho",T.carrinho],["Começaram a finalizar",T.checkout],["Fizeram o pedido",T.pedido]];
+  const base=Math.max(1,T.visitas||0);
+  let h='<div class="hb">';
+  et.forEach(([n,v],i)=>{
+    if(i>0){const ant=et[i-1][1]||0;h+=`<div class="drop">↓ ${ant?pct(v||0,ant):"–"} seguem para a próxima etapa</div>`}
+    h+=`<div class="r" data-tip="${esc(`<b>${n}</b><br>${pl(v||0,"visita","visitas")} · ${pct(v,base)} do total`)}" tabindex="0"><span>${n}</span><div class="t"><i style="width:${(v||0)/base*100}%"></i></div><span class="v">${num(v)}<small>${pct(v,base)}</small></span></div>`;
+  });
+  h+=`</div><p class="dica">Pedidos pagos no período: <b>${num(V.pedidos)}</b> de ${num(V.pedidos_criados)} pedidos feitos. A diferença são Pix não pagos ou cartões recusados.</p>`;
+  return h;
+}
+function origens(L,vis){
+  if(!L.length) return `<p class="vazio">Sem dados.</p>`;
+  const max=Math.max(1,...L.map(x=>x.visitas));
+  return `<div class="scroll"><table class="tb"><thead><tr><th>Origem</th><th>Visitas</th><th>Carrinho</th><th>Pedidos</th><th>Conversão</th></tr></thead><tbody>${L.map(o=>`<tr>
+    <td><span class="mini" style="width:${Math.max(3,o.visitas/max*60)}px"></span>${esc(ORIG[o.origem]||o.origem)}</td><td>${num(o.visitas)} <span class="muted" style="font-size:12px">${pct(o.visitas,vis)}</span></td>
+    <td>${num(o.carrinho)}</td><td>${num(o.pedidos)}</td><td>${pct(o.pedidos,o.visitas)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function aparelhos(L,vis){
+  if(!L.length) return `<p class="vazio">Sem dados.</p>`;
+  const nome={celular:"Celular",computador:"Computador",tablet:"Tablet",outro:"Outro"};
+  return `<div class="hb">${L.map(o=>`<div class="r" style="grid-template-columns:100px 1fr 120px" data-tip="${esc(`<b>${nome[o.dispositivo]||o.dispositivo}</b><br>${pl(o.visitas,"visita","visitas")} · ${pl(o.pedidos,"pedido","pedidos")}<br>conversão ${pct(o.pedidos,o.visitas)}`)}" tabindex="0"><span>${nome[o.dispositivo]||esc(o.dispositivo)}</span><div class="t"><i style="width:${o.visitas/Math.max(1,vis)*100}%"></i></div><span class="v">${pct(o.visitas,vis)}<small>${pl(o.pedidos,"pedido","pedidos")}</small></span></div>`).join("")}</div>`;
+}
+function produtos(L,vend,ativos){
+  const m={};L.forEach(p=>m[p.produto]=p);
+  const nomes=[...new Set([...L.map(p=>p.produto),...Object.keys(vend),...ativos])];
+  const linhas=nomes.map(n=>({n,...(m[n]||{impressoes:0,cliques:0,carrinho:0}),vend:vend[n]||0})).sort((a,b)=>b.cliques-a.cliques||b.vend-a.vend||b.impressoes-a.impressoes);
+  if(!linhas.length) return `<p class="vazio">Sem dados.</p>`;
+  const mx=Math.max(1,...linhas.map(x=>x.cliques));
+  return `<div class="scroll"><table class="tb"><thead><tr><th>Produto</th><th>Vistos</th><th>Cliques</th><th>CTR</th><th>Carrinho</th><th>Vendidos</th></tr></thead><tbody>${linhas.map(p=>`<tr>
+    <td><span class="mini" style="width:${Math.max(3,p.cliques/mx*50)}px"></span>${esc(p.n)}</td><td>${num(p.impressoes)}</td><td>${num(p.cliques)}</td><td>${pct(p.cliques,p.impressoes)}</td><td>${num(p.carrinho)}</td><td><b>${num(p.vend)}</b></td></tr>`).join("")}</tbody></table></div>`;
+}
+
+addEventListener("scroll",()=>tip.hidden=true,{passive:true});
+(async function(){
+  const c=await Conta.config();
+  if(!c.pronto){app.innerHTML=`<div class="card"><h2>Análise</h2><p class="muted">Falta configurar o banco de dados no Cloudflare.</p></div>`;return}
+  if(Conta.sessao()) carregar(); else entrar();
+})();
+</script>
+</body></html>

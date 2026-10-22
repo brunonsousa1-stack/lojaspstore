@@ -440,6 +440,7 @@ body.pag-site .so-wa{display:none}
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-t">Adicionado ao carrinho</span><button type="button" id="toast-b">Ver carrinho</button></div>
 
+<script src="/js/rastro.js"></script>
 <script>
 let WA = "5511947523834";
 // cores: frame (armação), lens (lente) | case, dial (mostrador), strap
@@ -480,7 +481,7 @@ function render(f){
     const fotos=[v.foto,...(v.fotos_extras||[])].filter(Boolean);
     const gk=p.id+"-"+i, gi=fotos.length?((gal[gk]||0)%fotos.length):0;
     const media=fotos.length?`<img src="${esc(fotos[gi])}" alt="${esc(p.nome)} - ${esc(v.nome)}" loading="lazy">`+(fotos.length>1?`<button class="gal-btn gal-prev" id="gp-${gk}" data-g="${gk}" data-d="-1" data-n="${fotos.length}" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" id="gn-${gk}" data-g="${gk}" data-d="1" data-n="${fotos.length}" aria-label="Próxima foto">›</button><div class="gal-dots">${fotos.map((_,k)=>`<i class="${k===gi?'on':''}"></i>`).join("")}</div>`:""):art(p.desenho||"hex",v);
-    return `<article class="card">
+    return `<article class="card" data-nome="${esc(p.nome)}">
       <div class="media" data-open="${p.id}"><div class="badges">${Number(p.preco_de)>Number(p.preco)?`<span class="badge off">-${Math.round((1-p.preco/p.preco_de)*100)}%</span>`:""}${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}<button class="see" type="button" data-open="${p.id}" aria-label="Ver detalhes: ${esc(p.nome)}">Ver detalhes</button></div>
       <div class="info">
         <h3><button class="open" type="button" data-open="${p.id}">${esc(p.nome)}</button></h3>
@@ -494,6 +495,7 @@ function render(f){
         </div>
       </div></article>`;
   }).join("") || '<p style="color:var(--muted)">Nenhum produto nesta categoria.</p>';
+  if(window.SPA&&SPA.observar&&window.__prodOk) setTimeout(()=>SPA.observar(g),0);
 }
 function norm(list){return (list||[]).map(p=>({...p,desenho:p.desenho||(p.avancado&&p.avancado.desenho)||"hex",
   variantes:(p.variantes||[]).map(v=>({...v,cor_principal:v.cor_principal||(v.avancado&&v.avancado.cor_principal),cor_detalhe:v.cor_detalhe||(v.avancado&&v.avancado.cor_detalhe)}))}))}
@@ -606,6 +608,7 @@ function leveTambem(p){
 function openProduct(id,fromHash){
   const p=prodById(id); if(!p) return;
   openId=p.id; fillProduct(p);
+  try{const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];SPA.ev("produto",{p:p.nome,c:vs[Math.min(sel[p.id]||0,vs.length-1)].nome})}catch(e){}
   if(!dlg.open){ if(dlg.showModal) dlg.showModal(); else dlg.setAttribute("open",""); }
   document.body.classList.add("locked");
   const h="#produto-"+slug(p.nome);
@@ -673,6 +676,7 @@ function addToCart(id){
   if(it) it.qtd=Math.min(lim,it.qtd+1); else cart.push({...itemFrom(p,v),qtd:1});
   sent=false; saveCart(); renderCart();
   const n=document.getElementById("bag-n"); n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop");
+  try{SPA.ev("carrinho",{p:p.nome,c:v.nome,q:1,val:p.preco})}catch(e){}
   return true;
 }
 // "Comprar": coloca no carrinho (sem duplicar) e vai direto para a finalização
@@ -765,7 +769,7 @@ updateBag();
 render("todos");
 const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(d=>Array.isArray(d.produtos)?d:Promise.reject()).catch(()=>fetch("/data/produtos.json",{cache:"no-store"}).then(r=>r.json()));
 Promise.all([lerProdutos(),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
-  .then(([d,L])=>{if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fromHash();})
+  .then(([d,L])=>{window.__prodOk=1;if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fromHash();})
   .catch(()=>{fromHash()});
 </script>
 </html>

@@ -7,6 +7,8 @@
 .wrap{max-width:1180px}
 .top nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
 .top nav .back{margin-left:0}
+@media (max-width:640px){.top .wrap{flex-wrap:wrap;row-gap:8px}.top nav{order:3;width:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}.top nav .back{flex:none;padding:6px 12px;font-size:13px}}
+
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
@@ -125,12 +127,14 @@ textarea.in{min-height:110px;resize:vertical;line-height:1.45}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:30;padding:16px}
 .modal .card{max-width:420px;width:100%}
 </style>
+<script>try{localStorage.setItem("spstore_admin","1")}catch(e){}</script>
 </head><body>
 <header class="top"><div class="wrap">
   <a href="/" aria-label="Ver a loja"><img src="/img/logo.png" alt="SP Store"></a>
   <b style="font-family:var(--display);font-weight:400;font-size:20px">Produtos</b>
   <nav>
     <a class="back" href="/admin/pedidos.html">Pedidos</a>
+    <a class="back" href="/admin/analise.html">Análise</a>
     <a class="back" href="/admin/" title="Imagens do banner, textos, WhatsApp, Pix e frete">Banner e textos</a>
   </nav>
 </div></header>
