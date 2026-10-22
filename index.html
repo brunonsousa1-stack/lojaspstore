@@ -723,7 +723,7 @@ function leveTambem(p){
 function openProduct(id,fromHash){
   const p=prodById(id); if(!p) return;
   openId=p.id; fillProduct(p);
-  try{const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];SPA.ev("produto",{p:p.nome,c:vs[Math.min(sel[p.id]||0,vs.length-1)].nome})}catch(e){}
+  try{const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];const vv=vs[Math.min(sel[p.id]||0,vs.length-1)];SPA.ev("produto",{p:p.nome,c:vv.nome,sku:vv.sku,val:p.preco})}catch(e){}
   if(!dlg.open){ if(dlg.showModal) dlg.showModal(); else dlg.setAttribute("open",""); }
   document.body.classList.add("locked");
   const h="#produto-"+slug(p.nome);
@@ -794,7 +794,7 @@ function addToCart(id){
   if(it) it.qtd=Math.min(lim,it.qtd+1); else cart.push({...itemFrom(p,v),qtd:1});
   sent=false; saveCart(); renderCart();
   const n=document.getElementById("bag-n"); n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop");
-  try{SPA.ev("carrinho",{p:p.nome,c:v.nome,q:1,val:p.preco})}catch(e){}
+  try{SPA.ev("carrinho",{p:p.nome,c:v.nome,sku:v.sku,q:1,val:p.preco})}catch(e){}
   return true;
 }
 // "Comprar": coloca no carrinho (sem duplicar) e vai direto para a finalização

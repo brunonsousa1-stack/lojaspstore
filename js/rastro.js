@@ -42,12 +42,17 @@
   }
   // ---- Pixel do Meta e Google Analytics (só se os códigos estiverem no painel) ----
   const px = { fb: false, ga: false, fila: [] };
+  // mesma identificação do catálogo (/api/google-shopping): SKU da cor, ou nome-cor
+  const slugId = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const cid = (nome, cor, sku) => sku ? String(sku) : `${slugId(nome)}-${slugId(cor || "Padrão")}`.slice(0, 50);
   function pxEnviar(nome, d) {
     d = d || {};
-    const val = Number(d.val) || undefined, item = d.p ? [{ item_name: d.p, item_variant: d.c, price: val, quantity: d.q || 1 }] : undefined;
+    const ids = d.itens ? d.itens.map(i => cid(i.nome, i.cor, i.sku)) : d.p ? [cid(d.p, d.c, d.sku)] : undefined;
+    const contents = d.itens ? d.itens.map(i => ({ id: cid(i.nome, i.cor, i.sku), quantity: i.qtd || 1 })) : ids ? [{ id: ids[0], quantity: d.q || 1 }] : undefined;
+    const val = Number(d.val) || undefined, item = d.itens ? d.itens.map(i => ({ item_id: cid(i.nome, i.cor, i.sku), item_name: i.nome, item_variant: i.cor, price: i.preco, quantity: i.qtd || 1 })) : d.p ? [{ item_id: cid(d.p, d.c, d.sku), item_name: d.p, item_variant: d.c, price: val, quantity: d.q || 1 }] : undefined;
     const FB = { produto: "ViewContent", carrinho: "AddToCart", checkout: "InitiateCheckout", pago: "Purchase" };
     const GA = { produto: "view_item", carrinho: "add_to_cart", checkout: "begin_checkout", pago: "purchase" };
-    try { if (px.fb && FB[nome]) window.fbq("track", FB[nome], { content_name: d.p, content_type: "product", value: val, currency: "BRL", ...(d.id ? { order_id: String(d.id) } : {}) }, d.id ? { eventID: "pedido-" + d.id } : undefined); } catch (e) {}
+    try { if (px.fb && FB[nome]) window.fbq("track", FB[nome], { content_ids: ids, contents, content_name: d.p, content_type: "product", value: val, currency: "BRL", ...(d.id ? { order_id: String(d.id) } : {}) }, d.id ? { eventID: "pedido-" + d.id } : undefined); } catch (e) {}
     try { if (px.ga && GA[nome]) window.gtag("event", GA[nome], { currency: "BRL", value: val, items: item, ...(d.id ? { transaction_id: String(d.id) } : {}) }); } catch (e) {}
   }
   function px_(nome, d) { if (px.pronto) pxEnviar(nome, d); else px.fila.push([nome, d]); }
@@ -68,6 +73,7 @@
   function ev(t, d) {
     d = d || {};
     if (t === "produto" || t === "carrinho" || t === "checkout") px_(t, d);
+    if (d.itens) d = { ...d, itens: undefined };
     if (t === "impressao") { const k = "i:" + d.p; if (sess.vistos.includes(k)) return; sess.vistos.push(k); if (sess.vistos.length > 300) sess.vistos.shift(); }
     fila.push({ t, p: d.p, c: d.c, q: d.q, val: d.val, o: d.o, d: d.d, pg: location.pathname });
     L("spstore_sess", JSON.stringify(sess));
