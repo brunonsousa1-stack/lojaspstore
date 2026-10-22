@@ -185,6 +185,8 @@ dialog.pd::backdrop{background:rgba(12,12,11,.6)}
 .pd-thumbs img{width:100%;height:100%;object-fit:cover;display:block}
 .pd-body{padding:28px 26px 24px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .pd-body h2{font-size:clamp(24px,3vw,32px);font-weight:400;line-height:1.15;padding-right:40px}
+.pd-desc-box{border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+.pd-desc-box h3{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .pd-desc{margin:0;color:var(--muted);font-size:15px;white-space:pre-line}
 .pd-label{font-size:13px;font-weight:700}
 .pd-label span{font-weight:400;color:var(--muted)}
@@ -235,6 +237,10 @@ body.locked{overflow:hidden}
 .promo-bar{background:var(--gold-soft);border-radius:10px;padding:9px 12px;font-size:14px;margin-bottom:10px}
 .cart-pix{text-align:right;font-size:14px;color:#17703c;margin:-6px 0 10px}
 footer .empresa{font-size:13px;opacity:.75;line-height:1.6}
+.card .price{flex-wrap:wrap;row-gap:0;column-gap:6px}
+.card .price s.de{flex-basis:100%;margin:0}
+.card .price strong{white-space:nowrap}
+.card .price .pixp{flex-basis:100%}
 .price s.de{color:var(--muted);font-size:13px;margin-right:6px;font-weight:500}
 .badge.off{background:#c0392b;color:#fff}
 .buy-now{justify-content:center;background:var(--gold);color:#fff;padding:11px 16px;font-size:14px}
@@ -451,6 +457,10 @@ function art(kind,v){
 }
 const sel = {};
 const gal = {};
+// descrição: **negrito**, quebras de linha e "✓ item" em linhas separadas
+function fmtDesc(t){
+  return esc(String(t).trim()).replace(/\s*✓\s*/g,"\n✓ ").replace(/\s*\*\*([^*]+?)\*\*\s*/g,(m,x,o)=>(o>0?"\n\n":"")+"<b>"+x+"</b>\n").replace(/\*\*/g,"").replace(/\n{3,}/g,"\n\n").trim();
+}
 const brl=n=>"R$ "+Number(n).toFixed(2).replace(".",",");
 const esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function link(p,v){return `https://wa.me/${WA}?text=${encodeURIComponent(`Olá! Quero comprar: ${p.nome} - ${v.nome} (${brl(p.preco)}).`)}`}
@@ -474,7 +484,6 @@ function render(f){
       <div class="media" data-open="${p.id}"><div class="badges">${Number(p.preco_de)>Number(p.preco)?`<span class="badge off">-${Math.round((1-p.preco/p.preco_de)*100)}%</span>`:""}${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}<button class="see" type="button" data-open="${p.id}" aria-label="Ver detalhes: ${esc(p.nome)}">Ver detalhes</button></div>
       <div class="info">
         <h3><button class="open" type="button" data-open="${p.id}">${esc(p.nome)}</button></h3>
-        ${p.descricao?`<p style="margin:0;font-size:14px;color:var(--muted)">${esc(p.descricao)}</p>`:""}
         <div class="variant">${esc(v.nome)}</div>
         ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" id="sw-${p.id}-${k}" data-p="${p.id}" data-i="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
         ${estoqueTag(p,v)}
@@ -570,7 +579,6 @@ function fillProduct(p){
   <div class="pd-body">
     <div class="eyebrow" style="color:var(--gold)">${p.categoria==="relogios"?"Relógio":"Óculos de sol"}</div>
     <h2 id="pd-name">${esc(p.nome)}</h2>
-    ${p.descricao?`<p class="pd-desc">${esc(p.descricao)}</p>`:""}
     <div class="pd-label">Cor: <span>${esc(v.nome)}</span></div>
     ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" type="button" data-pi="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
     ${estoqueTag(p,v)}
@@ -578,6 +586,7 @@ function fillProduct(p){
     ${perks(p)}
     ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
     <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
+    ${p.descricao?`<div class="pd-desc-box"><h3>Descrição</h3><div class="pd-desc">${fmtDesc(p.descricao)}</div></div>`:""}
   </div>${leveTambem(p)}`;
 }
 // ---------- "Leve também": mesma categoria, outros modelos primeiro ----------
