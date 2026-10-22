@@ -179,15 +179,15 @@ async function carregar(){
 function render(){ if(tela==="editar") renderEditor(); else renderLista(); }
 
 // ---------- salvar o catálogo inteiro ----------
-async function gravar(lista, estoque, resumo){
-  const d=await Conta.api("/api/admin/produtos",{method:"PUT",body:JSON.stringify({produtos:lista,versao:VERSAO,estoque,resumo})});
+// cada alteração vai sozinha; o servidor aplica sobre o catálogo mais recente
+async function gravar(op){
+  const d=await Conta.api("/api/admin/produtos",{method:"PUT",body:JSON.stringify(op)});
   PRODS=d.produtos;VERSAO=d.versao;EST=d.estoque||EST;FONTE="banco";
   if(d.aviso) toast(d.aviso);
   return d;
 }
-async function acaoRapida(fn,msgOk){
-  const lista=clone(PRODS); const est=fn(lista)||[];
-  try{await gravar(lista,est);renderLista();toast(msgOk)}
+async function acaoRapida(op,msgOk){
+  try{await gravar(op);renderLista();toast(msgOk)}
   catch(e){toast(e.message);if(e.status===409)carregar()}
 }
 
@@ -233,9 +233,9 @@ function renderLista(){
   app.querySelectorAll("[data-f]").forEach(x=>x.onclick=()=>{filtro=x.dataset.f;renderLista()});
   $("#novo").onclick=()=>abrir(-1);
   app.querySelectorAll("[data-ed]").forEach(x=>x.onclick=()=>abrir(+x.dataset.ed));
-  app.querySelectorAll("[data-up]").forEach(x=>x.onclick=()=>acaoRapida(l=>{const i=+x.dataset.up;[l[i-1],l[i]]=[l[i],l[i-1]]},"Ordem da vitrine atualizada."));
-  app.querySelectorAll("[data-down]").forEach(x=>x.onclick=()=>acaoRapida(l=>{const i=+x.dataset.down;[l[i+1],l[i]]=[l[i],l[i+1]]},"Ordem da vitrine atualizada."));
-  app.querySelectorAll("[data-on]").forEach(x=>x.onclick=()=>{const i=+x.dataset.on,on=PRODS[i].ativo===false;acaoRapida(l=>{l[i].ativo=on},on?"Produto colocado no ar.":"Produto tirado do ar.")});
+  app.querySelectorAll("[data-up]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.up].nome,para:"antes"},"Ordem da vitrine atualizada."));
+  app.querySelectorAll("[data-down]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.down].nome,para:"depois"},"Ordem da vitrine atualizada."));
+  app.querySelectorAll("[data-on]").forEach(x=>x.onclick=()=>{const i=+x.dataset.on,on=PRODS[i].ativo===false;acaoRapida({op:"ativo",nome:PRODS[i].nome,ativo:on},on?"Produto colocado no ar.":"Produto tirado do ar.")});
   app.querySelectorAll("[data-dup]").forEach(x=>x.onclick=()=>duplicar(+x.dataset.dup));
   app.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>excluir(+x.dataset.del));
   app.querySelectorAll("details.mais").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)app.querySelectorAll("details.mais[open]").forEach(o=>{if(o!==d)o.open=false})}));
@@ -249,7 +249,7 @@ function duplicar(i){
 function excluir(i){
   const p=PRODS[i];
   confirmarModal(`Excluir "${p.nome}"?`,"O produto sai do site. Pedidos antigos não são afetados. Se só quiser esconder por um tempo, use <b>Tirar do ar</b>.","Excluir",()=>
-    acaoRapida(l=>{l.splice(i,1);return (p.variantes||[]).filter(v=>chave(p.nome,v.nome) in EST).map(v=>({chave:chave(p.nome,v.nome),qtd:null}))},"Produto excluído."));
+    acaoRapida({op:"excluir",nome:p.nome,estoque:(p.variantes||[]).filter(v=>chave(p.nome,v.nome) in EST).map(v=>({chave:chave(p.nome,v.nome),qtd:null}))},"Produto excluído."));
 }
 function confirmarModal(tit,txt,bt,ok){
   const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="card" role="dialog" aria-modal="true"><h2 style="font-size:22px">${esc(tit)}</h2><p class="muted" style="font-size:14px">${txt}</p>
@@ -273,9 +273,19 @@ function abrir(i){
   ed=i>=0?prepara(PRODS[i]):prepara({nome:"",categoria:filtro==="relogios"?"relogios":"oculos",preco:"",selos:["Novo"],ativo:true,variantes:[{nome:""}],avancado:{}});
   if(i<0)ed.variantes[0]._orig=null;
   sujo=false; tela="editar"; renderEditor(); scrollTo(0,0);
+  let r=null; try{r=JSON.parse(localStorage.getItem(chaveRasc())||"null")}catch(e){}
+  if(r&&r.ed&&Date.now()-r.t<7*864e5){const m=$("#msg");m.className="msg info";
+    m.innerHTML=`Você tem alterações não salvas deste produto (${new Date(r.t).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}). <button class="link" type="button" id="rasc-sim">Recuperar</button> · <button class="link" type="button" id="rasc-nao">Descartar</button>`;
+    $("#rasc-sim").onclick=()=>{ed=r.ed;ed.variantes.forEach(v=>v._subindo=[]);sujo=true;renderEditor();toast("Alterações recuperadas. Confira e salve.")};
+    $("#rasc-nao").onclick=()=>{limparRascunho();m.className="msg";m.textContent=""};}
 }
-function fechar(){ if(sujo&&!confirm("Sair sem salvar as mudanças?"))return; tela="lista";ed=null;sujo=false;renderLista();scrollTo(0,0) }
-const marcar=()=>{sujo=true;atualizaPrevia()};
+function fechar(){ if(sujo&&!confirm("Sair sem salvar as mudanças?"))return; if(sujo)limparRascunho(); tela="lista";ed=null;sujo=false;renderLista();scrollTo(0,0) }
+// rascunho: guarda a edição neste navegador para não perder nada se a página recarregar
+const chaveRasc=()=>"spstore_rasc:"+(orig?orig.nome:"__novo");
+function salvarRascunho(){try{localStorage.setItem(chaveRasc(),JSON.stringify({t:Date.now(),ed:{...ed,variantes:ed.variantes.map(v=>({...v,_subindo:[]}))}}))}catch(e){}}
+function limparRascunho(){try{localStorage.removeItem(chaveRasc())}catch(e){}}
+let tRasc=null;
+const marcar=()=>{sujo=true;atualizaPrevia();clearTimeout(tRasc);tRasc=setTimeout(salvarRascunho,400)};
 
 function renderEditor(){
   const d=ed, dc=desconto(d);
@@ -476,9 +486,8 @@ async function salvarProduto(){
   if(orig) for(const v of orig.variantes||[]){const c=chave(orig.nome,v.nome);if(!novas.has(c)&&c in EST)est.push({chave:c,qtd:null})}
   const estFinal=est.filter(e=>!(e.qtd===null&&!(e.chave in EST)));
 
-  const lista=clone(PRODS); if(edIdx>=0) lista[edIdx]=prod; else lista.unshift(prod);
   salvando=true; estadoSalvar();
-  try{await gravar(lista,estFinal,(edIdx>=0?"edita ":"novo ")+nome);sujo=false;salvando=false;tela="lista";ed=null;renderLista();scrollTo(0,0);
+  try{await gravar({op:"salvar",produto:prod,original:orig?orig.nome:null,v:orig?(orig._v||null):null,estoque:estFinal});limparRascunho();sujo=false;salvando=false;tela="lista";ed=null;renderLista();scrollTo(0,0);
     toast(edIdx>=0?"Produto salvo! O site já mostra a mudança.":"Produto criado! Já está no site.")}
   catch(e){salvando=false;estadoSalvar();erroEm(e.message);if(e.status===409){m.innerHTML+=` <button class="link" type="button" id="rec">Recarregar</button>`;$("#rec").onclick=()=>{sujo=false;tela="lista";carregar()}}}
 }

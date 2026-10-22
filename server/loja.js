@@ -127,6 +127,17 @@ export async function salvarCatalogoDb(env, produtos, por) {
   await sb(env, "config?on_conflict=chave", { method: "POST", body: JSON.stringify({ chave: "catalogo", valor }), headers: { prefer: "resolution=merge-duplicates,return=minimal" } });
   return valor;
 }
+// Grava o catálogo só se ele ainda estiver na versão lida (evita perder a mudança de outra pessoa
+// que salvou no mesmo instante). Devolve o valor salvo, ou null se a versão mudou (o chamador tenta de novo).
+export async function gravarCatalogoSe(env, versaoLida, produtos, por) {
+  const valor = { produtos, atualizado_em: new Date().toISOString() + "-" + Math.random().toString(36).slice(2, 6), por: por || "" };
+  if (versaoLida) {
+    const r = await sb(env, `config?chave=eq.catalogo&valor->>atualizado_em=eq.${encodeURIComponent(versaoLida)}`, { method: "PATCH", body: JSON.stringify({ valor }) });
+    return r && r.length ? valor : null;
+  }
+  try { await sb(env, "config", { method: "POST", body: JSON.stringify({ chave: "catalogo", valor }), headers: { prefer: "return=minimal" } }); return valor; }
+  catch (e) { if (/409|23505|duplicate/i.test(String(e.message))) return null; throw e; }
+}
 export async function catalogo(request, env) {
   const base = new URL(request.url).origin;
   const [db, d, L] = await Promise.all([

@@ -1,6 +1,6 @@
 // Painel › Produtos: lê e salva o catálogo no banco (Supabase, config "catalogo") e o estoque por cor.
 // O site passa a usar o catálogo do banco assim que ele é salvo pela primeira vez (atualiza na hora).
-import { json, erro, lerEstoque, salvarEstoque, catalogo, catalogoDb, salvarCatalogoDb, urlFotosBase } from "../../../server/loja.js";
+import { json, erro, lerEstoque, salvarEstoque, catalogo, catalogoDb, gravarCatalogoSe, urlFotosBase } from "../../../server/loja.js";
 import { guarda } from "../../../server/admin.js";
 
 const CATEGORIAS = ["oculos", "relogios"];
@@ -69,42 +69,89 @@ export const onRequestGet = async ({ env, request }) => {
   }
 };
 
+class ErroUso extends Error { constructor(m, st = 400) { super(m); this.st = st; } }
+const mesmo = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+const novaV = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function conferirUnicos(lista) {
+  const nomes = new Set(), skus = new Map();
+  for (const p of lista) {
+    const k = p.nome.toLowerCase();
+    if (nomes.has(k)) throw new ErroUso(`Já existe outro produto com o nome "${p.nome}". Os nomes precisam ser diferentes.`);
+    nomes.add(k);
+    for (const v of p.variantes || []) if (v.sku) {
+      const ks = v.sku.toLowerCase();
+      if (skus.has(ks)) throw new ErroUso(`O SKU "${v.sku}" já é usado em ${skus.get(ks)}. Cada cor precisa de um SKU diferente.`);
+      skus.set(ks, `${p.nome} - ${v.nome}`);
+    }
+  }
+}
+
+// Aplica UMA alteração sobre o catálogo mais recente. Só dá conflito se a mesma peça foi mudada por outra pessoa.
+function aplicar(lista, d, base) {
+  lista = lista.map(p => ({ ...p }));
+  const achar = nome => lista.findIndex(p => mesmo(p.nome, nome));
+  switch (d.op) {
+    case "salvar": {
+      const novo = limpaProduto(d.produto || {}, 0, base);
+      let i = -1;
+      if (d.original) {
+        i = achar(d.original);
+        if (i < 0) throw new ErroUso(`"${d.original}" foi excluído ou renomeado em outra aba ou aparelho. Recarregue a página.`, 409);
+        if (d.v && lista[i]._v && lista[i]._v !== d.v) throw new ErroUso(`"${d.original}" foi alterado por outra pessoa enquanto você editava. Recarregue para ver a versão nova e faça a mudança de novo.`, 409);
+      }
+      novo._v = novaV();
+      if (i >= 0) lista[i] = novo; else lista.unshift(novo);
+      break;
+    }
+    case "ativo": {
+      const i = achar(d.nome); if (i < 0) throw new ErroUso("Produto não encontrado. Recarregue a página.", 409);
+      lista[i] = { ...lista[i], ativo: !!d.ativo, _v: novaV() };
+      break;
+    }
+    case "mover": {
+      const i = achar(d.nome); if (i < 0) throw new ErroUso("Produto não encontrado. Recarregue a página.", 409);
+      const j = d.para === "antes" ? i - 1 : i + 1;
+      if (j >= 0 && j < lista.length) [lista[i], lista[j]] = [lista[j], lista[i]];
+      break;
+    }
+    case "excluir": {
+      const i = achar(d.nome); if (i < 0) return lista; // já excluído
+      lista.splice(i, 1);
+      break;
+    }
+    default: throw new ErroUso("Ação inválida.");
+  }
+  conferirUnicos(lista);
+  return lista;
+}
+
 export const onRequestPut = async ({ env, request }) => {
   const [u, b] = await guarda(env, request); if (b) return b;
   let d; try { d = await request.json(); } catch { return erro("Dados inválidos."); }
+  const base = urlFotosBase(env);
 
-  let produtos;
+  // tela antiga (já aberta antes desta atualização): manda a lista inteira + "novo/edita <nome>"
+  if (!d.op && Array.isArray(d.produtos)) {
+    const m = String(d.resumo || "").match(/^(novo|edita) (.+)$/);
+    if (!m) return erro("Esta tela está desatualizada. Recarregue a página (F5) e faça a mudança de novo.", 409);
+    const prod = d.produtos.find(p => mesmo(p && p.nome, m[2]));
+    if (!prod) return erro("Dados inválidos.");
+    d = { op: "salvar", produto: prod, original: m[1] === "edita" ? m[2] : null, estoque: d.estoque };
+  }
+
+  let salvo = null;
   try {
-    const lista = Array.isArray(d.produtos) ? d.produtos.slice(0, 300) : null;
-    if (!lista) throw new Error("Lista de produtos inválida.");
-    const base = urlFotosBase(env);
-    produtos = lista.map((p, i) => limpaProduto(p, i, base));
-    const nomes = new Set();
-    for (const p of produtos) {
-      const k = p.nome.toLowerCase();
-      if (nomes.has(k)) throw new Error(`Há dois produtos com o nome "${p.nome}". Os nomes precisam ser diferentes.`);
-      nomes.add(k);
-    }
-    const skus = new Map();
-    for (const p of produtos) for (const v of p.variantes) if (v.sku) {
-      const k = v.sku.toLowerCase();
-      if (skus.has(k)) throw new Error(`O SKU "${v.sku}" está repetido (${skus.get(k)} e ${p.nome} - ${v.nome}). Cada cor precisa de um SKU diferente.`);
-      skus.set(k, `${p.nome} - ${v.nome}`);
+    for (let t = 0; t < 4 && !salvo; t++) {
+      const [cat, db] = await Promise.all([catalogo(request, env), catalogoDb(env)]);
+      const lista = aplicar(cat.produtos || [], d, base);
+      salvo = await gravarCatalogoSe(env, db && db.atualizado_em, lista, u.email);
     }
   } catch (e) {
-    return erro(e.message || "Dados inválidos.");
+    if (e instanceof ErroUso) return erro(e.message, e.st);
+    return erro("Não consegui salvar os produtos. Tente de novo.", 502);
   }
-
-  // Evita apagar a mudança de outra pessoa/aba: confere se o catálogo é o mesmo que foi aberto.
-  const atual = await catalogoDb(env);
-  const versaoAtual = (atual && atual.atualizado_em) || "";
-  if (String(d.versao || "") !== versaoAtual) {
-    return erro("Os produtos foram alterados em outra aba ou aparelho enquanto você editava. Recarregue a página e faça a mudança de novo.", 409);
-  }
-
-  let salvo;
-  try { salvo = await salvarCatalogoDb(env, produtos, u.email); }
-  catch (e) { return erro("Não consegui salvar os produtos. Tente de novo.", 502); }
+  if (!salvo) return erro("Muitas alterações ao mesmo tempo. Tente salvar de novo.", 503);
 
   let aviso = "";
   if (Array.isArray(d.estoque) && d.estoque.length) {
