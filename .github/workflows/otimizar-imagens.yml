@@ -1,0 +1,50 @@
+# Converte sozinho para WebP as fotos novas enviadas pelo painel /admin.
+name: Otimizar imagens
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "img/**"
+      - "data/loja.json"
+      - "data/produtos.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: otimizar-imagens
+  cancel-in-progress: false
+
+jobs:
+  otimizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Pillow
+        run: pip install --quiet pillow
+
+      - name: Converter imagens
+        run: python .github/scripts/otimizar_imagens.py
+
+      - name: Salvar se mudou
+        run: |
+          git add -A img data
+          if git diff --cached --quiet; then
+            echo "Nada mudou."
+            exit 0
+          fi
+          git config user.name "otimizador-de-imagens"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Otimiza imagens novas (WebP)"
+          for i in 1 2 3; do
+            git pull --rebase --quiet origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
