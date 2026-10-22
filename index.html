@@ -210,6 +210,8 @@ body.locked{overflow:hidden}
 .add{justify-content:center;background:var(--ink);color:var(--bg);padding:11px 16px;font-size:14px}
 .add.ok{background:var(--gold);color:#1b1a17}
 .buy-alt{background:transparent;color:var(--wa);border:1.5px solid var(--wa);padding:9.5px 16px}
+.buy-now{justify-content:center;background:var(--gold);color:#fff;padding:11px 16px;font-size:14px}
+.pd .buy-now{padding:14px 18px;font-size:16px;margin-top:0}
 .pd .add{padding:14px 18px;font-size:16px;margin-top:4px}
 .pd .buy-alt{padding:12.5px 18px;font-size:15px;margin-top:0}
 
@@ -343,7 +345,7 @@ body.pag-site .so-wa{display:none}
   <div class="sec-head"><h2>Como comprar</h2></div>
   <div class="steps">
     <div class="step"><b>Escolha o produto e a cor</b><p>Toque nas bolinhas de cor para ver as versões disponíveis.</p></div>
-    <div class="step"><b>Adicione ao carrinho</b><p>Junte quantos produtos e cores quiser. Se preferir um só, toque em "Comprar no WhatsApp".</p></div>
+    <div class="step"><b>Adicione ao carrinho</b><p>Junte quantos produtos e cores quiser. Se quiser só um, toque em "Comprar" e vá direto para o pagamento.</p></div>
     <div class="step so-wa"><b>Finalize e pague</b><p>O pedido completo vai pelo WhatsApp. Enviamos o link do Mercado Pago para pagar com Pix ou cartão.</p></div>
     <div class="step so-site"><b>Pague no site</b><p>Pix ou cartão em até 12x, direto no site e com segurança do Mercado Pago. Você acompanha o pedido e o rastreio na sua conta.</p></div>
   </div>
@@ -450,7 +452,7 @@ function render(f){
         <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
         <div class="actions">
           ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
-          <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>`}
+          <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
         </div>
       </div></article>`;
   }).join("") || '<p style="color:var(--muted)">Nenhum produto nesta categoria.</p>';
@@ -479,7 +481,7 @@ let current="todos";
 function setFilter(f){current=f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===f));render(f)}
 document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setFilter(c.dataset.f)));
 document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=>setFilter(a.dataset.go)));
-document.getElementById("grid").addEventListener("click",e=>{const a=e.target.closest("[data-add]");if(a){if(addToCart(a.dataset.add)){flashBtn(a);showToast()}return}const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const o=e.target.closest("[data-open]");if(o){openProduct(o.dataset.open);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
+document.getElementById("grid").addEventListener("click",e=>{const cb=e.target.closest("[data-buy]");if(cb){comprarAgora(cb.dataset.buy);return}const a=e.target.closest("[data-add]");if(a){if(addToCart(a.dataset.add)){flashBtn(a);showToast()}return}const g=e.target.closest(".gal-btn");if(g){const n=+g.dataset.n;gal[g.dataset.g]=((gal[g.dataset.g]||0)+(+g.dataset.d)+n)%n;render(current);return}const o=e.target.closest("[data-open]");if(o){openProduct(o.dataset.open);return}const b=e.target.closest(".sw");if(!b)return;sel[b.dataset.p]=+b.dataset.i;render(current)});
 
 // ---------- janela do produto ----------
 const dlg=document.getElementById("pd"), pdIn=document.getElementById("pd-in");
@@ -506,7 +508,7 @@ function fillProduct(p){
     ${estoqueTag(p,v)}
     <div class="price"><strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
     ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
-    <a class="btn buy buy-alt" href="${link(p,v)}" target="_blank" rel="noopener">Comprar no WhatsApp</a>`}
+    <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
   </div>${leveTambem(p)}`;
 }
 // ---------- "Leve também": mesma categoria, outros modelos primeiro ----------
@@ -548,6 +550,7 @@ dlg.addEventListener("click",e=>{
   const n=[v.foto,...(v.fotos_extras||[])].filter(Boolean).length;
   const la=e.target.closest("[data-lt-add]"); if(la){addToCart(la.dataset.ltAdd);la.classList.add("ok");la.textContent="Adicionado ✓";setTimeout(()=>{if(la.isConnected){la.classList.remove("ok");la.textContent="Adicionar"}},1400);return}
   const lo=e.target.closest("[data-lt-open]"); if(lo){openProduct(lo.dataset.ltOpen);dlg.scrollTop=0;pdIn.scrollTop=0;return}
+  const cb=e.target.closest("[data-buy]"); if(cb){comprarAgora(cb.dataset.buy);return}
   const ad=e.target.closest("[data-add]"); if(ad){if(addToCart(ad.dataset.add)){closeProduct();openCart()}return}
   const sw=e.target.closest("[data-pi]"); if(sw){sel[p.id]=+sw.dataset.pi;fillProduct(p);return}
   const pg=e.target.closest("[data-pg]"); if(pg&&n){gal[gk]=((gal[gk]||0)+(+pg.dataset.pg)+n)%n;fillProduct(p);return}
@@ -593,6 +596,15 @@ function addToCart(id){
   sent=false; saveCart(); renderCart();
   const n=document.getElementById("bag-n"); n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop");
   return true;
+}
+// "Comprar": coloca no carrinho (sem duplicar) e vai direto para a finalização
+function comprarAgora(id){
+  const p=prodById(id); if(!p) return;
+  const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}];
+  const v=vs[Math.min(sel[p.id]||0,vs.length-1)];
+  const ja=cart.find(x=>x.nome===p.nome&&x.cor===v.nome);
+  if(!ja&&!addToCart(id)) return;
+  location.href="/checkout.html";
 }
 function avisoLimite(lim){const t=document.getElementById("toast-t");t.textContent=lim<=0?"Este produto esgotou.":`Temos só ${lim} ${lim===1?"unidade":"unidades"} desta cor.`;showToast();setTimeout(()=>{t.textContent="Adicionado ao carrinho"},3600)}
 // atualiza preço e fotos com o que está no painel; tira produtos que saíram do site
