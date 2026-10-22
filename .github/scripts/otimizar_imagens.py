@@ -26,10 +26,10 @@ LIMITE_WEBP = 400 * 1024
 
 
 def largura_maxima(caminho, loja):
-    if caminho == loja.get("banner_imagem"):
-        return 1920, 78
-    if caminho == loja.get("banner_imagem_celular"):
-        return 1080, 78
+    for k, v in loja.items():
+        if v != caminho or not k.startswith("banner_"):
+            continue
+        return (1080, 78) if k.endswith("_celular") else (1920, 78)
     return 1000, 82
 
 
