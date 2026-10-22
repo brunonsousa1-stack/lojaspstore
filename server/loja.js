@@ -289,7 +289,8 @@ export async function buscarPagamento(env, id) {
   const c = cfg(env);
   if (!/^[A-Za-z0-9_-]{4,80}$/.test(String(id))) return null;
   const r = await fetch(`${c.mpApi}/v1/orders/${encodeURIComponent(id)}`, { headers: { accept: "application/json", authorization: "Bearer " + c.mpToken } });
-  if (r.status === 404) return null;
+  // 400/403/404: order inexistente ou de outra conta (ex.: "Simular notificação" com ID fictício). Ignora.
+  if (r.status === 404 || r.status === 400 || r.status === 403) return null;
   if (!r.ok) throw new Error("Mercado Pago: " + r.status);
   return r.json();
 }
