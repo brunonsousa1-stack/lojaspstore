@@ -94,7 +94,7 @@ export function publico(p) {
   return {
     id: p.id, criado_em: p.criado_em, status: p.status, status_texto: STATUS[p.status] || p.status,
     nome: p.nome, email: p.email, telefone: p.telefone, endereco: p.endereco, itens: p.itens,
-    subtotal: Number(p.subtotal), frete: Number(p.frete), total: Number(p.total),
+    subtotal: Number(p.subtotal), frete: Number(p.frete), total: Number(p.total), desconto: Math.max(0, Math.round((Number(p.subtotal) + Number(p.frete) - Number(p.total)) * 100) / 100),
     forma_pagamento: p.forma_pagamento, rastreio: p.rastreio || "", historico: p.historico || [], token: p.token,
     envio: p.envio ? { nome: p.envio.nome, empresa: p.envio.empresa, prazo: p.envio.prazo } : null,
     pix_informado: !!(p.emails && p.emails.pix_informado),
@@ -163,6 +163,11 @@ export async function enviarFoto(env, nome, bytes) {
   return `${c.sbUrl}/storage/v1/object/public/${BUCKET}/${nome}`;
 }
 export const urlFotosBase = env => `${cfg(env).sbUrl}/storage/v1/object/public/${BUCKET}/`;
+// Desconto no Pix (painel › Banner e textos › "Desconto no Pix (%)"). Vale só sobre os produtos, não sobre o frete.
+const r2 = n => Math.round(Number(n) * 100) / 100;
+export const pctPix = loja => Math.min(30, Math.max(0, Number(loja && loja.desconto_pix) || 0));
+export const totalCheio = p => r2(Number(p.subtotal) + Number(p.frete));
+export const totalComPix = (p, loja) => r2(totalCheio(p) - r2(Number(p.subtotal) * pctPix(loja) / 100));
 export function calcularFrete(loja, subtotal) {
   const valor = Math.max(0, Number(loja.frete_valor) || 0);
   const gratisAcima = Math.max(0, Number(loja.frete_gratis_acima) || 0);
@@ -399,6 +404,7 @@ function tabelaItens(p) {
   const linhas = (p.itens || []).map(i => `<tr><td style="padding:8px 0;border-bottom:1px solid #e6e3dc">${i.qtd}× ${esc(i.nome)}${i.cor && i.cor !== "Padrão" ? `<br><span style="color:#6a675f;font-size:13px">${esc(i.cor)}</span>` : ""}</td><td style="padding:8px 0;border-bottom:1px solid #e6e3dc;text-align:right;white-space:nowrap">${reais(i.preco * i.qtd)}</td></tr>`).join("");
   return `<table style="width:100%;border-collapse:collapse;font-size:15px;margin:14px 0">${linhas}
 <tr><td style="padding:8px 0;color:#6a675f">Frete</td><td style="padding:8px 0;text-align:right">${Number(p.frete) > 0 ? reais(p.frete) : "Grátis"}</td></tr>
+${Number(p.subtotal) + Number(p.frete) - Number(p.total) > 0.004 ? `<tr><td style="padding:8px 0;color:#17703c">Desconto no Pix</td><td style="padding:8px 0;text-align:right;color:#17703c">- ${reais(Number(p.subtotal) + Number(p.frete) - Number(p.total))}</td></tr>` : ""}
 <tr><td style="padding:8px 0;font-weight:700">Total</td><td style="padding:8px 0;text-align:right;font-weight:700">${reais(p.total)}</td></tr></table>`;
 }
 const enderecoTxt = a => a ? `${esc(a.rua)}, ${esc(a.numero)}${a.complemento ? " - " + esc(a.complemento) : ""}<br>${esc(a.bairro)} · ${esc(a.cidade)}/${esc(a.uf)} · CEP ${esc(String(a.cep).replace(/(\d{5})(\d{3})/, "$1-$2"))}` : "";
@@ -483,6 +489,13 @@ export async function pagar(env, request) {
   const p = await buscarPedido(env, b.id);
   if (!p || p.token !== String(b.t || "")) return erro("Pedido não encontrado.", 404);
   if (p.status !== "aguardando_pagamento") return json({ ok: true, status: p.status, pedido: publico(p) });
+  const ehPix = String((b.formData || {}).payment_method_id || "") === "pix";
+  const { loja } = await catalogo(request, env);
+  const certo = ehPix ? totalComPix(p, loja) : totalCheio(p);
+  if (Number(p.total) !== certo) {
+    const x = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ total: certo, ...(ehPix ? {} : { forma_pagamento: null }) }) }).catch(() => null);
+    p.total = certo; if (x && x[0]) Object.assign(p, x[0]);
+  }
   let d;
   try { d = await criarPagamento(env, request, p, b.formData || {}, b.tipo); }
   catch (e) { return erro(e.message, 402); }
@@ -549,10 +562,11 @@ export async function pixDireto(env, request) {
   const { loja } = await catalogo(request, env);
   if (!pixAtivo(loja)) return erro("Pix indisponível no momento.", 503);
   if (p.status !== "aguardando_pagamento") return json({ ok: true, status: p.status, pedido: publico(p) });
-  const codigo = brCode({ chave: loja.pix_chave, nome: loja.pix_nome || "SP STORE", cidade: loja.pix_cidade || "SAO PAULO", valor: p.total, txid: `SPSTORE${p.id}`, mensagem: `Pedido ${p.id}` });
+  const valor = totalComPix(p, loja);
+  const codigo = brCode({ chave: loja.pix_chave, nome: loja.pix_nome || "SP STORE", cidade: loja.pix_cidade || "SAO PAULO", valor, txid: `SPSTORE${p.id}`, mensagem: `Pedido ${p.id}` });
   let n = p;
-  if (p.forma_pagamento !== "Pix direto") {
-    n = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ forma_pagamento: "Pix direto" }) }).then(x => x[0]);
+  if (p.forma_pagamento !== "Pix direto" || Number(p.total) !== valor) {
+    n = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ forma_pagamento: "Pix direto", total: valor }) }).then(x => x[0]);
   }
   if (b.informar) {
     const marc = { ...(n.emails || {}) };

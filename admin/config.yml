@@ -21,6 +21,10 @@ collections:
         fields:
           - { label: WhatsApp (só números, com 55 e DDD), name: whatsapp, widget: string }
           - { label: WhatsApp como aparece no site, name: whatsapp_exibicao, widget: string }
+          - { label: "Razão social (rodapé)", name: razao_social, widget: string, required: false }
+          - { label: "CNPJ (rodapé)", name: cnpj, widget: string, required: false }
+          - { label: "Endereço (rodapé)", name: endereco_loja, widget: string, required: false }
+          - { label: "E-mail de atendimento", name: email_atendimento, widget: string, required: false, hint: "Aparece no rodapé e na página de trocas." }
           - { label: Preço destaque do banner, name: preco_destaque, widget: number, value_type: float, step: 0.01 }
           - { label: Preço do kit óculos + relógio, name: preco_kit, widget: number, value_type: float, step: 0.01 }
           - { label: "Frete fixo (só se o Melhor Envio estiver desligado)", name: frete_valor, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Com o Melhor Envio ligado, o frete é calculado pelo CEP. Ex.: 15.90" }
@@ -43,6 +47,7 @@ collections:
               - { label: "J&T Express", value: jet }
           - { label: "Dias para postar o pedido", name: dias_para_postar, widget: number, value_type: int, min: 0, required: false, default: 1, hint: "Somado ao prazo da transportadora que o cliente vê." }
           - { label: "Frete grátis acima de", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra a partir do qual o frete fica grátis. Use 0 para não usar." }
+          - { label: "Desconto no Pix (%)", name: desconto_pix, widget: number, value_type: int, min: 0, max: 30, required: false, default: 5, hint: "Desconto sobre os produtos (não sobre o frete) quando o cliente paga no Pix. 0 = sem desconto." }
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }
           - { label: Texto do banner, name: banner_texto, widget: text }

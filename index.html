@@ -210,6 +210,15 @@ body.locked{overflow:hidden}
 .add{justify-content:center;background:var(--ink);color:var(--bg);padding:11px 16px;font-size:14px}
 .add.ok{background:var(--gold);color:#1b1a17}
 .buy-alt{background:transparent;color:var(--wa);border:1.5px solid var(--wa);padding:9.5px 16px}
+.pixp,.price .pixp{color:#17703c;font-size:13px}.pixp b{font-weight:700}
+.pd-perks{list-style:none;margin:10px 0 4px;padding:12px 14px;display:grid;gap:6px;font-size:14px;background:var(--gold-soft);border-radius:12px}
+.pd-perks li::before{content:"✓";color:#17703c;font-weight:700;margin-right:8px}
+.pd-perks a{color:inherit}
+.fg-bar{display:grid;gap:6px;margin-bottom:12px;font-size:14px}
+.fg-track{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.fg-track span{display:block;height:100%;background:#1f9d55;border-radius:99px;transition:width .3s}
+.cart-pix{text-align:right;font-size:14px;color:#17703c;margin:-6px 0 10px}
+footer .empresa{font-size:13px;opacity:.75;line-height:1.6}
 .price s.de{color:var(--muted);font-size:13px;margin-right:6px;font-weight:500}
 .badge.off{background:#c0392b;color:#fff}
 .buy-now{justify-content:center;background:var(--gold);color:#fff;padding:11px 16px;font-size:14px}
@@ -270,9 +279,9 @@ body.pag-site .so-wa{display:none}
 </style>
 
 <div class="ticker"><div class="wrap">
-  <span><b>Preço único</b> · tudo por <span class="js-preco">R$ 29,99</span></span>
-  <span><b>Compra fácil</b> · atendimento direto no WhatsApp</span>
-  <span><b>Pagamento seguro</b> · Pix ou cartão pelo Mercado Pago</span>
+  <span class="js-fg-on"><b>Frete grátis</b> acima de <span class="js-fg">R$ 120,00</span></span>
+  <span class="js-pix-on"><b><span class="js-pixp">5</span>% de desconto</b> no Pix</span>
+  <span><b>Pagamento seguro</b> · Pix ou cartão em até 12x</span>
 </div></div>
 
 <header><div class="wrap">
@@ -308,9 +317,9 @@ body.pag-site .so-wa{display:none}
 
 <div class="perks"><div class="wrap">
   <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H4v12h16v-4M4 8l2-4h12l2 4M16 12h6v4h-6z"/></svg></div><div><b class="js-preco">R$ 29,99</b><span>em qualquer produto</span></div></div>
-  <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4-7.5L21 3v5h-5"/></svg></div><div><b>Pix ou cartão</b><span>via Mercado Pago</span></div></div>
+  <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4-7.5L21 3v5h-5"/></svg></div><div><b class="js-pix-on"><i class="js-pixp" style="font-style:normal">5</i>% off no Pix</b><span>ou até 12x no cartão</span></div></div>
   <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l1.5-4A8 8 0 1 1 8 18.5z"/></svg></div><div><b>WhatsApp</b><span>tire dúvidas antes de comprar</span></div></div>
-  <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg></div><div><b>Envio embalado</b><span>caixa protegida</span></div></div>
+  <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg></div><div><b class="js-fg-on">Frete grátis</b><span class="js-fg-on">acima de <span class="js-fg">R$ 120,00</span></span></div></div>
 </div></div>
 
 <section class="shop" id="vitrine"><div class="wrap">
@@ -362,7 +371,10 @@ body.pag-site .so-wa{display:none}
     <details class="so-wa"><summary>Como faço o pagamento?</summary><p>Depois que você envia o pedido pelo WhatsApp, enviamos um link do Mercado Pago. Você paga com Pix ou cartão de crédito.</p></details>
     <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho e para a mensagem do WhatsApp.</p></details>
     <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e finalize o pedido de uma vez pelo WhatsApp.</p></details>
-    <details><summary>Como o produto chega?</summary><p>Cada item vai em caixa protegida. Combinamos a forma de envio e o prazo pelo WhatsApp.</p></details>
+    <details><summary>Tem frete grátis?</summary><p>Sim! Em compras acima de <span class="js-fg">R$ 120,00</span> o frete é grátis. Abaixo disso, o valor é calculado pelo seu CEP na finalização, com Correios ou Jadlog.</p></details>
+    <details class="js-pix-on"><summary>Tem desconto no Pix?</summary><p>Sim, <span class="js-pixp">5</span>% de desconto nos produtos pagando com Pix. O desconto já aparece na hora do pagamento.</p></details>
+    <details><summary>Como o produto chega?</summary><p>Cada item vai em caixa protegida, pelos Correios ou Jadlog. Você escolhe a entrega na finalização e recebe o código de rastreio por e-mail e em "Minha conta".</p></details>
+    <details><summary>Posso trocar ou devolver?</summary><p>Sim. Você tem até 7 dias depois de receber para trocar ou devolver, e 90 dias em caso de defeito. Veja a <a href="/trocas.html">política de trocas e devoluções</a>.</p></details>
     <details><summary>Os relógios são originais DK?</summary><p>Sim, são da linha DK Original, com máquina quartz.</p></details>
   </div>
 </div></section>
@@ -380,11 +392,13 @@ body.pag-site .so-wa{display:none}
     </ul></div>
     <div><h4>Atendimento</h4><ul>
       <li><a href="#como-comprar">Como comprar</a></li>
+      <li><a href="/trocas.html">Trocas e devoluções</a></li>
+      <li><a href="/conta.html">Meus pedidos</a></li>
       <li><a href="https://wa.me/5511947523834" target="_blank" rel="noopener">WhatsApp</a></li>
-      <li>Pagamento via Mercado Pago</li>
+      <li><a class="js-mail" href="mailto:lojaspstore@gmail.com">lojaspstore@gmail.com</a></li>
     </ul></div>
   </div>
-  <div class="legal"><div class="wrap">© 2026 SP Store. Todos os direitos reservados.</div></div>
+  <div class="legal"><div class="wrap"><span class="empresa"><span class="js-razao">LOJA SP STORE LTDA</span> · CNPJ <span class="js-cnpj">27.866.411/0001-10</span><br><span class="js-end">Rua Décio Angelo Chiuvitti, 33 · São Paulo/SP · CEP 08020-360</span><br>© 2026 SP Store. Todos os direitos reservados.</span></div></div>
 </footer>
 
 <div class="mbar"><div>Tudo por<b class="js-preco">R$ 29,99</b></div><a class="btn btn-gold" href="#vitrine" id="mbar-cta" style="padding:10px 18px">Ver produtos</a></div>
@@ -451,7 +465,7 @@ function render(f){
         <div class="variant">${esc(v.nome)}</div>
         ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" id="sw-${p.id}-${k}" data-p="${p.id}" data-i="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
         ${estoqueTag(p,v)}
-        <div class="price">${Number(p.preco_de)>Number(p.preco)?`<s class="de" aria-label="Preço antigo">${brl(p.preco_de)}</s>`:""}<strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
+        <div class="price">${Number(p.preco_de)>Number(p.preco)?`<s class="de" aria-label="Preço antigo">${brl(p.preco_de)}</s>`:""}<strong>${brl(p.preco)}</strong>${pixTxt(p.preco)}</div>
         <div class="actions">
           ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
           <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
@@ -461,8 +475,24 @@ function render(f){
 }
 function norm(list){return (list||[]).map(p=>({...p,desenho:p.desenho||(p.avancado&&p.avancado.desenho)||"hex",
   variantes:(p.variantes||[]).map(v=>({...v,cor_principal:v.cor_principal||(v.avancado&&v.avancado.cor_principal),cor_detalhe:v.cor_detalhe||(v.avancado&&v.avancado.cor_detalhe)}))}))}
+let PIXP=5, FGA=120;
+const precoPix=n=>Math.round(Math.round(Number(n)*100)*(100-PIXP)/100)/100;
+function pixTxt(preco){return PIXP>0?`<span class="pixp"><b>${brl(precoPix(preco))}</b> no Pix</span>`:`<span>no Pix ou cartão</span>`}
+function perks(p){const l=[];
+  if(PIXP>0)l.push(`<li><b>${PIXP}% off no Pix</b> · ${brl(precoPix(p.preco))}</li>`);
+  l.push(`<li>Ou em até <b>12x no cartão</b></li>`);
+  if(FGA>0)l.push(`<li><b>Frete grátis</b> em compras acima de ${brl(FGA)}</li>`);
+  l.push(`<li>Troca ou devolução em até <b>7 dias</b> · <a href="/trocas.html">ver política</a></li>`);
+  return `<ul class="pd-perks">${l.join("")}</ul>`}
 function applyLoja(L){
   if(!L) return;
+  if(L.desconto_pix!=null) PIXP=Math.min(30,Math.max(0,Number(L.desconto_pix)||0));
+  if(L.frete_gratis_acima!=null) FGA=Math.max(0,Number(L.frete_gratis_acima)||0);
+  document.querySelectorAll(".js-pixp").forEach(e=>e.textContent=PIXP);
+  document.querySelectorAll(".js-fg").forEach(e=>e.textContent=brl(FGA));
+  document.querySelectorAll(".js-pix-on").forEach(e=>e.hidden=!PIXP);
+  document.querySelectorAll(".js-fg-on").forEach(e=>e.hidden=!FGA);
+  [["js-razao","razao_social"],["js-cnpj","cnpj"],["js-end","endereco_loja"],["js-mail","email_atendimento"]].forEach(([c,k])=>{if(L[k])document.querySelectorAll("."+c).forEach(e=>{e.textContent=L[k];if(e.tagName==="A"&&k==="email_atendimento")e.href="mailto:"+L[k]})});
   WA=String(L.whatsapp||WA).replace(/\D/g,"");
   document.querySelectorAll(".js-preco").forEach(e=>e.textContent=brl(L.preco_destaque));
   document.querySelectorAll(".js-kit").forEach(e=>e.textContent=brl(L.preco_kit));
@@ -508,7 +538,8 @@ function fillProduct(p){
     <div class="pd-label">Cor: <span>${esc(v.nome)}</span></div>
     ${vs.length>1?`<div class="swatches">${vs.map((x,k)=>`<button class="sw" type="button" data-pi="${k}" aria-pressed="${k===i}" aria-label="${esc(x.nome)}" title="${esc(x.nome)}" style="background:${x.foto?`center/cover url('${esc(x.foto)}')`:swColor(p,x)}"></button>`).join("")}</div>`:""}
     ${estoqueTag(p,v)}
-    <div class="price">${Number(p.preco_de)>Number(p.preco)?`<s class="de" aria-label="Preço antigo">${brl(p.preco_de)}</s>`:""}<strong>${brl(p.preco)}</strong><span>no Pix ou cartão</span></div>
+    <div class="price">${Number(p.preco_de)>Number(p.preco)?`<s class="de" aria-label="Preço antigo">${brl(p.preco_de)}</s>`:""}<strong>${brl(p.preco)}</strong>${pixTxt(p.preco)}</div>
+    ${perks(p)}
     ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
     <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
   </div>${leveTambem(p)}`;
@@ -644,7 +675,10 @@ function renderCart(){
         <strong>${brl(cents(x.preco)*x.qtd/100)}</strong>
       </div>
     </div></div>`).join("");
-  cartFoot.innerHTML=`<div class="cart-tot"><span>Total</span><strong>${brl(cartTotal())}</strong></div>
+  const tot=cartTotal(), falta=FGA>0?Math.max(0,FGA-tot):0;
+  cartFoot.innerHTML=`${FGA>0?`<div class="fg-bar"><div class="fg-txt">${falta>0?`Faltam <b>${brl(falta)}</b> para ganhar <b>frete grátis</b>`:`<b>Parabéns!</b> Você ganhou <b>frete grátis</b>`}</div><div class="fg-track"><span style="width:${Math.min(100,tot/FGA*100).toFixed(1)}%"></span></div></div>`:""}
+    <div class="cart-tot"><span>Total</span><strong>${brl(tot)}</strong></div>
+    ${PIXP>0?`<div class="cart-pix">ou <b>${brl(precoPix(tot))}</b> no Pix (${PIXP}% off)</div>`:""}
     ${sent?`<div class="cart-sent"><span>Pedido enviado pelo WhatsApp?</span><button class="link-btn" type="button" data-cart="limpar">Esvaziar carrinho</button></div>`:""}
     ${PAG_SITE?`<a class="btn buy" href="/checkout.html">Finalizar compra</a>
     <p class="cart-note">Pix ou cartão em até 12x, direto no site.</p>
