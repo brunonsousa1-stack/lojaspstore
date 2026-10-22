@@ -12,6 +12,7 @@
 
 import { cotar, meAtivo, gerarEtiqueta, validarRemetente, saldo } from "./frete.js";
 import { brCode, pixAtivo } from "./pix.js";
+import { distanciaBase } from "./geo.js";
 
 export const STATUS = {
   aguardando_pagamento: "Aguardando pagamento",
@@ -440,10 +441,10 @@ export async function emails(env, request, p, evento) {
     ok = await enviarEmail(env, p.email, `Compra confirmada! Pedido ${n}`, moldura(`Pagamento aprovado ✓`,
       `<p>Olá, ${esc(p.nome.split(" ")[0])}! Obrigado pela compra. O pagamento do pedido <b>${n}</b> foi ${p.forma_pagamento === "Pix direto" ? "confirmado (Pix)" : `aprovado${p.forma_pagamento ? ` (${esc(p.forma_pagamento)})` : ""}`} e já estamos separando seus produtos.</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entrega:</b><br>${enderecoTxt(p.endereco)}</p>${botao(link, "Acompanhar pedido")}<p style="font-size:14px;color:#6a675f">Quando o pedido for enviado, mandamos o código de rastreio por aqui.</p>`, origem), c.lojaEmail);
     if (c.lojaEmail) await enviarEmail(env, c.lojaEmail, `Nova venda! Pedido ${n} · ${reais(p.total)}`, moldura(`Nova venda paga · ${n}`,
-      `<p><b>${esc(p.nome)}</b> · ${esc(p.email)} · ${esc(p.telefone)}</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entregar em:</b><br>${enderecoTxt(p.endereco)}</p>${botao(origem + "/admin/pedidos.html", "Abrir painel de pedidos")}`, origem));
+      `<p><b>${esc(p.nome)}</b> · ${esc(p.email)} · ${esc(p.telefone)}</p>${tabelaItens(p)}${p.envio && p.envio.dist_base && p.envio.dist_base.perto ? `<p style="background:#efe4cc;border-radius:10px;padding:10px 12px;font-size:15px"><b>🚗 Enviar com o carro</b> · ${String(p.envio.dist_base.km).replace(".", ",")} km da base</p>` : ""}<p style="font-size:14px"><b>Entregar em:</b><br>${enderecoTxt(p.endereco)}</p>${botao(origem + "/admin/pedidos.html", "Abrir painel de pedidos")}`, origem));
   } else if (evento === "enviado") {
     ok = await enviarEmail(env, p.email, p.envio && p.envio.id === "motoboy" ? `Seu pedido ${n} saiu para entrega` : `Seu pedido ${n} foi enviado`, moldura(p.envio && p.envio.id === "motoboy" ? `Saiu com o motoboy 🛵` : `Pedido enviado 📦`,
-      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido <b>${n}</b> saiu para entrega.</p>${p.envio && p.envio.id === "motoboy" ? `<p style="font-size:16px">🛵 Seu pedido está com o <b>motoboy</b> e chega <b>hoje</b>. Fique de olho no seu WhatsApp.</p>` : ""}${p.envio && p.envio.empresa && p.envio.id !== "motoboy" ? `<p style="font-size:14px">Transportadora: <b>${esc(p.envio.empresa)} ${esc(p.envio.nome)}</b>${p.envio.prazo ? ` · prazo estimado de ${p.envio.prazo} dias úteis` : ""}</p>` : ""}${p.rastreio ? `<p style="font-size:16px">Código de rastreio:<br><b style="font-size:20px;letter-spacing:.05em">${esc(p.rastreio)}</b></p>${botao("https://www.melhorrastreio.com.br/rastreio/" + encodeURIComponent(p.rastreio.split(",")[0].trim()), "Rastrear entrega")}` : ""}${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
+      `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido <b>${n}</b> saiu para entrega.</p>${p.envio && p.envio.id === "motoboy" ? `<p style="font-size:16px">🛵 Seu pedido está com o <b>motoboy</b> e chega <b>hoje</b>. Fique de olho no seu WhatsApp.</p>` : p.envio && p.envio.carro_proprio ? `<p style="font-size:16px">🚗 Seu pedido saiu com a <b>nossa equipe de entrega</b> e chega em breve. Fique de olho no seu WhatsApp.</p>` : ""}${p.envio && p.envio.empresa && p.envio.id !== "motoboy" && !p.envio.carro_proprio ? `<p style="font-size:14px">Transportadora: <b>${esc(p.envio.empresa)} ${esc(p.envio.nome)}</b>${p.envio.prazo ? ` · prazo estimado de ${p.envio.prazo} dias úteis` : ""}</p>` : ""}${p.rastreio ? `<p style="font-size:16px">Código de rastreio:<br><b style="font-size:20px;letter-spacing:.05em">${esc(p.rastreio)}</b></p>${botao("https://www.melhorrastreio.com.br/rastreio/" + encodeURIComponent(p.rastreio.split(",")[0].trim()), "Rastrear entrega")}` : ""}${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
   } else if (evento === "entregue") {
     ok = await enviarEmail(env, p.email, `Pedido ${n} entregue`, moldura(`Pedido entregue`,
       `<p>Olá, ${esc(p.nome.split(" ")[0])}! O pedido <b>${n}</b> consta como entregue. Esperamos que goste! Se precisar de qualquer coisa, é só responder este e-mail.</p>${botao(origem, "Voltar à loja")}`, origem), c.lojaEmail);
@@ -475,7 +476,8 @@ export async function checkout(env, request) {
     const op = ops.find(o => o.id === String(b.frete_id || "")) || (ops.length === 1 ? ops[0] : null);
     if (!op) throw new Error("Escolha a forma de entrega.");
     frete = op.preco;
-    envio = { id: op.id, nome: op.nome, empresa: op.empresa, prazo: op.prazo, pacotes: op.pacotes || [], ...(op.prazo_txt ? { prazo_txt: op.prazo_txt, entrega_em: op.entrega_em } : {}) };
+    const dist = await Promise.race([distanciaBase(env, sb, loja, entrega.endereco, rem && rem.cep).catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]);
+    envio = { id: op.id, nome: op.nome, empresa: op.empresa, prazo: op.prazo, pacotes: op.pacotes || [], ...(op.prazo_txt ? { prazo_txt: op.prazo_txt, entrega_em: op.entrega_em } : {}), ...(dist ? { dist_base: dist } : {}) };
   } catch (e) { return erro(e.message); }
   const total = Math.round((sub + frete) * 100) / 100;
   const criado = await sb(env, "pedidos", {
@@ -612,7 +614,8 @@ export async function atualizarPeloAdmin(env, request, p, b) {
   if (!STATUS[novo]) throw new Error("Status inválido.");
   const extra = {};
   if (typeof b.rastreio === "string") extra.rastreio = so(b.rastreio, 40).toUpperCase();
-  if (novo === "enviado" && !(extra.rastreio || p.rastreio) && !(p.envio && p.envio.id === "motoboy")) throw new Error("Informe o código de rastreio para marcar como enviado.");
+  if (b.carro === true && novo === "enviado") extra.envio = { ...(p.envio || {}), carro_proprio: true };
+  if (novo === "enviado" && !(extra.rastreio || p.rastreio) && !(p.envio && p.envio.id === "motoboy") && !b.carro) throw new Error("Informe o código de rastreio para marcar como enviado.");
   if (novo === "pago" && p.status !== "aguardando_pagamento") throw new Error("Este pedido não está aguardando pagamento.");
   let n = await mudarStatus(env, p, novo, extra);
   if (novo === "pago" && p.status !== "pago") n = await moverEstoque(env, n, -1);

@@ -1,4 +1,5 @@
-import { json, erro, usuario, ehAdmin, sb, publico, buscarPedido, atualizarPeloAdmin, pronto } from "../../../server/loja.js";
+import { json, erro, usuario, ehAdmin, sb, publico, buscarPedido, atualizarPeloAdmin, pronto, catalogo, lerConfig } from "../../../server/loja.js";
+import { distanciaBase } from "../../../server/geo.js";
 const guarda = async (env, request) => {
   if (!pronto(env)) return [null, erro("Loja não configurada.", 503)];
   const u = await usuario(env, request);
@@ -13,6 +14,19 @@ export const onRequestGet = async ({ env, request }) => {
     const st = url.searchParams.get("status");
     const filtro = st && /^[a-z_]+$/.test(st) ? `&status=eq.${st}` : "";
     const lista = await sb(env, `pedidos?select=*&order=id.desc&limit=300${filtro}`, { method: "GET" });
+    // distância até a base para pedidos que ainda não têm (pedidos antigos)
+    const falta = lista.filter(p => p.endereco && p.endereco.cep && !(p.envio && p.envio.dist_base) && p.status !== "cancelado").slice(0, 8);
+    if (falta.length) {
+      try {
+        const [{ loja }, rem] = await Promise.all([catalogo(request, env), lerConfig(env, "remetente").catch(() => null)]);
+        await Promise.all(falta.map(async p => {
+          const d = await distanciaBase(env, sb, loja, p.endereco, rem && rem.cep).catch(() => null);
+          if (!d) return;
+          p.envio = { ...(p.envio || {}), dist_base: d };
+          await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ envio: p.envio }), headers: { prefer: "return=minimal" } }).catch(() => {});
+        }));
+      } catch {}
+    }
     return json({ pedidos: lista.map(p => ({ ...publico(p), mp_pagamento: p.mp_pagamento || "", mp_status: p.mp_status || "", cpf: p.cpf || "", envio_completo: p.envio || null })) });
   } catch (e) { return erro("Erro ao buscar os pedidos.", 500); }
 };

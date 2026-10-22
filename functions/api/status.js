@@ -1,6 +1,7 @@
 // Diagnóstico da configuração da loja: só diz o que está ligado, nunca mostra chaves.
 import { json, pronto, sb, catalogo, montarItens, configPublica } from "../../server/loja.js";
 import { cotar, meAtivo } from "../../server/frete.js";
+import { coordCep } from "../../server/geo.js";
 export const onRequestGet = async ({ env, request }) => {
   const r = {
     supabase: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY && env.SUPABASE_SERVICE_KEY),
@@ -19,5 +20,6 @@ export const onRequestGet = async ({ env, request }) => {
       r.frete_teste = ops.map(o => `${o.nome} ${o.empresa}: R$ ${o.preco.toFixed(2)} (${o.prazo} dias)`).slice(0, 6);
     } catch (e) { r.frete_erro = String(e.message).slice(0, 160); }
   }
+  if (r.banco) { try { const c = await coordCep(env, sb, "08020360"); r.localizacao_cep = c ? `ok (${c.fonte})` : "não encontrou"; } catch (e) { r.localizacao_cep = "erro"; } }
   return json(r);
 };

@@ -62,6 +62,7 @@ collections:
               - { label: Sábado, value: 6 }
               - { label: Domingo, value: 0 }
           - { label: "Motoboy: CEPs atendidos", name: motoboy_faixas, widget: text, required: false, hint: "Uma faixa por linha. Ex.: 'Guarulhos: 07000-000 a 07399-999', um CEP '03310-000' ou o começo do CEP '033'." }
+          - { label: "Entrega com o carro da loja: raio (km)", name: carro_raio_km, widget: number, value_type: float, step: 0.1, min: 0, required: false, default: 2, hint: "Aviso interno no painel quando o cliente mora até esta distância da base (em linha reta, pelo CEP)." }
           - { label: "Dias para postar o pedido", name: dias_para_postar, widget: number, value_type: int, min: 0, required: false, default: 1, hint: "Somado ao prazo da transportadora que o cliente vê." }
           - { label: "Frete grátis a partir de (valor real)", name: frete_gratis_acima, widget: number, value_type: float, step: 0.01, min: 0, required: false, default: 0, hint: "Valor da compra (já com a promoção) a partir do qual o frete fica grátis. 0 = não usar." }
           - { label: "Frete grátis: valor anunciado no site", name: frete_gratis_exibir, widget: number, value_type: float, step: 0.01, min: 0, required: false, hint: "O valor que aparece escrito no site (ex.: 120). Em branco = o mesmo do valor real." }
