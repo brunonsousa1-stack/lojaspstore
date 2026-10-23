@@ -575,7 +575,7 @@ function renderCats(todos){
   if(CAT){document.getElementById("categorias").hidden=true;return}
   box.innerHTML=CATS.map(c=>{const l=todos.filter(p=>p.categoria===c);if(!l.length)return "";
     const capa=LOJA_CAT[c]||(()=>{for(const p of l)for(const v of p.variantes||[]){if(v.foto)return v.foto}return ""})();
-    return `<a class="cat-tile" href="/${c}">${capa?`<img src="${esc(mini(capa))}" alt="" loading="lazy">`:""}<span class="ct"><b>${CATN[c]}</b><span class="n">${l.length} ${l.length===1?"modelo":"modelos"}${promoVale(c)&&PLEVE>=2?` · compre ${PLEVE}, pague ${PLEVE-1}`:""}</span><span class="go">Ver ${c==="oculos"?"óculos":"relógios"} →</span></span></a>`}).join("");
+    return `<a class="cat-tile" href="/${c}">${capa?`<img ${srcDuplo(capa,"(max-width:760px) 50vw, 580px")} alt="" loading="lazy">`:""}<span class="ct"><b>${CATN[c]}</b><span class="n">${l.length} ${l.length===1?"modelo":"modelos"}${promoVale(c)&&PLEVE>=2?` · compre ${PLEVE}, pague ${PLEVE-1}`:""}</span><span class="go">Ver ${c==="oculos"?"óculos":"relógios"} →</span></span></a>`}).join("");
   document.getElementById("categorias").hidden=!box.innerHTML;
 }
 function cardsHTML(list){
@@ -584,7 +584,7 @@ function cardsHTML(list){
     const i=Math.min(sel[p.id]||0,vs.length-1), v=vs[i];
     const fotos=[v.foto,...(v.fotos_extras||[])].filter(Boolean);
     const gk=p.id+"-"+i, gi=fotos.length?((gal[gk]||0)%fotos.length):0;
-    const media=fotos.length?`<img src="${esc(mini(fotos[gi]))}" alt="${esc(p.nome)} - ${esc(v.nome)}" loading="lazy">`+(fotos.length>1?`<button class="gal-btn gal-prev" id="gp-${gk}" data-g="${gk}" data-d="-1" data-n="${fotos.length}" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" id="gn-${gk}" data-g="${gk}" data-d="1" data-n="${fotos.length}" aria-label="Próxima foto">›</button><div class="gal-dots">${fotos.map((_,k)=>`<i class="${k===gi?'on':''}"></i>`).join("")}</div>`:""):art(p.desenho||"hex",v);
+    const media=fotos.length?`<img ${srcDuplo(fotos[gi],"(max-width:560px) calc(100vw - 32px), (max-width:820px) 46vw, 290px")} alt="${esc(p.nome)} - ${esc(v.nome)}" loading="lazy">`+(fotos.length>1?`<button class="gal-btn gal-prev" id="gp-${gk}" data-g="${gk}" data-d="-1" data-n="${fotos.length}" aria-label="Foto anterior">‹</button><button class="gal-btn gal-next" id="gn-${gk}" data-g="${gk}" data-d="1" data-n="${fotos.length}" aria-label="Próxima foto">›</button><div class="gal-dots">${fotos.map((_,k)=>`<i class="${k===gi?'on':''}"></i>`).join("")}</div>`:""):art(p.desenho||"hex",v);
     return `<article class="card" data-nome="${esc(p.nome)}">
       <div class="media" data-open="${p.id}"><div class="badges">${Number(p.preco_de)>Number(p.preco)?`<span class="badge off">-${Math.round((1-p.preco/p.preco_de)*100)}%</span>`:""}${(p.selos||[]).map((b,k)=>`<span class="badge${k===0?' gold':''}">${esc(b)}</span>`).join("")}</div>${media}<button class="see" type="button" data-open="${p.id}" aria-label="Ver detalhes: ${esc(p.nome)}">Ver detalhes</button></div>
       <div class="info">
@@ -717,6 +717,9 @@ let openId=null, pushed=false;
 // miniatura da foto (até 480 px) para vitrine, cores, "Leve também" e carrinho; a foto grande fica para a página do produto
 // se alguma miniatura ainda não existir, mostra a foto grande no lugar
 document.addEventListener("error",e=>{const t=e.target;if(t&&t.tagName==="IMG"&&/\.p\.webp($|[?#])/i.test(t.getAttribute("src")||"")&&!t.dataset.orig){t.dataset.orig=1;t.src=t.getAttribute("src").replace(/\.p\.webp/i,".webp")}},true);
+// vitrine: o navegador escolhe a miniatura (480 px) ou a foto grande (1000 px) conforme o tamanho da tela,
+// para a foto ficar nítida no celular e leve no computador
+function srcDuplo(u,sizes){const m=mini(u);return m===u?`src="${esc(u)}"`:`src="${esc(m)}" srcset="${esc(m)} 480w, ${esc(u)} 1000w" sizes="${sizes}"`}
 function mini(u){return typeof u==="string"&&/^\/(f|img)\/[^?#]+\.webp$/i.test(u)&&!/\.p\.webp$/i.test(u)?u.replace(/\.webp$/i,".p.webp"):u}
 const slug=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 function prodById(id){const idx=+String(id).slice(1);const p=P[idx];return p?{...p,id:"p"+idx}:null}
