@@ -175,7 +175,21 @@ export async function enviarFoto(env, nome, bytes) {
   if (!r.ok) throw new Error("Fotos: " + r.status + " " + (await r.text()).slice(0, 120));
   return `${c.sbUrl}/storage/v1/object/public/${BUCKET}/${nome}`;
 }
-export const urlFotosBase = env => `${cfg(env).sbUrl}/storage/v1/object/public/${BUCKET}/`;
+// Nomes dos arquivos guardados numa pasta do bucket (ex.: "produtos"), para saber quais miniaturas já existem.
+export async function listarFotos(env, pasta) {
+  const c = cfg(env), nomes = [];
+  for (let offset = 0; offset < 20000; offset += 1000) {
+    const r = await fetch(`${c.sbUrl}/storage/v1/object/list/${BUCKET}`, { method: "POST",
+      headers: stHeaders(c, { "content-type": "application/json" }),
+      body: JSON.stringify({ prefix: pasta, limit: 1000, offset, sortBy: { column: "name", order: "asc" } }) });
+    if (!r.ok) throw new Error("Fotos: " + r.status + " " + (await r.text()).slice(0, 120));
+    const l = await r.json();
+    for (const o of l) if (o && o.name) nomes.push(o.name);
+    if (l.length < 1000) break;
+  }
+  return nomes;
+}
+export const urlFotosBase = env =>`${cfg(env).sbUrl}/storage/v1/object/public/${BUCKET}/`;
 // Desconto no Pix (painel › Banner e textos › "Desconto no Pix (%)"). Vale só sobre os produtos, não sobre o frete.
 const r2 = n => Math.round(Number(n) * 100) / 100;
 export const pctPix = loja => Math.min(30, Math.max(0, Number(loja && loja.desconto_pix) || 0));

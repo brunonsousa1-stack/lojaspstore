@@ -173,7 +173,7 @@ function entrar(msg){
 }
 async function carregar(){
   app.innerHTML=`<p class="muted" style="display:flex;gap:10px;align-items:center"><span class="spin"></span>Carregando produtos…</p>`;
-  try{const d=await Conta.api("/api/admin/produtos");PRODS=d.produtos||[];VERSAO=d.versao||"";EST=d.estoque||{};FONTE=d.fonte||"";render()}
+  try{const d=await Conta.api("/api/admin/produtos");PRODS=d.produtos||[];VERSAO=d.versao||"";EST=d.estoque||{};FONTE=d.fonte||"";render();setTimeout(criarMiniaturas,1500)}
   catch(e){if(e.status===401)return entrar();if(e.status===403){await Conta.sair();return entrar(e.message)}app.innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
 }
 function render(){ if(tela==="editar") renderEditor(); else renderLista(); }
@@ -444,25 +444,47 @@ function renderCores(){
 }
 
 // ---------- fotos: converte para WebP no navegador e envia ----------
-function paraWebp(file){
+// Cada foto vai em dois tamanhos: a grande (até 1000 px, na página do produto) e uma miniatura
+// (até 480 px, na vitrine, nas cores, no "Leve também" e no carrinho), que deixa o site mais leve.
+function webpDe(img,max,q){
   return new Promise((ok,falha)=>{
-    const url=URL.createObjectURL(file), img=new Image();
-    img.onload=()=>{URL.revokeObjectURL(url);
-      const max=1000, k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
-      const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
-      const g=c.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(img,0,0,c.width,c.height);
-      c.toBlob(b=>{if(!b||b.type!=="image/webp")return falha(new Error("Este navegador não converte fotos. Use o Chrome."));const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(b)},"image/webp",.82);
-    };
-    img.onerror=()=>{URL.revokeObjectURL(url);falha(new Error(`Não consegui abrir "${file.name}". Envie em JPG, PNG ou WebP.`))};
-    img.src=url;
+    const k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
+    const g=c.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(img,0,0,c.width,c.height);
+    c.toBlob(b=>{if(!b||b.type!=="image/webp")return falha(new Error("Este navegador não converte fotos. Use o Chrome."));const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(b)},"image/webp",q);
   });
+}
+function abrirImg(src,nome){
+  return new Promise((ok,falha)=>{const img=new Image();img.onload=()=>ok(img);img.onerror=()=>falha(new Error(`Não consegui abrir "${nome}". Envie em JPG, PNG ou WebP.`));img.src=src});
+}
+async function paraWebp(file){
+  const url=URL.createObjectURL(file);
+  try{const img=await abrirImg(url,file.name);return {grande:await webpDe(img,1000,.82),mini:await webpDe(img,480,.8)}}
+  finally{URL.revokeObjectURL(url)}
+}
+// Fotos antigas sem miniatura: o painel cria sozinho, em segundo plano, ao abrir.
+async function criarMiniaturas(){
+  if(criarMiniaturas.rodando)return;criarMiniaturas.rodando=true;
+  try{
+    const {faltando=[]}=await Conta.api("/api/admin/foto");
+    if(!faltando.length)return;
+    let feitas=0;
+    toast(`Otimizando ${faltando.length} ${faltando.length===1?"foto antiga":"fotos antigas"} para o site ficar mais leve…`);
+    for(const c of faltando){
+      try{const img=await abrirImg("/f/"+c+"?v="+Date.now(),c);const mini=await webpDe(img,480,.8);
+        await Conta.api("/api/admin/foto",{method:"POST",body:JSON.stringify({miniaturaDe:c,mini})});feitas++}
+      catch(e){console.warn("miniatura",c,e)}
+    }
+    if(feitas)toast(`Pronto: ${feitas} ${feitas===1?"foto otimizada":"fotos otimizadas"}.`);
+  }catch(e){console.warn("miniaturas",e)}
+  finally{criarMiniaturas.rodando=false}
 }
 async function subir(i,files){
   const v=ed.variantes[i]; files=files.filter(f=>f.type.startsWith("image/")); if(!files.length)return;
   if(v.fotos.length+files.length>15){toast("Cada cor aceita até 15 fotos.");files=files.slice(0,Math.max(0,15-v.fotos.length))}
   v._subindo=(v._subindo||[]).concat(files.map(()=>1)); enviando+=files.length; renderCores(); estadoSalvar();
   for(const f of files){
-    try{const b64=await paraWebp(f);const d=await Conta.api("/api/admin/foto",{method:"POST",body:JSON.stringify({nome:(ed.nome||"produto")+" "+(v.nome||""),base64:b64})});v.fotos.push(d.url);marcar()}
+    try{const w=await paraWebp(f);const d=await Conta.api("/api/admin/foto",{method:"POST",body:JSON.stringify({nome:(ed.nome||"produto")+" "+(v.nome||""),base64:w.grande,mini:w.mini})});v.fotos.push(d.url);marcar()}
     catch(e){toast(e.message)}
     finally{v._subindo.pop();enviando--;if(tela==="editar"&&ed&&ed.variantes.includes(v))renderCores();estadoSalvar()}
   }
