@@ -34,6 +34,7 @@ const cfg = env => ({
   resendApi: String(env.RESEND_API || "https://api.resend.com").replace(/\/+$/, ""),
   lojaEmail: String(env.LOJA_EMAIL || "").trim().toLowerCase(),
   remetente: String(env.EMAIL_REMETENTE || "SP Store <pedidos@lojaspstore.com.br>"),
+  responder: String(env.EMAIL_RESPOSTA || "atendimento@lojaspstore.com.br").trim(),
   webhookSecret: String(env.MP_WEBHOOK_SECRET || ""),
 });
 // contas e pedidos funcionam com o banco; o pagamento pode ser cartão (Mercado Pago) e/ou Pix direto na chave da loja
@@ -411,7 +412,7 @@ async function enviarEmail(env, para, assunto, html, responderPara) {
   const r = await fetch(`${c.resendApi}/emails`, {
     method: "POST",
     headers: { authorization: "Bearer " + c.resendKey, "content-type": "application/json" },
-    body: JSON.stringify({ from: c.remetente, to: [para], subject: assunto, html, ...(responderPara ? { reply_to: responderPara } : {}) }),
+    body: JSON.stringify({ from: c.remetente, to: [para], subject: assunto, html, ...((responderPara || c.responder) ? { reply_to: responderPara || c.responder } : {}) }),
   });
   return r.ok;
 }
