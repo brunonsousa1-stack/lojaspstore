@@ -122,7 +122,7 @@ function render(){
         <label class="f">Nome completo<input class="in" name="nome" autocomplete="name" required value="${esc(d.nome||"")}"></label>
         <label class="f">Celular com DDD<input class="in" name="telefone" inputmode="tel" autocomplete="tel-national" placeholder="(11) 90000-0000" required value="${esc(fmtTel(d.telefone||""))}"></label>
         <label class="f">CPF <small>(vai na etiqueta de envio e na nota)</small><input class="in" name="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" value="${esc(fmtCpf(d.cpf||""))}"></label>
-        <div class="row r3"><label class="f">CEP<input class="in" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" required value="${esc(fmtCep(end.cep||""))}"></label><span></span><span></span></div>
+        <div class="row r3"><label class="f">CEP<input class="in" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" required value="${esc(fmtCep(end.cep||(()=>{try{return localStorage.getItem("spstore_cep")||""}catch(e){return ""}})()))}"></label><span></span><span></span></div>
         <p class="hint" id="cep-msg"></p>
         <label class="f">Rua / Avenida<input class="in" name="rua" autocomplete="address-line1" required value="${esc(end.rua||"")}"></label>
         <div class="row"><label class="f">Número<input class="in" name="numero" inputmode="numeric" required value="${esc(end.numero||"")}"></label><label class="f">Complemento <small>(opcional)</small><input class="in" name="complemento" autocomplete="address-line2" value="${esc(end.complemento||"")}"></label></div>

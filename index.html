@@ -280,6 +280,24 @@ body.locked{overflow:hidden}
 .add.ok{background:var(--gold);color:#1b1a17}
 .buy-alt{background:transparent;color:var(--wa);border:1.5px solid var(--wa);padding:9.5px 16px}
 .pixp,.price .pixp{color:#17703c;font-size:13px}.pixp b{font-weight:700}
+.fp{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%;box-sizing:border-box;gap:8px;margin-top:2px}
+.fp label{font-size:13px;font-weight:700}
+.fp-row{display:flex;gap:8px}
+.fp-in{flex:1;min-width:0;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:16px var(--body);background:var(--surface);color:var(--ink)}
+.fp-in:focus{outline:2px solid var(--ink);outline-offset:1px}
+.fp-go{flex:none;border:0;border-radius:10px;padding:0 16px;font:700 14px var(--body);background:var(--ink);color:var(--surface);cursor:pointer}
+.fp-sei{font-size:12px;color:var(--muted);justify-self:start}
+.fp-ops{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:6px}
+.fp-ops li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.fp-ops li span{display:grid;gap:2px;min-width:0}
+.fp-ops small{font-size:12px;color:var(--muted)}
+.fp-ops strong{white-space:nowrap}
+.fp-ops strong.free{color:#17703c}
+.fp-nota{margin:0;font-size:12px;color:var(--muted)}
+.fp-err{margin:0;font-size:13px;color:#b42318}
+.fp-wait{margin:0;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.fp-spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:fpgira .8s linear infinite}
+@keyframes fpgira{to{transform:rotate(360deg)}}
 .pd-perks{list-style:none;margin:10px 0 4px;padding:12px 14px;display:grid;gap:6px;font-size:14px;background:var(--gold-soft);border-radius:12px}
 .pd-perks li::before{content:"✓";color:#17703c;font-weight:700;margin-right:8px}
 .pd-perks a{color:inherit}
@@ -711,10 +729,52 @@ function fillProduct(p){
     ${perks(p)}
     ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
     <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
+    ${freteBox(p,v)}
     ${avaliacoesHTML(p.nome)}
     ${p.descricao?`<div class="pd-desc-box"><h3>Descrição</h3><div class="pd-desc">${fmtDesc(p.descricao)}</div></div>`:""}
   </div>${leveTambem(p)}`;
 }
+// ---------- calcular frete na página do produto ----------
+const CEP_KEY="spstore_cep"; let freteP={k:"",ops:null,err:"",load:false};
+const cepDig=t=>String(t||"").replace(/\D/g,"").slice(0,8), cepFmt=t=>{const d=cepDig(t);return d.length>5?d.slice(0,5)+"-"+d.slice(5):d};
+function cepSalvo(){try{return localStorage.getItem(CEP_KEY)||""}catch(e){return ""}}
+function freteRes(){
+  if(freteP.load) return `<p class="fp-wait"><span class="fp-spin"></span>Calculando o frete…</p>`;
+  if(freteP.err) return `<p class="fp-err">${esc(freteP.err)}</p>`;
+  if(!freteP.ops) return "";
+  if(!freteP.ops.length) return `<p class="fp-err">Não encontramos opções de entrega para este CEP.</p>`;
+  return `<ul class="fp-ops">${freteP.ops.map(o=>`<li><span><b>${o.id==="motoboy"?"🛵 ":""}${esc(o.nome)}${o.empresa&&o.empresa!==o.nome?` · ${esc(o.empresa)}`:""}</b><small>${o.prazo_txt?esc(o.prazo_txt):o.prazo?`Chega em até ${o.prazo} dias úteis`:"Prazo informado após o pagamento"}</small></span><strong class="${o.preco===0?"free":""}">${o.preco===0?"Grátis":brl(o.preco)}</strong></li>`).join("")}</ul>
+    <p class="fp-nota">Valor para 1 unidade. No carrinho o frete é recalculado com todos os itens${FGA>0?` · frete grátis${FGREG?" "+esc(FGREG):""} acima de ${brl(FGA)}`:""}.</p>`;
+}
+function freteBox(p,v){
+  const c=cepSalvo(), k=p.nome+"|"+v.nome+"|"+c;
+  if(freteP.k!==k){freteP={k,ops:null,err:"",load:false}; if(c.length===8) setTimeout(()=>calcFreteProduto(c),0)}
+  return `<form class="fp" id="fp" novalidate><label for="fp-cep">Calcular frete e prazo</label>
+    <div class="fp-row"><input class="fp-in" id="fp-cep" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="Digite seu CEP" maxlength="9" value="${esc(cepFmt(c))}"><button class="fp-go" type="submit">Calcular</button></div>
+    <a class="fp-sei" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a>
+    <div id="fp-res" aria-live="polite">${freteRes()}</div></form>`;
+}
+async function calcFreteProduto(cep){
+  if(!openId) return; const p=prodById(openId); if(!p) return;
+  const vs=p.variantes&&p.variantes.length?p.variantes:[{nome:"Padrão"}], v=vs[Math.min(sel[p.id]||0,vs.length-1)];
+  const k=p.nome+"|"+v.nome+"|"+cep; freteP={k,ops:null,err:"",load:true}; pintarFrete();
+  try{const r=await fetch("/api/frete",{method:"POST",headers:{"content-type":"application/json"},cache:"no-store",body:JSON.stringify({cep,itens:[{nome:p.nome,cor:v.nome,qtd:1}]})});
+    const d=await r.json().catch(()=>({})); if(freteP.k!==k) return;
+    if(!r.ok) throw new Error(d.erro||"Não foi possível calcular o frete agora.");
+    freteP={k,ops:d.opcoes||[],err:"",load:false};
+    try{SPA.ev("frete_produto",{p:p.nome})}catch(e){}
+  }catch(e){if(freteP.k!==k)return;freteP={k,ops:null,err:e.message||"Não foi possível calcular o frete agora.",load:false}}
+  pintarFrete();
+}
+function pintarFrete(){const b=document.getElementById("fp-res");if(b)b.innerHTML=freteRes()}
+dlg.addEventListener("submit",e=>{
+  if(e.target.id!=="fp") return; e.preventDefault();
+  const i=document.getElementById("fp-cep"), c=cepDig(i.value);
+  if(c.length!==8){freteP={...freteP,ops:null,load:false,err:"Digite um CEP com 8 números."};pintarFrete();i.focus();return}
+  try{localStorage.setItem(CEP_KEY,c)}catch(e){}
+  calcFreteProduto(c);
+});
+dlg.addEventListener("input",e=>{if(e.target.id!=="fp-cep")return;const i=e.target;i.value=cepFmt(i.value);if(cepDig(i.value).length===8)i.form.requestSubmit?i.form.requestSubmit():i.form.dispatchEvent(new Event("submit",{cancelable:true,bubbles:true}))});
 // ---------- "Leve também": mesma categoria, outros modelos primeiro ----------
 function leveTambem(p){
   const outros=P.map((x,idx)=>({...x,id:"p"+idx}))
