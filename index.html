@@ -25,7 +25,7 @@
   --bg:#181816; --surface:#22211e; --ink:#efede7; --muted:#a29e94; --line:#36342f;
   --gold:#d1ab5e; --gold-soft:#3a3123; --dark:#0f0f0e; --on-dark:#f3f1ec; --wa:#2fbf6c; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:#fbfaf7}
 a{color:inherit}
 .wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -41,7 +41,9 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 .ticker b{letter-spacing:.06em;text-transform:uppercase}
 
 /* cabeçalho */
-header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:#fbfaf7;color:#1b1a17;border-bottom:1px solid #d6d4ce}
+html{scroll-padding-top:130px}
+.topo-fixo{position:sticky;top:0;z-index:9;padding-top:env(safe-area-inset-top,0px);background:#0c0c0b}
+header{background:#fbfaf7;color:#1b1a17;border-bottom:1px solid #d6d4ce}
 header .wrap{display:flex;align-items:center;gap:24px;padding-block:14px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
 .logo-mark{width:38px;height:38px;border-radius:50%;border:2px solid #d1ab5e;display:grid;place-items:center;font-family:var(--display);font-weight:400;font-size:14px;color:#d1ab5e}
@@ -218,7 +220,6 @@ body{padding-bottom:72px}}
 
 /* abrir produto */
 .media{cursor:pointer}
-.media,.pd-art{touch-action:pan-y}.media img,.pd-art img{-webkit-user-drag:none;user-select:none}
 .open{border:0;padding:0;margin:0;font:inherit;color:inherit;background:none;text-align:inherit;cursor:pointer}
 .open:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .info h3 .open:hover{color:var(--gold)}
@@ -353,6 +354,7 @@ body.pag-site .so-wa{display:none}
 @media (max-width:720px){.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 </style>
 
+<div class="topo-fixo">
 <div class="ticker"><div class="wrap">
   <span class="js-promo-on"><b class="js-promo">Leve 4 óculos, pague 3</b></span>
   <span class="js-fg-on"><b>Frete grátis</b><span class="js-fg-reg"> Sul e Sudeste</span> acima de <span class="js-fg">R$ 120,00</span></span>
@@ -374,6 +376,7 @@ body.pag-site .so-wa{display:none}
   <a class="acct so-site" id="acct" href="/conta.html" aria-label="Minha conta" title="Minha conta"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
   <button class="bag" id="bag-btn" type="button" aria-label="Abrir carrinho"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg><span class="bag-n" id="bag-n" hidden>0</span></button>
 </div></header>
+</div>
 
 <section class="hero" id="topo"><div class="wrap">
   <div>
@@ -759,14 +762,6 @@ dlg.addEventListener("click",e=>{
   const pt=e.target.closest("[data-pt]"); if(pt){gal[gk]=+pt.dataset.pt;fillProduct(p);return}
 });
 document.getElementById("pd-close").addEventListener("click",closeProduct);
-// arrastar o dedo para o lado troca a foto (vitrine e página do produto)
-(()=>{let sx=0,sy=0,box=null,stop=0;
-document.addEventListener("touchstart",e=>{const t=e.touches[0];box=e.touches.length===1?e.target.closest(".media,.pd-art"):null;if(box&&!box.querySelector(".gal-next"))box=null;if(box){sx=t.clientX;sy=t.clientY}},{passive:true});
-document.addEventListener("touchend",e=>{if(!box)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy,b=box;box=null;
-  if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)*1.5)return;
-  const btn=b.querySelector(dx<0?".gal-next":".gal-prev");if(btn){btn.click();stop=Date.now()}},{passive:true});
-document.addEventListener("click",e=>{if(Date.now()-stop<500&&e.isTrusted){e.stopPropagation();e.preventDefault()}},true);
-})();
 
 document.addEventListener("click",e=>{const a=e.target.closest("[data-ir-av]");if(!a)return;e.preventDefault();
   const card=a.closest(".card");if(card){const o=card.querySelector("[data-open]");if(o)openProduct(o.dataset.open)}
