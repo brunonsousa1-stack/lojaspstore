@@ -101,8 +101,10 @@ function resumoHTML(){
     ${t.desconto>0?`<div style="color:#17703c"><span>Desconto no Pix (${pctPix()}%)</span><span>− ${brl(t.desconto)}</span></div>`:""}
     <div class="grand"><span>Total${t.desconto>0?" no Pix":""}</span><strong>${brl(t.total)}</strong></div>
     ${t.pix!=null&&t.pix<t.total?`<div style="font-size:13px;color:#17703c;justify-content:flex-end">ou <b style="margin:0 4px">${brl(t.pix)}</b> no Pix (${pctPix()}% off)</div>`:""}</div>
-    ${pedido?`<p class="hint" style="margin-top:10px">Pedido #${pedido.id}</p>`:`<p class="hint" style="margin-top:10px"><a href="/#vitrine">Alterar itens no carrinho</a></p>`}</details>`;
+    ${pedido?`<p class="hint" style="margin-top:10px">Pedido #${pedido.id}</p>`:`<p class="hint" style="margin-top:10px"><a href="/#vitrine">Alterar itens no carrinho</a></p>`}
+    <p class="hint" style="margin-top:8px">Dúvidas? <a href="${waDuvida()}" target="_blank" rel="noopener">Fale com a gente no WhatsApp</a></p></details>`;
 }
+function waDuvida(){return `https://wa.me/${digitos(LOJA.whatsapp||"5511947523834")}?text=${encodeURIComponent(pedido?`Olá! Tenho uma dúvida sobre o pedido #${pedido.id} no site da SP Store.`:"Olá! Tenho uma dúvida sobre minha compra no site da SP Store.")}`}
 function waLink(){
   const lines=cart.map(x=>`• ${x.qtd}x ${x.nome}${corTxt(x.cor)?` - ${x.cor}`:""} (${brl(cents(x.preco)*x.qtd/100)})`);
   const t=`Olá! Quero fazer este pedido pelo site da SP Store:\n\n${lines.join("\n")}\n\nTotal: ${brl(totais().total)}`;
@@ -119,7 +121,7 @@ function render(){
     </section>
     <section class="card ${logado?"":"lockd"}" id="s-entrega"><div class="step ${pedido?"done":""}"><span class="n">${pedido?"✓":"2"}</span><h2>Entrega</h2></div>
       ${pedido?entregaResumo(pedido):`<form class="form" id="f-entrega" novalidate>
-        <label class="f">Nome completo<input class="in" name="nome" autocomplete="name" required value="${esc(d.nome||"")}"></label>
+        <label class="f">Nome completo<input class="in" name="nome" autocomplete="name" required value="${esc(d.nome||d.full_name||d.name||"")}"></label>
         <label class="f">Celular com DDD<input class="in" name="telefone" inputmode="tel" autocomplete="tel-national" placeholder="(11) 90000-0000" required value="${esc(fmtTel(d.telefone||""))}"></label>
         <label class="f">CPF <small>(vai na etiqueta de envio e na nota)</small><input class="in" name="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" value="${esc(fmtCpf(d.cpf||""))}"></label>
         <div class="row r3"><label class="f">CEP<input class="in" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" required value="${esc(fmtCep(end.cep||(()=>{try{return localStorage.getItem("spstore_cep")||""}catch(e){return ""}})()))}"></label><span></span><span></span></div>
@@ -146,11 +148,12 @@ function render(){
 }
 function contaHTML(){
   return `<div class="tabs" role="tablist"><button role="tab" type="button" data-aba="criar" aria-selected="${aba==="criar"}">Criar conta</button><button role="tab" type="button" data-aba="entrar" aria-selected="${aba==="entrar"}">Já tenho conta</button></div>
+  ${aba!=="esqueci"?`<div id="g-box" hidden></div>`:""}
   ${aba==="criar"?`<form class="form" id="f-conta" novalidate>
     <p class="sub" style="margin:0">Com a conta você acompanha seus pedidos e o rastreio no site.</p>
     <label class="f">E-mail<input class="in" type="email" name="email" autocomplete="email" required></label>
-    <label class="f">Crie uma senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="new-password" required minlength="8"><button type="button" data-ver>Mostrar</button></span></label>
-    <p class="hint">Pelo menos 8 caracteres, com letras e números.</p>
+    <label class="f">Crie uma senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="new-password" required minlength="6"><button type="button" data-ver>Mostrar</button></span></label>
+    <p class="hint">Pelo menos 6 caracteres.</p>
     <div class="msg bad" id="c-msg" role="alert"></div>
     <button class="btn btn-dark btn-block" type="submit">Criar conta e continuar</button></form>`
   :aba==="entrar"?`<form class="form" id="f-conta" novalidate>
@@ -177,6 +180,7 @@ function ligar(){
   app.querySelectorAll("[data-ver]").forEach(b=>b.addEventListener("click",()=>{const i=b.previousElementSibling;i.type=i.type==="password"?"text":"password";b.textContent=i.type==="password"?"Mostrar":"Ocultar"}));
   const s=$("#sair"); if(s) s.addEventListener("click",async()=>{await Conta.sair();aba="entrar";render()});
   const fc=$("#f-conta"); if(fc) fc.addEventListener("submit",enviarConta);
+  Conta.montarGoogle($("#g-box"),location.origin+"/checkout.html");
   const fe=$("#f-entrega"); if(fe){
     fe.addEventListener("submit",enviarEntrega);
     fe.cep.addEventListener("input",()=>{fe.cep.value=fmtCep(fe.cep.value);const c=digitos(fe.cep.value);if(c.length===8){buscarCep(fe);cotarFrete(c)}else if(freteCep){freteOps=null;freteSel=null;freteCep="";desenharFretes()}});
@@ -193,7 +197,7 @@ async function enviarConta(e){
   try{
     if(aba==="esqueci"){carregando(btn,true,"Enviando…");await Conta.esqueci(email);m.className="msg ok";m.textContent=`Pronto! Se existir uma conta com ${email}, o link chega em instantes. Confira também o spam.`;carregando(btn,false);return}
     const senha=f.senha.value;
-    if(aba==="criar"&&Conta.senhaFraca(senha)){m.textContent="A senha precisa ter pelo menos 8 caracteres, com letras e números.";f.senha.focus();return}
+    if(aba==="criar"&&Conta.senhaFraca(senha)){m.textContent="A senha precisa ter pelo menos 6 caracteres.";f.senha.focus();return}
     carregando(btn,true,aba==="criar"?"Criando conta…":"Entrando…");
     if(aba==="criar"){
       const r=await Conta.criar(email,senha,{},location.origin+"/checkout.html");

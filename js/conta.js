@@ -17,7 +17,7 @@
     [/invalid login credentials/i, "E-mail ou senha incorretos."],
     [/email not confirmed/i, "Confirme seu e-mail antes de entrar. Procure a mensagem da SP Store na sua caixa de entrada (e no spam)."],
     [/user already registered|already been registered/i, "Este e-mail já tem conta. Use \"Entrar\" ou \"Esqueci a senha\"."],
-    [/password should be at least|weak password|password is too weak/i, "A senha precisa ter pelo menos 8 caracteres, com letras e números."],
+    [/password should be at least|weak password|password is too weak/i, "A senha precisa ter pelo menos 6 caracteres."],
     [/rate limit|too many/i, "Muitas tentativas. Espere alguns minutos e tente de novo."],
     [/unable to validate email|invalid email|email address .* is invalid/i, "E-mail inválido."],
     [/same_password|should be different/i, "A nova senha precisa ser diferente da atual."],
@@ -85,7 +85,29 @@
       if (!r.ok) { const e = new Error(d.erro || "Erro de conexão. Tente de novo."); e.status = r.status; e.dados = d; throw e; }
       return d;
     },
-    senhaFraca(s) { return !(s && s.length >= 8 && /[a-zA-Z]/.test(s) && /\d/.test(s)); },
+    senhaFraca(s) { return !(s && s.length >= 6); },
+    // ---------- Entrar com Google ----------
+    // O botão só aparece se o Google estiver ligado no Supabase (Authentication › Providers › Google).
+    async googleAtivo() {
+      if (Conta._google != null) return Conta._google;
+      try {
+        const c = await config(); if (!c.supabaseUrl) return (Conta._google = false);
+        const d = await fetch(`${c.supabaseUrl}/auth/v1/settings`, { headers: { apikey: c.supabaseAnonKey } }).then(r => r.json());
+        Conta._google = !!(d.external && d.external.google);
+      } catch (e) { Conta._google = false; }
+      return Conta._google;
+    },
+    async entrarGoogle(voltarPara) {
+      const c = await config();
+      location.href = `${c.supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(voltarPara || volta())}`;
+    },
+    // Coloca o botão "Continuar com Google" dentro de `el` (some sozinho se o Google não estiver ligado)
+    async montarGoogle(el, voltarPara) {
+      if (!el || !(await Conta.googleAtivo()) || !el.isConnected) return;
+      el.innerHTML = `<button type="button" class="btn btn-line btn-block btn-google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continuar com Google</button><div class="ou"><span>ou com e-mail</span></div>`;
+      el.hidden = false;
+      el.querySelector("button").addEventListener("click", e => { const b = e.currentTarget; b.disabled = true; b.lastChild.textContent = "Abrindo o Google…"; Conta.entrarGoogle(voltarPara); });
+    },
   };
   // link do e-mail aberto numa aba que já estava nesta página: recarrega para entrar
   window.addEventListener("hashchange", () => { if (/access_token=|error_description=/.test(location.hash)) location.reload(); });

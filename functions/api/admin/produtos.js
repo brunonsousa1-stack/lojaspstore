@@ -111,6 +111,12 @@ function aplicar(lista, d, base) {
     }
     case "mover": {
       const i = achar(d.nome); if (i < 0) throw new ErroUso("Produto não encontrado. Recarregue a página.", 409);
+      // para: "antes" | "depois" (uma casa), "topo" | "fim", ou posicao: número (1 = primeiro)
+      let alvo = null;
+      if (d.para === "topo") alvo = 0;
+      else if (d.para === "fim") alvo = lista.length - 1;
+      else if (d.posicao != null) { const n = Math.round(Number(d.posicao)); if (!Number.isFinite(n) || n < 1) throw new ErroUso("Posição inválida."); alvo = Math.min(n, lista.length) - 1; }
+      if (alvo != null) { const [p] = lista.splice(i, 1); lista.splice(alvo, 0, p); break; }
       const j = d.para === "antes" ? i - 1 : i + 1;
       if (j >= 0 && j < lista.length) [lista[i], lista[j]] = [lista[j], lista[i]];
       break;

@@ -56,23 +56,25 @@ function telaEntrar(msg){
     <div class="eyebrow">Minha conta</div><h2 style="margin:6px 0 4px">${aba==="criar"?"Criar conta":aba==="esqueci"?"Esqueci a senha":"Entrar"}</h2>
     <p class="sub">${aba==="esqueci"?"Enviamos um link para você criar uma senha nova.":"Acompanhe seus pedidos, pagamentos e o rastreio da entrega."}</p>
     ${aba!=="esqueci"?`<div class="tabs" role="tablist"><button role="tab" type="button" data-aba="entrar" aria-selected="${aba==="entrar"}">Entrar</button><button role="tab" type="button" data-aba="criar" aria-selected="${aba==="criar"}">Criar conta</button></div>`:""}
+    ${aba!=="esqueci"?`<div id="g-box" hidden></div>`:""}
     <form class="form" id="f" novalidate>
       <label class="f">E-mail<input class="in" type="email" name="email" autocomplete="email" required></label>
       ${aba!=="esqueci"?`<label class="f">${aba==="criar"?"Crie uma senha":"Senha"}<span class="pass"><input class="in" type="password" name="senha" autocomplete="${aba==="criar"?"new-password":"current-password"}" required><button type="button" data-ver>Mostrar</button></span></label>`:""}
-      ${aba==="criar"?`<p class="hint">Pelo menos 8 caracteres, com letras e números.</p>`:""}
+      ${aba==="criar"?`<p class="hint">Pelo menos 6 caracteres.</p>`:""}
       <div class="msg ${msg&&msg.ok?"ok":"bad"}" id="m" role="alert">${msg?esc(msg.t):""}</div>
       <button class="btn btn-dark btn-block" type="submit">${aba==="criar"?"Criar conta":aba==="esqueci"?"Enviar link":"Entrar"}</button>
       ${aba==="entrar"?`<button class="link" type="button" data-aba="esqueci" style="justify-self:start">Esqueci a senha</button>`:aba==="esqueci"?`<button class="link" type="button" data-aba="entrar" style="justify-self:start">Voltar</button>`:""}
     </form></div></div>`;
   app.querySelectorAll("[data-aba]").forEach(b=>b.addEventListener("click",()=>{aba=b.dataset.aba;telaEntrar()}));
   verSenha();
+  Conta.montarGoogle($("#g-box"));
   $("#f").addEventListener("submit",async e=>{
     e.preventDefault(); const f=e.target,m=$("#m"),btn=f.querySelector("[type=submit]"); m.className="msg bad"; m.textContent="";
     const email=f.email.value.trim();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){m.textContent="Digite um e-mail válido.";return}
     try{
       if(aba==="esqueci"){carregando(btn,true,"Enviando…");await Conta.esqueci(email);carregando(btn,false);m.className="msg ok";m.textContent=`Se existir uma conta com ${email}, o link chega em instantes. Confira também o spam.`;return}
-      if(aba==="criar"&&Conta.senhaFraca(f.senha.value)){m.textContent="A senha precisa ter pelo menos 8 caracteres, com letras e números.";return}
+      if(aba==="criar"&&Conta.senhaFraca(f.senha.value)){m.textContent="A senha precisa ter pelo menos 6 caracteres.";return}
       carregando(btn,true,aba==="criar"?"Criando…":"Entrando…");
       if(aba==="criar"){const r=await Conta.criar(email,f.senha.value);if(!r.entrou){carregando(btn,false);m.className="msg info";m.innerHTML=`<b>Confirme seu e-mail.</b> Enviamos um link para <b>${esc(email)}</b>. Toque em <b>Confirmar e-mail</b> e sua conta fica pronta. Confira também o spam.`;return}}
       else await Conta.entrar(email,f.senha.value);
@@ -83,11 +85,11 @@ function telaEntrar(msg){
 function telaNovaSenha(){
   app.innerHTML=`<div class="narrow"><div class="card"><div class="eyebrow">Minha conta</div><h2 style="margin:6px 0 12px">Crie uma senha nova</h2>
     <form class="form" id="f" novalidate><label class="f">Nova senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="new-password" required><button type="button" data-ver>Mostrar</button></span></label>
-    <p class="hint">Pelo menos 8 caracteres, com letras e números.</p><div class="msg bad" id="m" role="alert"></div>
+    <p class="hint">Pelo menos 6 caracteres.</p><div class="msg bad" id="m" role="alert"></div>
     <button class="btn btn-dark btn-block" type="submit">Salvar senha</button></form></div></div>`;
   verSenha();
   $("#f").addEventListener("submit",async e=>{e.preventDefault();const f=e.target,m=$("#m"),btn=f.querySelector("[type=submit]");
-    if(Conta.senhaFraca(f.senha.value)){m.textContent="A senha precisa ter pelo menos 8 caracteres, com letras e números.";return}
+    if(Conta.senhaFraca(f.senha.value)){m.textContent="A senha precisa ter pelo menos 6 caracteres.";return}
     carregando(btn,true,"Salvando…");try{await Conta.novaSenha(f.senha.value);aviso="Senha alterada com sucesso.";await iniciarLogado()}catch(err){carregando(btn,false);m.textContent=err.message}});
 }
 
@@ -119,7 +121,7 @@ function pedidoHTML(p){
   </div>`:""}</article>`;
 }
 function telaLogado(){
-  const u=Conta.usuario()||{}, d=u.user_metadata||{}, primeiro=String(d.nome||"").split(" ")[0];
+  const u=Conta.usuario()||{}, d=u.user_metadata||{}, primeiro=String(d.nome||d.full_name||d.name||"").split(" ")[0];
   app.innerHTML=`<div style="max-width:820px;margin:0 auto">
     <div class="hello"><div><div class="eyebrow">Minha conta</div><h1>${primeiro?`Olá, ${esc(primeiro)}!`:"Olá!"}</h1><p class="muted" style="margin:2px 0 0;font-size:14px">${esc(u.email||"")}</p></div>
     <div class="menu"><button class="btn btn-sm ${tela==="pedidos"?"btn-dark":"btn-line"}" data-tela="pedidos" type="button">Meus pedidos</button><button class="btn btn-sm ${tela==="dados"?"btn-dark":"btn-line"}" data-tela="dados" type="button">Meus dados</button><button class="btn btn-sm btn-line" id="sair" type="button">Sair</button></div></div>
@@ -140,18 +142,18 @@ function telaPedidos(){
 function telaDados(){
   const u=Conta.usuario()||{}, d=u.user_metadata||{};
   $("#corpo").innerHTML=`<div class="card"><h2>Meus dados</h2><p class="sub">Usamos estes dados para preencher a entrega mais rápido.</p>
-    <form class="form" id="fd" novalidate><label class="f">Nome completo<input class="in" name="nome" autocomplete="name" value="${esc(d.nome||"")}"></label>
+    <form class="form" id="fd" novalidate><label class="f">Nome completo<input class="in" name="nome" autocomplete="name" value="${esc(d.nome||d.full_name||d.name||"")}"></label>
     <label class="f">Celular com DDD<input class="in" name="telefone" inputmode="tel" value="${esc(fmtTel(d.telefone||""))}"></label>
     <div class="msg" id="md" role="status"></div><button class="btn btn-dark" type="submit" style="justify-self:start">Salvar</button></form></div>
     <div class="card"><h2>Trocar senha</h2><form class="form" id="fs" novalidate style="margin-top:12px">
     <label class="f">Nova senha<span class="pass"><input class="in" type="password" name="senha" autocomplete="new-password"><button type="button" data-ver>Mostrar</button></span></label>
-    <p class="hint">Pelo menos 8 caracteres, com letras e números.</p><div class="msg" id="ms" role="status"></div><button class="btn btn-dark" type="submit" style="justify-self:start">Trocar senha</button></form></div>`;
+    <p class="hint">Pelo menos 6 caracteres.</p><div class="msg" id="ms" role="status"></div><button class="btn btn-dark" type="submit" style="justify-self:start">Trocar senha</button></form></div>`;
   verSenha();
   const fd=$("#fd"); fd.telefone.addEventListener("input",()=>{fd.telefone.value=fmtTel(fd.telefone.value)});
   fd.addEventListener("submit",async e=>{e.preventDefault();const m=$("#md"),btn=fd.querySelector("[type=submit]");carregando(btn,true,"Salvando…");
     try{await Conta.atualizarDados({nome:fd.nome.value.trim(),telefone:digitos(fd.telefone.value)});m.className="msg ok";m.textContent="Dados salvos."}catch(err){m.className="msg bad";m.textContent=err.message}carregando(btn,false)});
   const fs=$("#fs"); fs.addEventListener("submit",async e=>{e.preventDefault();const m=$("#ms"),btn=fs.querySelector("[type=submit]");m.className="msg bad";
-    if(Conta.senhaFraca(fs.senha.value)){m.textContent="A senha precisa ter pelo menos 8 caracteres, com letras e números.";return}
+    if(Conta.senhaFraca(fs.senha.value)){m.textContent="A senha precisa ter pelo menos 6 caracteres.";return}
     carregando(btn,true,"Salvando…");try{await Conta.novaSenha(fs.senha.value);m.className="msg ok";m.textContent="Senha alterada.";fs.reset()}catch(err){m.textContent=err.message}carregando(btn,false)});
 }
 async function iniciarLogado(){

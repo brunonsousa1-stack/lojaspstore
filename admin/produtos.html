@@ -237,8 +237,11 @@ function renderLista(){
       <details class="mais"><summary class="ico" aria-label="Mais ações" title="Mais ações">⋯</summary><div class="menu">
         <button type="button" data-on="${i}">${p.ativo===false?"Colocar no ar":"Tirar do ar"}</button>
         <button type="button" data-dup="${i}">Duplicar</button>
-        <button type="button" data-up="${i}" ${i===0?"disabled":""}>Mover para antes na vitrine</button>
-        <button type="button" data-down="${i}" ${i===PRODS.length-1?"disabled":""}>Mover para depois na vitrine</button>
+        <button type="button" data-topo="${i}" ${i===0?"disabled":""}>Mover para o topo da vitrine</button>
+        <button type="button" data-pos="${i}">Escolher posição na vitrine… <small class="muted">(agora ${i+1}º)</small></button>
+        <button type="button" data-up="${i}" ${i===0?"disabled":""}>Subir uma posição</button>
+        <button type="button" data-down="${i}" ${i===PRODS.length-1?"disabled":""}>Descer uma posição</button>
+        <button type="button" data-fim="${i}" ${i===PRODS.length-1?"disabled":""}>Mover para o fim da vitrine</button>
         <button type="button" data-del="${i}" class="bad">Excluir</button></div></details></div>
   </div>`}).join("")}</div>`
   :`<div class="card vazio"><h2>${PRODS.length?"Nada encontrado":"Nenhum produto ainda"}</h2><p class="muted">${PRODS.length?"Mude a busca ou o filtro.":"Clique em <b>+ Novo produto</b> para cadastrar o primeiro."}</p></div>`}`;
@@ -249,6 +252,9 @@ function renderLista(){
   app.querySelectorAll("[data-ed]").forEach(x=>x.onclick=()=>abrir(+x.dataset.ed));
   app.querySelectorAll("[data-up]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.up].nome,para:"antes"},"Ordem da vitrine atualizada."));
   app.querySelectorAll("[data-down]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.down].nome,para:"depois"},"Ordem da vitrine atualizada."));
+  app.querySelectorAll("[data-topo]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.topo].nome,para:"topo"},"Produto movido para o topo da vitrine."));
+  app.querySelectorAll("[data-fim]").forEach(x=>x.onclick=()=>acaoRapida({op:"mover",nome:PRODS[+x.dataset.fim].nome,para:"fim"},"Produto movido para o fim da vitrine."));
+  app.querySelectorAll("[data-pos]").forEach(x=>x.onclick=()=>posicaoModal(+x.dataset.pos));
   app.querySelectorAll("[data-on]").forEach(x=>x.onclick=()=>{const i=+x.dataset.on,on=PRODS[i].ativo===false;acaoRapida({op:"ativo",nome:PRODS[i].nome,ativo:on},on?"Produto colocado no ar.":"Produto tirado do ar.")});
   app.querySelectorAll("[data-dup]").forEach(x=>x.onclick=()=>duplicar(+x.dataset.dup));
   app.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>excluir(+x.dataset.del));
@@ -264,6 +270,19 @@ function excluir(i){
   const p=PRODS[i];
   confirmarModal(`Excluir "${p.nome}"?`,"O produto sai do site. Pedidos antigos não são afetados. Se só quiser esconder por um tempo, use <b>Tirar do ar</b>.","Excluir",()=>
     acaoRapida({op:"excluir",nome:p.nome,estoque:(p.variantes||[]).filter(v=>chave(p.nome,v.nome) in EST).map(v=>({chave:chave(p.nome,v.nome),qtd:null}))},"Produto excluído."));
+}
+// escolher a posição do produto na vitrine (1 = primeiro)
+function posicaoModal(i){
+  const p=PRODS[i], tot=PRODS.length;
+  const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="card" role="dialog" aria-modal="true"><h2 style="font-size:22px">Posição na vitrine</h2>
+  <p class="muted" style="font-size:14px;margin:0 0 12px"><b>${esc(p.nome)}</b> está em ${i+1}º de ${tot}. Digite a nova posição (1 é o primeiro).</p>
+  <form id="fpos" style="display:grid;gap:12px"><input class="in" name="n" type="number" inputmode="numeric" min="1" max="${tot}" value="${i+1}" style="font-size:18px">
+  <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-line btn-sm" type="button" data-n>Cancelar</button><button class="btn btn-dark btn-sm" type="submit">Mover</button></div></form></div>`;
+  document.body.appendChild(m); const fecha=()=>m.remove(), inp=m.querySelector("[name=n]");
+  m.querySelector("[data-n]").onclick=fecha; m.onclick=e=>{if(e.target===m)fecha()};
+  m.querySelector("#fpos").onsubmit=e=>{e.preventDefault();const n=Math.round(Number(inp.value));if(!(n>=1)){inp.focus();return}fecha();if(Math.min(n,tot)===i+1)return;
+    acaoRapida({op:"mover",nome:p.nome,posicao:n},`Produto movido para a posição ${Math.min(n,tot)}.`)};
+  inp.focus();inp.select();
 }
 function confirmarModal(tit,txt,bt,ok){
   const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="card" role="dialog" aria-modal="true"><h2 style="font-size:22px">${esc(tit)}</h2><p class="muted" style="font-size:14px">${txt}</p>
