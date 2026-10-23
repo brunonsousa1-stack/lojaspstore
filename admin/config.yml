@@ -98,10 +98,8 @@ collections:
           - { label: Etiqueta do banner, name: banner_etiqueta, widget: string }
           - { label: Título do banner, name: banner_titulo, widget: string }
           - { label: Texto do banner, name: banner_texto, widget: text }
-          - { label: "Imagem do banner (computador, 1920 x 600 px)", name: banner_imagem, widget: image, required: false, hint: "Não aparece mais: a página inicial agora mostra os banners Óculos Masculinos e Óculos Femininos." }
+          - { label: "Imagem do banner (computador, 1920 x 600 px)", name: banner_imagem, widget: image, required: false, hint: "Opcional. Com imagem, ela aparece no lugar do banner de texto. Deixe vazio para manter o banner atual." }
           - { label: "Imagem do banner (celular, 1080 x 1080 px)", name: banner_imagem_celular, widget: image, required: false, hint: "Opcional. Se ficar vazio, o celular usa a imagem do computador." }
-          - { label: "Banner Óculos Masculinos (página inicial, foto quadrada ou vertical)", name: banner_masculino, widget: image, required: false, hint: "Opcional. Vazio = usa a 1ª foto do 1º óculos masculino da vitrine." }
-          - { label: "Banner Óculos Femininos (página inicial, foto quadrada ou vertical)", name: banner_feminino, widget: image, required: false, hint: "Opcional. Vazio = usa a 1ª foto do 1º óculos feminino da vitrine." }
           - { label: "Página Óculos: banner (computador, 1920 x 600 px)", name: banner_oculos, widget: image, required: false, hint: "Aparece em lojaspstore.com.br/oculos. Vazio = título com fundo escuro." }
           - { label: "Página Óculos: banner (celular, 1080 x 1080 px)", name: banner_oculos_celular, widget: image, required: false }
           - { label: "Página Relógios: banner (computador, 1920 x 600 px)", name: banner_relogios, widget: image, required: false, hint: "Aparece em lojaspstore.com.br/relogios. Vazio = título com fundo escuro." }
