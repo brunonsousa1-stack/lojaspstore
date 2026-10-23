@@ -112,6 +112,23 @@ function render(){
   app.querySelectorAll("[data-abrir]").forEach(b=>b.addEventListener("click",()=>{const id=+b.dataset.abrir;aberto=aberto===id?null:id;confirmar=null;render()}));
   app.querySelectorAll("[data-copiar]").forEach(b=>b.addEventListener("click",()=>{navigator.clipboard.writeText(b.dataset.copiar).then(()=>{b.textContent="copiado ✓"}).catch(()=>{})}));
   app.querySelectorAll("[data-acao]").forEach(b=>b.addEventListener("click",()=>acao(+b.dataset.id,b.dataset.acao,b)));
+  app.querySelectorAll("[data-lembrete]").forEach(b=>b.addEventListener("click",()=>{try{localStorage.setItem("spstore_wa_"+b.dataset.lembrete,new Date().toISOString())}catch(x){}setTimeout(render,300)}));
+}
+// ---------- lembrete pelo WhatsApp (abre o WhatsApp da loja com a mensagem pronta; nada é enviado sozinho) ----------
+const lerWa=id=>{try{return localStorage.getItem("spstore_wa_"+id)}catch(e){return null}};
+function waLembrete(p){
+  let tel=digitos(p.telefone||""); if(!tel) return ""; if(!/^55\d{10,11}$/.test(tel)) tel="55"+tel.replace(/^0+/,"");
+  const nome=String(p.nome||"").trim().split(" ")[0], itens=(p.itens||[]).map(x=>`${x.qtd}x ${x.nome}${x.cor&&x.cor!=="Padrão"?` (${x.cor})`:""}`).join(", ");
+  const link=`${location.origin}/checkout.html?pedido=${p.id}&t=${p.token}&utm_source=whatsapp&utm_campaign=lembrete`;
+  const t=`Oi${nome?", "+nome:""}! Aqui é da SP Store 😊\n\nSeu pedido #${p.id} (${itens}) está separado, mas o pagamento ainda não foi concluído.\n\nPara finalizar é só tocar no link (no Pix tem desconto):\n${link}\n\nSe teve alguma dificuldade para pagar, me conta aqui que eu te ajudo!`;
+  return `https://wa.me/${tel}?text=${encodeURIComponent(t)}`;
+}
+function lembreteHTML(p){
+  if(p.status!=="aguardando_pagamento"||p.pix_informado||!p.token) return "";
+  const url=waLembrete(p); if(!url) return "";
+  const em=lerWa(p.id);
+  return `<a class="btn btn-green" href="${esc(url)}" target="_blank" rel="noopener" data-lembrete="${p.id}" style="justify-self:start">💬 ${em?"Lembrar de novo no WhatsApp":"Lembrar no WhatsApp"}</a>
+    <p class="hint">${em?`Lembrete aberto em ${esc(dh(em))}. `:""}Abre o seu WhatsApp com a mensagem e o link de pagamento prontos. Você só toca em enviar.</p>`;
 }
 function pedido(p){
   const a=p.endereco||{}, open=aberto===p.id, n=p.itens.reduce((s,x)=>s+x.qtd,0);
@@ -119,7 +136,7 @@ function pedido(p){
   return `<article class="o"><button type="button" data-abrir="${p.id}" aria-expanded="${open}">
     <span class="num">#${p.id}<small>${dh(p.criado_em)}</small></span>
     <span class="cli">${esc(p.nome)}<small>${esc(p.email)}</small></span>
-    <span class="itn muted">${n} ${n===1?"item":"itens"}${p.envio&&p.envio.id==="motoboy"?` · <b style="color:var(--gold)">🛵 motoboy</b>`:""}${carro(p)?` · <b class="carro">🚗 carro · ${kmTxt(carro(p).km)}</b>`:""}</span>
+    <span class="itn muted">${n} ${n===1?"item":"itens"}${p.status==="aguardando_pagamento"&&lerWa(p.id)?` · 💬 lembrado`:""}${p.envio&&p.envio.id==="motoboy"?` · <b style="color:var(--gold)">🛵 motoboy</b>`:""}${carro(p)?` · <b class="carro">🚗 carro · ${kmTxt(carro(p).km)}</b>`:""}</span>
     <span class="badge st-${p.status}">${p.status==="aguardando_pagamento"&&p.pix_informado?"Pix para conferir":esc(p.status_texto)}</span>
     <span class="val">${brl(p.total)}</span></button>
   ${open?`<div class="od">
@@ -160,11 +177,11 @@ function acoesNormais(p){
     ${p.status==="pago"?`<button class="btn btn-dark" type="button" data-acao="enviado" data-id="${p.id}">Marcar como enviado e avisar cliente</button>`:`<button class="btn btn-line" type="button" data-acao="rastreio" data-id="${p.id}">Salvar código corrigido</button><button class="btn btn-dark" type="button" data-acao="entregue" data-id="${p.id}">Marcar como entregue</button>`}
     <p class="hint">O cliente recebe um e-mail ${p.status==="pago"?"com o código de rastreio":"avisando"}.</p>
     <button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar o cancelamento":"Cancelar pedido"}</button>`;
-  if(p.status==="aguardando_pagamento"&&p.forma_pagamento==="Pix direto") return `${p.pix_informado?`<div class="msg info"><b>O cliente informou que fez o Pix.</b> Confira no extrato do Mercado Pago um Pix de <b>${brl(p.total)}</b> (identificação SPSTORE${p.id}).</div>`:`<p class="hint">Pix gerado, mas o cliente ainda não avisou que pagou. Se o valor de ${brl(p.total)} entrou no Mercado Pago, pode confirmar.</p>`}
+  if(p.status==="aguardando_pagamento"&&p.forma_pagamento==="Pix direto") return `${lembreteHTML(p)}${p.pix_informado?`<div class="msg info"><b>O cliente informou que fez o Pix.</b> Confira no extrato do Mercado Pago um Pix de <b>${brl(p.total)}</b> (identificação SPSTORE${p.id}).</div>`:`<p class="hint">Pix gerado, mas o cliente ainda não avisou que pagou. Se o valor de ${brl(p.total)} entrou no Mercado Pago, pode confirmar.</p>`}
     <button class="btn btn-green" type="button" data-acao="pago" data-id="${p.id}">${confirmar===p.id+"-pago"?"Toque de novo: o Pix entrou mesmo?":"Confirmar Pix recebido"}</button>
     <p class="hint">O cliente recebe na hora o e-mail de compra confirmada.</p>
     <button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar":"Cancelar pedido"}</button>`;
-  if(p.status==="aguardando_pagamento") return `<p class="hint">O cliente ainda não pagou. Pedidos sem pagamento não precisam de ação.</p><button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar":"Cancelar pedido"}</button>`;
+  if(p.status==="aguardando_pagamento") return `${lembreteHTML(p)}<p class="hint">O cliente ainda não pagou. O site manda sozinho um e-mail de lembrete 1 hora depois do pedido.</p><button class="link" type="button" data-acao="cancelado" data-id="${p.id}" style="justify-self:start;color:var(--bad)">${confirmar===p.id?"Toque de novo para confirmar":"Cancelar pedido"}</button>`;
   if(p.status==="entregue") return `<p class="hint">Pedido concluído.</p>`;
   return `<p class="hint">Pedido cancelado. Se o cliente pagou, faça a devolução no Mercado Pago (Atividade › pagamento › Devolver).</p>`;
 }
