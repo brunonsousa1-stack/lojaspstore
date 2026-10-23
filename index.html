@@ -218,6 +218,7 @@ body{padding-bottom:72px}}
 
 /* abrir produto */
 .media{cursor:pointer}
+.media,.pd-art{touch-action:pan-y}.media img,.pd-art img{-webkit-user-drag:none;user-select:none}
 .open{border:0;padding:0;margin:0;font:inherit;color:inherit;background:none;text-align:inherit;cursor:pointer}
 .open:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .info h3 .open:hover{color:var(--gold)}
@@ -758,6 +759,15 @@ dlg.addEventListener("click",e=>{
   const pt=e.target.closest("[data-pt]"); if(pt){gal[gk]=+pt.dataset.pt;fillProduct(p);return}
 });
 document.getElementById("pd-close").addEventListener("click",closeProduct);
+// arrastar o dedo para o lado troca a foto (vitrine e página do produto)
+(()=>{let sx=0,sy=0,box=null,stop=0;
+document.addEventListener("touchstart",e=>{const t=e.touches[0];box=e.touches.length===1?e.target.closest(".media,.pd-art"):null;if(box&&!box.querySelector(".gal-next"))box=null;if(box){sx=t.clientX;sy=t.clientY}},{passive:true});
+document.addEventListener("touchend",e=>{if(!box)return;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy,b=box;box=null;
+  if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)*1.5)return;
+  const btn=b.querySelector(dx<0?".gal-next":".gal-prev");if(btn){btn.click();stop=Date.now()}},{passive:true});
+document.addEventListener("click",e=>{if(Date.now()-stop<500&&e.isTrusted){e.stopPropagation();e.preventDefault()}},true);
+})();
+
 document.addEventListener("click",e=>{const a=e.target.closest("[data-ir-av]");if(!a)return;e.preventDefault();
   const card=a.closest(".card");if(card){const o=card.querySelector("[data-open]");if(o)openProduct(o.dataset.open)}
   setTimeout(()=>{const el=document.getElementById(a.getAttribute("href").slice(1));if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},card?250:0)},true);
