@@ -41,6 +41,8 @@ async function tamanho(url, origem, env) {
 // html = index.html; loja = data/loja.json; cat = "oculos" | "relogios" | "" (mesma regra do index.html)
 export async function aplicarBanner(html, loja, cat, origem, env) {
   try {
+    // página inicial: no lugar do banner grande ficam os banners Óculos Masculinos e Óculos Femininos (index.html)
+    if (!cat) return html;
     const L = loja || {};
     const bd = cat ? (L["banner_" + cat] || "") : (L.banner_imagem || "");
     const bm = cat ? (L["banner_" + cat + "_celular"] || "") : (L.banner_imagem_celular || "");

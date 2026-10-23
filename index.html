@@ -74,6 +74,21 @@ nav a:hover{opacity:1;color:#8a6a2c}
 .stamp{position:absolute;right:0;top:6%;background:#d1ab5e;color:#1b1a17;border-radius:50%;width:112px;height:112px;display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:400;line-height:1;transform:rotate(10deg)}
 .stamp small{display:block;font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase}
 .stamp span{font-size:26px}
+/* página inicial: dois banners (óculos masculinos e femininos) */
+.duo{padding-block:20px 4px}
+.duo-g{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.duo-b{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:320px;border-radius:18px;overflow:hidden;background:var(--dark);color:var(--on-dark);text-decoration:none;isolation:isolate}
+.duo-t{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:28px 0 28px 28px}
+.duo-t h2{font-size:clamp(30px,3.4vw,44px);line-height:1.02;font-weight:400}
+.duo-s{margin:0;font-size:14px;opacity:.82}
+.duo-t .btn{align-self:flex-start;margin-top:6px;padding:11px 18px;font-size:14px}
+.duo-f{position:relative;overflow:hidden}
+.duo-f img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.duo-f::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,var(--dark) 0,rgba(27,26,23,0) 45%)}
+.duo-b:hover .duo-f img{transform:scale(1.04)}
+.duo-f img{transition:transform .5s ease}
+@media (max-width:900px){.duo-g{grid-template-columns:1fr}.duo-b{min-height:220px}}
+@media (max-width:520px){.duo{padding-block:14px 0}.duo-g{gap:12px}.duo-b{min-height:190px;grid-template-columns:1.05fr .95fr}.duo-t{padding:20px 0 20px 18px;gap:8px}.duo-t h2{font-size:28px}.duo-s{font-size:13px}.duo-t .btn{padding:9px 14px;font-size:13px}}
 @media (max-width:760px){.hero .wrap{grid-template-columns:1fr;padding-block:36px 40px}.price-tag{width:min(280px,100%)}.stamp{width:92px;height:92px}.stamp span{font-size:21px}}
 .hero-img{display:block;background:var(--dark);line-height:0}
 .hero-img img{display:block;width:100%;height:auto;max-width:100%}
@@ -412,6 +427,11 @@ body.pag-site .so-wa{display:none}
   </div>
 </div></section>
 <a class="hero-img" id="hero-img" href="#vitrine" hidden><picture><source media="(max-width:760px)" id="hero-img-m"><img id="hero-img-d" alt=""></picture></a>
+<section class="duo" id="duo" hidden aria-label="Coleções de óculos"><div class="wrap duo-g">
+  <a class="duo-b" href="/oculos?g=masculino"><div class="duo-t"><span class="eyebrow">Coleção masculina</span><h2>Óculos<br>Masculinos</h2><p class="duo-s">Proteção UV400 · <span class="js-promo">Compre 4, pague 3</span></p><span class="btn btn-gold">Ver modelos →</span></div><div class="duo-f" id="duo-masculino"></div></a>
+  <a class="duo-b" href="/oculos?g=feminino"><div class="duo-t"><span class="eyebrow">Coleção feminina</span><h2>Óculos<br>Femininos</h2><p class="duo-s">Proteção UV400 · <span class="js-promo">Compre 4, pague 3</span></p><span class="btn btn-gold">Ver modelos →</span></div><div class="duo-f" id="duo-feminino"></div></a>
+</div></section>
+<script>(function(){var h=!window.__CAT;document.getElementById("duo").hidden=!h;if(h){document.getElementById("topo").hidden=true;document.getElementById("hero-img").hidden=true}})()</script>
 
 <div class="perks"><div class="wrap">
   <div class="perk"><div class="perk-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H4v12h16v-4M4 8l2-4h12l2 4M16 12h6v4h-6z"/></svg></div><div><b class="js-preco">R$ 29,99</b><span>em qualquer produto</span></div></div>
@@ -557,7 +577,7 @@ function swColor(p,v){return `linear-gradient(135deg,${v.cor_principal||"#999"} 
 function render(f){
   const g=document.getElementById("grid");
   const todos=P.map((p,idx)=>({...p,id:"p"+idx})).filter(p=>p.ativo!==false);
-  const list=todos.filter(p=>f==="todos"||p.categoria===f);
+  const list=todos.filter(p=>(f==="todos"||p.categoria===f)&&(!GEN||generoDe(p)===GEN));
   if(f==="todos"&&!CAT){
     // página inicial: uma seção por categoria, com "ver todos"
     g.innerHTML=CATS.map(c=>{const l=todos.filter(p=>p.categoria===c);if(!l.length)return "";
@@ -659,11 +679,11 @@ function applyLoja(L){
   LOJA_ML={nota:L.ml_nota||"",vendas:L.ml_vendas||"",link:/^https:\/\//.test(L.ml_link||"")?L.ml_link:"",titulo:L.ml_titulo||""}; renderConfianca();
   if(CAT){
     document.getElementById("hero-eyebrow").textContent="Coleção SP Store";
-    document.getElementById("hero-titulo").textContent=CATN[CAT]+" por";
+    document.getElementById("hero-titulo").textContent=(GENN[GEN]||CATN[CAT])+" por";
     document.getElementById("hero-texto").textContent=CAT==="oculos"?`Proteção UV400, vários modelos e cores.${PLEVE>=2&&promoVale("oculos")?` Compre ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`:`Relógios DK Original com máquina quartz.${PLEVE>=2&&promoVale("relogios")?` Compre ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`;
   }
   const bd=CAT?(L["banner_"+CAT]||""):(L.banner_imagem||""), bm=CAT?(L["banner_"+CAT+"_celular"]||""):(L.banner_imagem_celular||"");
-  if(bd||bm){
+  if((bd||bm)&&CAT){
     const im=document.getElementById("hero-img-d"); im.src=bd||bm; im.alt=[L.banner_titulo,L.banner_etiqueta].filter(Boolean).join(" · ")||"SP Store";
     document.getElementById("hero-img-m").srcset=bm||bd;
     document.getElementById("hero-img").hidden=false; document.querySelector("section.hero").hidden=true;
@@ -694,14 +714,29 @@ function avaliacoesHTML(nome){const r=AV.produtos[nome];if(!r||!r.qtd)return "";
 function setupVitrine(){
   const t=document.getElementById("vit-titulo"), lk=document.getElementById("vit-links");
   if(CAT){
-    t.textContent=CATN[CAT];
+    t.textContent=GENN[GEN]||CATN[CAT];
     const outra=CATS.find(c=>c!==CAT);
-    lk.innerHTML=`<a class="vit-link" href="/${outra}">Ver ${outra==="oculos"?"óculos de sol":"relógios"} →</a>`;
+    lk.innerHTML=GEN?`<a class="vit-link" href="/oculos?g=${GEN==="masculino"?"feminino":"masculino"}">Ver ${GEN==="masculino"?"óculos femininos":"óculos masculinos"} →</a> <a class="vit-link" href="/oculos">Todos os óculos →</a>`:`<a class="vit-link" href="/${outra}">Ver ${outra==="oculos"?"óculos de sol":"relógios"} →</a>`;
+    if(GEN) document.title=GENN[GEN]+" | SP Store";
     document.querySelectorAll("[data-cat-link]").forEach(a=>{if(a.dataset.catLink===CAT)a.setAttribute("aria-current","page")});
     if(CAT==="relogios"){const sv=document.querySelector(".price-tag svg");if(sv)sv.outerHTML=`<svg viewBox="0 0 200 90" aria-hidden="true"><g fill="none" stroke="#d1ab5e" stroke-width="4"><rect x="82" y="2" width="36" height="16" rx="4"/><rect x="82" y="72" width="36" height="16" rx="4"/><circle cx="100" cy="45" r="30" fill="#5a4022" fill-opacity=".85"/><path d="M100 45V27M100 45l12 8" stroke-linecap="round"/></g></svg>`}
   }else{ t.parentElement.style.display="none"; }
 }
 const CAT=window.__CAT||"", CATN={oculos:"Óculos de sol",relogios:"Relógios"}, CATS=["oculos","relogios"], LIMITE_HOME=8;
+// /oculos?g=masculino ou ?g=feminino: só os óculos daquele gênero (pelo nome do produto)
+const generoDe=p=>/masculin/i.test(p.nome)?"masculino":/feminin/i.test(p.nome)?"feminino":"";
+const GEN=(()=>{const g=new URLSearchParams(location.search).get("g");return CAT==="oculos"&&(g==="masculino"||g==="feminino")?g:""})();
+const GENN={masculino:"Óculos Masculinos",feminino:"Óculos Femininos"};
+// fotos dos dois banners da página inicial: escolhidas no painel ou a 1ª foto do 1º óculos daquele gênero
+function fillDuo(L){
+  if(CAT) return; L=L||{};
+  for(const g of ["masculino","feminino"]){
+    const box=document.getElementById("duo-"+g); if(!box) continue;
+    let f=L["banner_"+g]||"";
+    if(!f){const p=P.find(x=>x.ativo!==false&&x.categoria==="oculos"&&generoDe(x)===g&&(x.variantes||[]).some(v=>v.foto));if(p)f=(p.variantes.find(v=>v.foto)||{}).foto||""}
+    if(f&&box.dataset.f!==f){box.dataset.f=f;box.innerHTML=`<img src="${esc(f)}" alt="" fetchpriority="high">`}
+  }
+}
 let current=CAT||"todos";
 function setFilter(f){current=f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===f));render(f)}
 document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setFilter(c.dataset.f)));
@@ -967,7 +1002,7 @@ setupVitrine();
 const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject()).then(d=>Array.isArray(d.produtos)?d:Promise.reject()).catch(()=>fetch("/data/produtos.json",{cache:"no-store"}).then(r=>r.json()));
 fetch("/api/avaliacoes").then(r=>r.ok?r.json():null).then(d=>{if(d&&d.produtos){AV=d;render(current);if(typeof openId!=="undefined"&&openId&&dlg.open){const p=prodById(openId);if(p)fillProduct(p)}renderConfianca()}}).catch(()=>{});
 Promise.all([lerProdutos(),fetch("data/loja.json",{cache:"no-store"}).then(r=>r.json())])
-  .then(([d,L])=>{window.__prodOk=1;if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fromHash();})
+  .then(([d,L])=>{window.__prodOk=1;if(d&&Array.isArray(d.produtos)){P=norm(d.produtos);syncCart()} applyLoja(L); render(current); fillDuo(L); fromHash();})
   .catch(()=>{fromHash()});
 </script>
 </html>
