@@ -648,3 +648,37 @@ export async function atualizarPeloAdmin(env, request, p, b) {
   return n;
 }
 export { sb, ORDEM, meAtivo };
+
+// ---------- carrinho abandonado ----------
+// O checkout guarda o carrinho na conta do cliente (user_metadata.carrinho = { itens, total, em }).
+// De hora em hora: quem deixou itens há 1 a 48 horas e não fez pedido depois recebe UM e-mail.
+export async function lembrarCarrinhos(env, request) {
+  const c = cfg(env), origem = new URL(request.url).origin, agora = Date.now();
+  let enviados = 0;
+  for (let pg = 1; pg <= 10; pg++) {
+    const r = await fetch(`${c.sbUrl}/auth/v1/admin/users?page=${pg}&per_page=200`, { headers: stHeaders(c) });
+    if (!r.ok) break;
+    const d = await r.json(), users = Array.isArray(d) ? d : (d.users || []);
+    for (const u of users) {
+      const m = u.user_metadata || {}, k = m.carrinho;
+      if (!k || !k.em || k.lembrado || !Array.isArray(k.itens) || !k.itens.length || !u.email) continue;
+      const idade = agora - Date.parse(k.em);
+      if (!(idade >= 3600e3 && idade <= 48 * 3600e3)) continue;
+      const marcar = v => fetch(`${c.sbUrl}/auth/v1/admin/users/${u.id}`, { method: "PUT", headers: stHeaders(c, { "content-type": "application/json" }),
+        body: JSON.stringify({ user_metadata: { carrinho: { ...k, lembrado: v } } }) }).catch(() => {});
+      try {
+        const ped = await sb(env, `pedidos?select=id&user_id=eq.${u.id}&criado_em=gte.${encodeURIComponent(new Date(Date.parse(k.em) - 60e3).toISOString())}&limit=1`, { method: "GET" });
+        if (ped && ped.length) { await marcar("comprou"); continue; }
+      } catch { continue; }
+      const itens = k.itens.slice(0, 12).map(i => ({ nome: String(i.nome || "").slice(0, 120), cor: String(i.cor || "").slice(0, 60), qtd: Math.max(1, Math.min(99, Math.round(Number(i.qtd) || 1))), preco: Number(i.preco) || 0 }));
+      const volta = `${origem}/checkout.html?volta=${encodeURIComponent(JSON.stringify(itens.map(i => [i.nome, i.cor, i.qtd])))}&utm_source=email&utm_campaign=carrinho`;
+      const nome = String(m.nome || m.full_name || m.name || "").trim().split(" ")[0];
+      const linhas = itens.map(i => `<tr><td style="padding:8px 0;border-bottom:1px solid #e6e3dc">${i.qtd}× ${esc(i.nome)}${i.cor && i.cor !== "Padrão" ? `<br><span style="color:#6a675f;font-size:13px">${esc(i.cor)}</span>` : ""}</td><td style="padding:8px 0;border-bottom:1px solid #e6e3dc;text-align:right;white-space:nowrap">${i.preco ? reais(i.preco * i.qtd) : ""}</td></tr>`).join("");
+      const ok = await enviarEmail(env, u.email, "Seus itens ainda estão no carrinho", moldura("Esqueceu alguma coisa? 🕶️",
+        `<p>Olá${nome ? ", " + esc(nome) : ""}! Você deixou estes itens no carrinho da SP Store:</p><table style="width:100%;border-collapse:collapse;font-size:15px;margin:14px 0">${linhas}</table><p>É só tocar no botão para continuar de onde parou. No <b>Pix</b> tem desconto, e no cartão dá para parcelar.</p>${botao(volta, "Finalizar minha compra")}<p style="font-size:14px;color:#6a675f">Ficou com alguma dúvida sobre o produto, o frete ou o pagamento? Responda este e-mail ou chame a gente no WhatsApp.</p>`, origem), c.lojaEmail);
+      if (ok) { enviados++; await marcar(new Date().toISOString()); }
+    }
+    if (users.length < 200) break;
+  }
+  return enviados;
+}

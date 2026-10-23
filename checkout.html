@@ -145,6 +145,16 @@ function render(){
   </div><aside class="side">${resumoHTML()}</aside></div>`;
   ligar();
   if(pedido) iniciarPagamento();
+  guardarCarrinho();
+}
+// guarda o carrinho na conta do cliente: se ele não fizer o pedido, recebe UM e-mail de lembrete (1 hora depois)
+let carSig=null, carT=null;
+function guardarCarrinho(){
+  const u=Conta.usuario(); if(!u||pedido||!cart.length) return;
+  const sig=assinatura(), salvo=((u.user_metadata||{}).carrinho)||{};
+  if(sig===carSig||sig===salvo.sig) return;
+  carSig=sig; clearTimeout(carT);
+  carT=setTimeout(()=>{Conta.atualizarDados({carrinho:{itens:cart.map(x=>({nome:x.nome,cor:x.cor,qtd:x.qtd,preco:x.preco})),total:totais().total,em:new Date().toISOString(),sig}}).catch(()=>{carSig=null})},1500);
 }
 function contaHTML(){
   return `<div class="tabs" role="tablist"><button role="tab" type="button" data-aba="criar" aria-selected="${aba==="criar"}">Criar conta</button><button role="tab" type="button" data-aba="entrar" aria-selected="${aba==="entrar"}">Já tenho conta</button></div>
@@ -252,6 +262,7 @@ async function enviarEntrega(e){
     try{SPA.ev("pedido",{val:r.total})}catch(e){}
     const d=await Conta.api(`/api/pedido?id=${r.id}&t=${r.token}`);
     pedido=d.pedido; gravarJSON(ABERTO_KEY,{id:r.id,t:r.token,sig:assinatura()},sessionStorage);
+    clearTimeout(carT); Conta.atualizarDados({carrinho:null}).catch(()=>{});
     history.replaceState(null,"",`/checkout.html?pedido=${r.id}&t=${r.token}`);
     render(); $("#s-pag").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){carregando(btn,false);m.textContent=err.status===401?"Sua sessão expirou. Entre de novo na conta.":err.message;if(err.status===401)render();else if(/entrega|frete|CEP/i.test(err.message)&&freteCep)cotarFrete(freteCep)}
@@ -362,7 +373,11 @@ const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.j
     const [c,dP,L]=await Promise.all([Conta.config(),lerProdutos(),fetch("/data/loja.json",{cache:"no-store"}).then(r=>r.json())]);
     CFG=c; PRODUTOS=(dP&&dP.produtos)||[]; LOJA=L||{};
   }catch(e){}
-  cart=lerJSON(CART_KEY)||[]; sincronizar();
+  cart=lerJSON(CART_KEY)||[];
+  // veio pelo e-mail "Seus itens ainda estão no carrinho": refaz o carrinho se ele estiver vazio neste aparelho
+  let voltou=false; try{const v=qs.get("volta");if(v&&!cart.length){const it=JSON.parse(v);if(Array.isArray(it)){cart=it.slice(0,12).map(a=>({nome:String(a[0]||""),cor:String(a[1]||""),qtd:Math.max(1,Math.min(99,Math.round(+a[2]||1)))}));voltou=true}}}catch(e){}
+  sincronizar(); if(voltou) gravarJSON(CART_KEY,cart);
+  if(qs.get("volta")){qs.delete("volta");history.replaceState(null,"",location.pathname+(qs.toString()?"?"+qs:""))}
   try{const skuDe=(n,c)=>{const p=PRODUTOS.find(x=>x.nome===n);const v=p&&(p.variantes||[]).find(x=>x.nome===c);return v&&v.sku};if(cart.length&&!qs.get("pedido"))SPA.ev("checkout",{val:totais().total,itens:cart.map(x=>({nome:x.nome,cor:x.cor,qtd:x.qtd,preco:x.preco,sku:skuDe(x.nome,x.cor)}))})}catch(e){}
   if(!CFG.pronto){
     telaSimples(`<div class="card"><h2>Finalize pelo WhatsApp</h2><p class="muted">O pagamento direto no site estará disponível em breve. Por enquanto, envie seu pedido pelo WhatsApp e mandamos o link de pagamento.</p>${cart.length?resumoHTML()+`<a class="btn btn-green btn-block" style="margin-top:16px" href="${waLink()}" target="_blank" rel="noopener">Enviar pedido no WhatsApp</a>`:`<a class="btn btn-dark" href="/">Ver produtos</a>`}</div>`);
