@@ -134,10 +134,10 @@ section.shop{padding-block:48px}
 @media (max-width:640px){.cats .wrap{gap:10px}}
 nav a[aria-current="page"]{color:#b08a3e}
 /* banners da vitrine na página inicial (acima de Óculos e de Relógios) */
-.hb2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:4px 0 22px}
+.hb2{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:4px 0 6px}
 .hb2 a,.hb1{display:block;border-radius:16px;overflow:hidden;background:var(--dark);line-height:0}
 .hb2 img{display:block;width:100%;height:auto;aspect-ratio:12/5;object-fit:cover}
-.hb1{margin:4px 0 22px}
+.hb1{grid-column:1/-1;margin:4px 0 6px}
 .hb1 img{display:block;width:100%;height:auto;aspect-ratio:16/5;object-fit:cover}
 .hb2 a:hover img,.hb1:hover img{opacity:.94}
 @media (max-width:760px){.hb2{grid-template-columns:1fr;gap:12px}.hb1 img{aspect-ratio:1/1}}
