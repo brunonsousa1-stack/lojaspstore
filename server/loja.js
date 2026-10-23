@@ -160,7 +160,7 @@ export async function enviarFoto(env, nome, bytes) {
   const c = cfg(env);
   const up = () => fetch(`${c.sbUrl}/storage/v1/object/${BUCKET}/${nome}`, {
     method: "POST", body: bytes,
-    headers: stHeaders(c, { "content-type": "image/webp", "cache-control": "31536000", "x-upsert": "true" }),
+    headers: stHeaders(c, { "content-type": "image/webp", "cache-control": "max-age=31536000", "x-upsert": "true" }),
   });
   let r = await up();
   if (r.status === 404 || r.status === 400) {
