@@ -82,8 +82,9 @@ nav a:hover{opacity:1;color:#8a6a2c}
 .hero-img{display:block;background:var(--dark);line-height:0}
 .hero-img img{display:block;width:100%;height:auto;max-width:100%}
 /* espaço do banner reservado antes da imagem chegar (1920x640 no computador, 1080x1080 no celular): a página não pula */
-.hero-img img{aspect-ratio:3/1;object-fit:cover}
-@media (max-width:760px){.hero-img img{aspect-ratio:1/1}}
+.hero-img[hidden]{display:none}
+.hero-img img[src]{aspect-ratio:3/1;object-fit:cover}
+@media (max-width:760px){.hero-img img[src]{aspect-ratio:1/1}}
 
 /* benefícios */
 .perks{border-bottom:1px solid var(--line);background:var(--surface)}
