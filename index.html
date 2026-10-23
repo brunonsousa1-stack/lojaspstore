@@ -133,6 +133,14 @@ section.shop{padding-block:48px}
 .cats .wrap{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 @media (max-width:640px){.cats .wrap{gap:10px}}
 nav a[aria-current="page"]{color:#b08a3e}
+/* banners da vitrine na página inicial (acima de Óculos e de Relógios) */
+.hb2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:4px 0 22px}
+.hb2 a,.hb1{display:block;border-radius:16px;overflow:hidden;background:var(--dark);line-height:0}
+.hb2 img{display:block;width:100%;height:auto;aspect-ratio:12/5;object-fit:cover}
+.hb1{margin:4px 0 22px}
+.hb1 img{display:block;width:100%;height:auto;aspect-ratio:16/5;object-fit:cover}
+.hb2 a:hover img,.hb1:hover img{opacity:.94}
+@media (max-width:760px){.hb2{grid-template-columns:1fr;gap:12px}.hb1 img{aspect-ratio:1/1}}
 .cat-tile{position:relative;display:block;border-radius:18px;overflow:hidden;aspect-ratio:16/10;background:var(--dark);color:#fff;text-decoration:none;isolation:isolate}
 @media (max-width:640px){.cat-tile{aspect-ratio:4/5;border-radius:14px}}
 .cat-tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;transition:transform .5s}
@@ -569,11 +577,11 @@ function swColor(p,v){return `linear-gradient(135deg,${v.cor_principal||"#999"} 
 function render(f){
   const g=document.getElementById("grid");
   const todos=P.map((p,idx)=>({...p,id:"p"+idx})).filter(p=>p.ativo!==false);
-  const list=todos.filter(p=>f==="todos"||p.categoria===f);
+  const list=todos.filter(p=>(f==="todos"||p.categoria===f)&&(!GEN||generoDe(p)===GEN));
   if(f==="todos"&&!CAT){
     // página inicial: uma seção por categoria, com "ver todos"
     g.innerHTML=CATS.map(c=>{const l=todos.filter(p=>p.categoria===c);if(!l.length)return "";
-      return `<div class="grp" id="sec-${c}"><h3>${CATN[c]}</h3><a href="/${c}">Ver todos (${l.length}) →</a></div>`+cardsHTML(l.slice(0,LIMITE_HOME))+(l.length>LIMITE_HOME?`<div class="ver-todos"><a href="/${c}">Ver todos os ${l.length} ${c==="oculos"?"óculos":"relógios"}</a></div>`:"")}).join("")||'<p style="color:var(--muted)">Nenhum produto no momento.</p>';
+      return bannerSecao(c)+`<div class="grp" id="sec-${c}"><h3>${CATN[c]}</h3><a href="/${c}">Ver todos (${l.length}) →</a></div>`+cardsHTML(l.slice(0,LIMITE_HOME))+(l.length>LIMITE_HOME?`<div class="ver-todos"><a href="/${c}">Ver todos os ${l.length} ${c==="oculos"?"óculos":"relógios"}</a></div>`:"")}).join("")||'<p style="color:var(--muted)">Nenhum produto no momento.</p>';
   }else g.innerHTML=cardsHTML(list)||'<p style="color:var(--muted)">Nenhum produto nesta categoria.</p>';
   renderCats(todos);
   if(window.SPA&&SPA.observar&&window.__prodOk) setTimeout(()=>SPA.observar(g),0);
@@ -635,6 +643,7 @@ function perks(p){const l=[];
   return `<ul class="pd-perks">${l.join("")}</ul>`}
 function applyLoja(L){
   if(!L) return;
+  window.__LOJA=L;
   if(L.desconto_pix!=null) PIXP=Math.min(30,Math.max(0,Number(L.desconto_pix)||0));
   if(L.frete_gratis_acima!=null){FGR=Math.max(0,Number(L.frete_gratis_acima)||0);FGA=Number(L.frete_gratis_exibir)>0?Number(L.frete_gratis_exibir):FGR}
   if(L.promo_leve!=null) PLEVE=Math.floor(Number(L.promo_leve)||0);
@@ -671,7 +680,7 @@ function applyLoja(L){
   LOJA_ML={nota:L.ml_nota||"",vendas:L.ml_vendas||"",link:/^https:\/\//.test(L.ml_link||"")?L.ml_link:"",titulo:L.ml_titulo||""}; renderConfianca();
   if(CAT){
     document.getElementById("hero-eyebrow").textContent="Coleção SP Store";
-    document.getElementById("hero-titulo").textContent=CATN[CAT]+" por";
+    document.getElementById("hero-titulo").textContent=(GENN[GEN]||CATN[CAT])+" por";
     document.getElementById("hero-texto").textContent=CAT==="oculos"?`Proteção UV400, vários modelos e cores.${PLEVE>=2&&promoVale("oculos")?` Compre ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`:`Relógios DK Original com máquina quartz.${PLEVE>=2&&promoVale("relogios")?` Compre ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`;
   }
   const bd=CAT?(L["banner_"+CAT]||""):(L.banner_imagem||""), bm=CAT?(L["banner_"+CAT+"_celular"]||""):(L.banner_imagem_celular||"");
@@ -706,14 +715,28 @@ function avaliacoesHTML(nome){const r=AV.produtos[nome];if(!r||!r.qtd)return "";
 function setupVitrine(){
   const t=document.getElementById("vit-titulo"), lk=document.getElementById("vit-links");
   if(CAT){
-    t.textContent=CATN[CAT];
+    t.textContent=GENN[GEN]||CATN[CAT];
     const outra=CATS.find(c=>c!==CAT);
-    lk.innerHTML=`<a class="vit-link" href="/${outra}">Ver ${outra==="oculos"?"óculos de sol":"relógios"} →</a>`;
+    lk.innerHTML=GEN?`<a class="vit-link" href="/oculos?g=${GEN==="masculino"?"feminino":"masculino"}">Ver ${GEN==="masculino"?"óculos femininos":"óculos masculinos"} →</a> <a class="vit-link" href="/oculos">Todos os óculos →</a>`:`<a class="vit-link" href="/${outra}">Ver ${outra==="oculos"?"óculos de sol":"relógios"} →</a>`;
+    if(GEN) document.title=GENN[GEN]+" | SP Store";
     document.querySelectorAll("[data-cat-link]").forEach(a=>{if(a.dataset.catLink===CAT)a.setAttribute("aria-current","page")});
     if(CAT==="relogios"){const sv=document.querySelector(".price-tag svg");if(sv)sv.outerHTML=`<svg viewBox="0 0 200 90" aria-hidden="true"><g fill="none" stroke="#d1ab5e" stroke-width="4"><rect x="82" y="2" width="36" height="16" rx="4"/><rect x="82" y="72" width="36" height="16" rx="4"/><circle cx="100" cy="45" r="30" fill="#5a4022" fill-opacity=".85"/><path d="M100 45V27M100 45l12 8" stroke-linecap="round"/></g></svg>`}
   }else{ t.parentElement.style.display="none"; }
 }
 const CAT=window.__CAT||"", CATN={oculos:"Óculos de sol",relogios:"Relógios"}, CATS=["oculos","relogios"], LIMITE_HOME=8;
+// /oculos?g=masculino ou ?g=feminino: só os óculos daquele gênero (pelo nome do produto)
+const generoDe=p=>/masculin/i.test(p.nome)?"masculino":/feminin/i.test(p.nome)?"feminino":"";
+const GEN=(()=>{const g=new URLSearchParams(location.search).get("g");return CAT==="oculos"&&(g==="masculino"||g==="feminino")?g:""})();
+const GENN={masculino:"Óculos Masculinos",feminino:"Óculos Femininos"};
+// banners acima de cada seção da página inicial (painel › Banner e textos)
+function bannerSecao(c){
+  const L=window.__LOJA||{};
+  if(c==="oculos"){const m=L.banner_home_oculos_masculino,f=L.banner_home_oculos_feminino;if(!m&&!f)return "";
+    const b=(u,g,t)=>u?`<a href="/oculos?g=${g}" aria-label="Ver ${t}"><img src="${esc(u)}" width="1200" height="500" alt="${t}" loading="lazy"></a>`:"";
+    return `<div class="hb2">${b(m,"masculino","Óculos masculinos")}${b(f,"feminino","Óculos femininos")}</div>`}
+  if(c==="relogios"){const d=L.banner_home_relogios,m=L.banner_home_relogios_celular||d;if(!d&&!m)return "";
+    return `<a class="hb1" href="/relogios" aria-label="Ver relógios"><picture><source media="(max-width:760px)" srcset="${esc(m)}" width="1080" height="1080"><img src="${esc(d||m)}" width="1920" height="600" alt="Relógios femininos DK Original" loading="lazy"></picture></a>`}
+  return ""}
 let current=CAT||"todos";
 function setFilter(f){current=f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.f===f));render(f)}
 document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>setFilter(c.dataset.f)));

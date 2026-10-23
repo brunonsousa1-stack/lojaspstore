@@ -47,5 +47,11 @@
   "carro_raio_km": 2,
   "motoboy_ativo": true,
   "meta_pixel_id": "253112213041309",
-  "parcelas_sem_juros": 4
+  "parcelas_sem_juros": 4,
+  "banner_home_oculos_masculino": "/f/produtos/banner-home-oculos-masculinos-mvlby624sdza.webp",
+  "banner_home_oculos_feminino": "/f/produtos/banner-home-oculos-femininos-mvlby6g06blj.webp",
+  "banner_home_relogios": "/f/produtos/banner-home-relogios-mvlby4zvcesp.webp",
+  "banner_home_relogios_celular": "/f/produtos/banner-home-relogios-celular-mvlby5st0duf.webp",
+  "banner_relogios": "/f/produtos/banner-home-relogios-mvlby4zvcesp.webp",
+  "banner_relogios_celular": "/f/produtos/banner-home-relogios-celular-mvlby5st0duf.webp"
 }
