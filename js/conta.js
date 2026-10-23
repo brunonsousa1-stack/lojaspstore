@@ -91,4 +91,61 @@
   window.addEventListener("hashchange", () => { if (/access_token=|error_description=/.test(location.hash)) location.reload(); });
   window.addEventListener("storage", e => { if (e.key === CHAVE) { sessao = ler(); avisar(); } });
   window.Conta = Conta;
+
+  // ---------- "Você quis dizer @gmail.com?" ----------
+  // Sem confirmação de e-mail, um erro de digitação faz o cliente perder os e-mails da compra.
+  const DOMINIOS = ["gmail.com", "hotmail.com", "outlook.com", "yahoo.com.br", "yahoo.com", "icloud.com", "live.com", "msn.com",
+    "bol.com.br", "uol.com.br", "terra.com.br", "ig.com.br", "globo.com", "hotmail.com.br", "outlook.com.br", "live.com.br", "me.com", "lojaspstore.com.br"];
+  const FIXOS = { "gmail.com.br": "gmail.com", "gmail.br": "gmail.com", "icloud.com.br": "icloud.com" };
+  function distancia(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+      const c = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+    return d[a.length][b.length];
+  }
+  Conta.sugerirEmail = function (email) {
+    const v = String(email || "").trim().toLowerCase().replace(/\s+/g, "").replace(/[.,;]+$/, "");
+    const m = v.match(/^([^@]+)@([^@]+)$/); if (!m) return null;
+    const [, nome, dom] = m;
+    if (DOMINIOS.includes(dom)) return null;
+    let certo = FIXOS[dom] || null;
+    if (!certo) { const sem = dom.replace(/\.(com|co|cm|om|con|cpm|net)?(\.br)?$/, ""); const p = DOMINIOS.find(x => x.split(".")[0] === sem); if (p && !dom.includes(".") || p && /\.(co|cm|om|con|cpm)(\.br)?$/.test(dom)) certo = p; }
+    if (!certo) {
+      let melhor = null, menor = 99;
+      for (const x of DOMINIOS) { const n = distancia(dom, x); if (n < menor) { menor = n; melhor = x; } }
+      if (melhor && menor <= (dom.length > 7 ? 2 : 1)) certo = melhor;
+    }
+    return certo && certo !== dom ? nome + "@" + certo : null;
+  };
+  function caixaSugestao(input) {
+    const lbl = input.closest("label") || input;
+    let s = lbl.nextElementSibling;
+    if (!s || !s.classList.contains("sug-email")) { s = document.createElement("p"); s.className = "hint sug-email"; s.setAttribute("role", "status"); lbl.after(s); }
+    return s;
+  }
+  function limparSugestao(input) { const lbl = input.closest("label") || input, s = lbl.nextElementSibling; if (s && s.classList.contains("sug-email")) s.remove(); }
+  function mostrarSugestao(input) {
+    const sug = Conta.sugerirEmail(input.value);
+    if (!sug) { limparSugestao(input); return false; }
+    const s = caixaSugestao(input);
+    if (s.dataset.sug === sug) return true; // já está na tela: não recria (senão o clique se perde)
+    s.dataset.sug = sug;
+    s.innerHTML = 'Você quis dizer <button type="button" class="link"></button>?';
+    const b = s.querySelector("button"); b.textContent = sug;
+    b.addEventListener("click", () => { input.value = sug; limparSugestao(input); input.focus(); });
+    return true;
+  }
+  const ehEmail = el => el && el.matches && el.matches('input[type="email"]');
+  document.addEventListener("blur", e => { if (ehEmail(e.target)) mostrarSugestao(e.target); }, true);
+  document.addEventListener("input", e => { if (ehEmail(e.target)) limparSugestao(e.target); }, true);
+  // Se apertar Enter sem sair do campo, avisa uma vez antes de enviar
+  document.addEventListener("submit", e => {
+    const i = e.target.querySelector && e.target.querySelector('input[type="email"]');
+    if (!i || i.dataset.avisado === i.value) return;
+    if (mostrarSugestao(i)) { i.dataset.avisado = i.value; e.preventDefault(); e.stopImmediatePropagation(); i.focus(); }
+  }, true);
 })();
