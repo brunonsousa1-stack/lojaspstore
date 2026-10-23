@@ -9,11 +9,16 @@ export const preco2 = n => Number(n).toFixed(2);
 export const CAT_GOOGLE = { oculos: "178", relogios: "201" };
 export const CAT_NOME = { oculos: "Óculos de sol", relogios: "Relógio" };
 
+// texto sem a formatação do site (**negrito**, ✔), para Google Shopping, catálogo do Instagram e prévias de link
+export const textoLimpo = t => String(t || "").replace(/\*\*/g, "").replace(/[✔✓]\uFE0F?\s*/g, "• ")
+  .split("\n").map(l => l.trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+
 export function descricao(p, loja) {
-  const base = String(p.descricao || "").trim();
+  const base = textoLimpo(p.descricao);
   const extra = p.categoria === "oculos" ? "Óculos de sol com proteção UV400." : "Relógio com máquina quartz.";
   const promo = Number(loja.promo_leve) >= 2 && ((loja.promo_categoria || "oculos") === "todos" || p.categoria === (loja.promo_categoria || "oculos")) ? ` Compre ${loja.promo_leve}, pague ${loja.promo_leve - 1}.` : "";
-  return (base || `${p.nome}. ${extra}`) + promo + " Envio para todo o Brasil pela SP Store.";
+  const jaTemPromo = /pague\s*\d/i.test(base);
+  return (base || `${p.nome}. ${extra}`) + (jaTemPromo ? "" : promo) + (base ? "\n\n" : " ") + "Envio para todo o Brasil pela SP Store.";
 }
 
 // "Óculos Hexagonal Marrom" + cor "Marrom" -> não repete a cor no título
