@@ -78,7 +78,8 @@ nav a:hover{opacity:1;color:#8a6a2c}
 .stamp{position:absolute;right:0;top:6%;background:#d1ab5e;color:#1b1a17;border-radius:50%;width:112px;height:112px;display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:400;line-height:1;transform:rotate(10deg)}
 .stamp small{display:block;font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase}
 .stamp span{font-size:26px}
-@media (max-width:760px){.hero .wrap{grid-template-columns:1fr;padding-block:36px 40px}.price-tag{width:min(280px,100%)}.stamp{width:92px;height:92px}.stamp span{font-size:21px}}
+/* celular: banner de texto mais baixo (sem o desenho dos óculos), para os produtos aparecerem logo */
+@media (max-width:760px){.hero .wrap{grid-template-columns:1fr;gap:0;padding-block:22px 24px}.price-tag{display:none}.hero h1{font-size:32px;margin:8px 0 10px}.hero p{font-size:14px;margin:0 0 16px}.hero .btn{padding:11px 18px;font-size:14px}}
 .hero-img{display:block;background:var(--dark);line-height:0}
 .hero-img img{display:block;width:100%;height:auto;max-width:100%}
 /* espaço do banner reservado antes da imagem chegar (1920x640 no computador, 1080x1080 no celular): a página não pula */
