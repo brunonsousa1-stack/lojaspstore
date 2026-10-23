@@ -33,16 +33,16 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 /* avisos */
-.ticker{background:#0c0c0b;color:#d1ab5e;font-size:13px;font-weight:600}
+.ticker{overflow:hidden;background:#0c0c0b;color:#d1ab5e;font-size:13px;font-weight:600}
 .ticker .wrap{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;padding-block:8px;text-align:center}
 @media (max-width:900px){.ticker .wrap{display:grid;place-items:center;min-height:36px;padding-block:6px}
-  .ticker .wrap>span{grid-area:1/1;opacity:0;transition:opacity .4s}
-  .ticker .wrap>span.on{opacity:1}}
+  .ticker .wrap>span{grid-area:1/1;max-width:100%;opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s}
+  .ticker .wrap>span.on{opacity:1;visibility:visible;transition:opacity .4s,visibility 0s}}
 .ticker b{letter-spacing:.06em;text-transform:uppercase}
 
 /* cabeçalho */
 html{scroll-padding-top:130px}
-.topo-fixo{position:sticky;top:0;z-index:9;padding-top:env(safe-area-inset-top,0px);background:#0c0c0b}
+.topo-fixo{position:sticky;top:0;z-index:9;transform:translateZ(0);-webkit-transform:translateZ(0);padding-top:env(safe-area-inset-top,0px);background:#0c0c0b}
 header{background:#fbfaf7;color:#1b1a17;border-bottom:1px solid #d6d4ce}
 header .wrap{display:flex;align-items:center;gap:24px;padding-block:14px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
