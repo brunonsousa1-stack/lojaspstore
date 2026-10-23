@@ -72,7 +72,7 @@ const pctPix=()=>CFG.pix?Math.min(30,Math.max(0,Number(LOJA.desconto_pix)||0)):0
 // promoção "leve N, pague N-1" (mesma regra do servidor)
 function promo(itens){
   const leve=Math.floor(Number(LOJA.promo_leve)||0), cat=LOJA.promo_categoria||"oculos"; itens.forEach(i=>delete i.gratis); if(leve<2) return itens;
-  const el=itens.filter(i=>{const p=PRODUTOS.find(q=>q.nome===i.nome);return p&&p.categoria===cat});
+  const el=itens.filter(i=>{const p=PRODUTOS.find(q=>q.nome===i.nome);return p&&(cat==="todos"||p.categoria===cat)});
   let livres=Math.floor(el.reduce((a,i)=>a+i.qtd,0)/leve);
   for(const i of [...el].sort((a,b)=>a.preco-b.preco)){if(!livres)break;const g=Math.min(livres,i.qtd);i.gratis=g;livres-=g}
   return itens;

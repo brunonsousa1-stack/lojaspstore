@@ -207,7 +207,7 @@ export function aplicarPromo(itens, produtos, loja) {
   const leve = Math.floor(Number(loja && loja.promo_leve) || 0);
   if (leve < 2) return itens;
   const cat = (loja && loja.promo_categoria) || "oculos";
-  const eleg = itens.filter(i => { const p = produtos.find(q => q.nome === i.nome); return p && p.categoria === cat; });
+  const eleg = itens.filter(i => { const p = produtos.find(q => q.nome === i.nome); return p && (cat === "todos" || p.categoria === cat); });
   let livres = Math.floor(eleg.reduce((a, i) => a + i.qtd, 0) / leve);
   for (const i of [...eleg].sort((a, b) => a.preco - b.preco)) { if (!livres) break; const g = Math.min(livres, i.qtd); i.gratis = g; livres -= g; }
   return itens;

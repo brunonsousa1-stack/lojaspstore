@@ -5,8 +5,8 @@ import { abs } from "./seo.js";
 import { aplicarBanner } from "./banner.js";
 
 const INFO = {
-  oculos: { titulo: "Óculos de sol femininos e masculinos | SP Store", desc: "Óculos de sol com proteção UV400 em vários modelos e cores. Leve 4, pague 3, 5% off no Pix e entrega hoje na Grande SP." },
-  relogios: { titulo: "Relógios DK Original | SP Store", desc: "Relógios DK Original com máquina quartz: analógicos, digitais e formato gota. 5% off no Pix e entrega hoje na Grande SP." },
+  oculos: { titulo: "Óculos de sol femininos e masculinos | SP Store", desc: "Óculos de sol com proteção UV400 em vários modelos e cores. Compre 4, pague 3, 5% off no Pix e entrega hoje na Grande SP." },
+  relogios: { titulo: "Relógios DK Original | SP Store", desc: "Relógios DK Original com máquina quartz: analógicos, digitais e formato gota. Compre 4, pague 3, 5% off no Pix e entrega hoje na Grande SP." },
 };
 const attr = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 

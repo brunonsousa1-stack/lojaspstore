@@ -1,11 +1,11 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SP Store · Óculos de sol e relógios femininos</title>
 <meta name="google-site-verification" content="B6v3IkbSAvhs9wXTPbK4lom_cyYtGSuHYH7POgfs6L8" />
-<meta name="description" content="Óculos de sol com proteção UV400 e relógios DK Original. Leve 4 óculos e pague 3, 5% de desconto no Pix e frete grátis para Sul e Sudeste acima de R$ 120.">
+<meta name="description" content="Óculos de sol com proteção UV400 e relógios DK Original. Compre 4 e pague 3, 5% de desconto no Pix e frete grátis para Sul e Sudeste acima de R$ 120.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SP Store">
 <meta property="og:title" content="SP Store · Óculos de sol e relógios femininos">
-<meta property="og:description" content="Leve 4 óculos e pague 3 · 5% off no Pix · Frete grátis Sul e Sudeste acima de R$ 120">
+<meta property="og:description" content="Compre 4 e pague 3 · 5% off no Pix · Frete grátis Sul e Sudeste acima de R$ 120">
 <meta property="og:image" content="https://lojaspstore.com.br/img/coleção-óculos_-estilo-ao-sol.webp">
 <meta property="og:url" content="https://lojaspstore.com.br/">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -374,7 +374,7 @@ body.pag-site .so-wa{display:none}
 
 <div class="topo-fixo">
 <div class="ticker"><div class="wrap">
-  <span class="js-promo-on"><b class="js-promo">Leve 4 óculos, pague 3</b></span>
+  <span class="js-promo-on"><b class="js-promo">Compre 4, pague 3</b></span>
   <span class="js-fg-on"><b>Frete grátis</b><span class="js-fg-reg"> Sul e Sudeste</span> acima de <span class="js-fg">R$ 120,00</span></span>
   <span class="js-pix-on"><b><span class="js-pixp">5</span>% de desconto</b> no Pix</span>
   <span class="js-parc-on"><b class="js-parc3">4x sem juros</b> no cartão</span>
@@ -571,7 +571,7 @@ function renderCats(todos){
   if(CAT){document.getElementById("categorias").hidden=true;return}
   box.innerHTML=CATS.map(c=>{const l=todos.filter(p=>p.categoria===c);if(!l.length)return "";
     const capa=LOJA_CAT[c]||(()=>{for(const p of l)for(const v of p.variantes||[]){if(v.foto)return v.foto}return ""})();
-    return `<a class="cat-tile" href="/${c}">${capa?`<img src="${esc(mini(capa))}" alt="" loading="lazy">`:""}<span class="ct"><b>${CATN[c]}</b><span class="n">${l.length} ${l.length===1?"modelo":"modelos"}${c===PCAT&&PLEVE>=2?` · leve ${PLEVE}, pague ${PLEVE-1}`:""}</span><span class="go">Ver ${c==="oculos"?"óculos":"relógios"} →</span></span></a>`}).join("");
+    return `<a class="cat-tile" href="/${c}">${capa?`<img src="${esc(mini(capa))}" alt="" loading="lazy">`:""}<span class="ct"><b>${CATN[c]}</b><span class="n">${l.length} ${l.length===1?"modelo":"modelos"}${promoVale(c)&&PLEVE>=2?` · compre ${PLEVE}, pague ${PLEVE-1}`:""}</span><span class="go">Ver ${c==="oculos"?"óculos":"relógios"} →</span></span></a>`}).join("");
   document.getElementById("categorias").hidden=!box.innerHTML;
 }
 function cardsHTML(list){
@@ -599,11 +599,14 @@ function cardsHTML(list){
 function norm(list){return (list||[]).map(p=>({...p,selos:(p.selos||[]).map(x=>/^maisvendido$/i.test(String(x).trim())?"Mais vendido":x),desenho:p.desenho||(p.avancado&&p.avancado.desenho)||"hex",
   variantes:(p.variantes||[]).map(v=>({...v,cor_principal:v.cor_principal||(v.avancado&&v.avancado.cor_principal),cor_detalhe:v.cor_detalhe||(v.avancado&&v.avancado.cor_detalhe)}))}))}
 let PSJ=4, MOTO=10, MOTOC="13h", FGREG="Sul e Sudeste", PIXP=5, FGA=120, FGR=119, PLEVE=4, PCAT="oculos";
-const PCAT_TXT={oculos:"óculos",relogios:"relógios"};
+const PCAT_TXT={oculos:"óculos",relogios:"relógios",todos:"produtos"};
+// a promoção vale para uma categoria ou para todos os produtos (pode misturar óculos e relógios)
+const promoVale=c=>PCAT==="todos"||c===PCAT;
+const promoItem=()=>PCAT==="oculos"?"óculos":PCAT==="relogios"?"relógio":"produto";
 // mesma regra do servidor: a cada PLEVE itens da categoria, o mais barato sai grátis
 function promoCart(){
   const g=cart.map(()=>0); if(PLEVE<2) return {g,n:0,livres:0};
-  const el=cart.map((x,k)=>({x,k})).filter(({x})=>{const p=P.find(q=>q.nome===x.nome);return p&&p.categoria===PCAT});
+  const el=cart.map((x,k)=>({x,k})).filter(({x})=>{const p=P.find(q=>q.nome===x.nome);return p&&promoVale(p.categoria)});
   const n=el.reduce((a,{x})=>a+x.qtd,0); let livres=Math.floor(n/PLEVE); const tot=livres;
   for(const {x,k} of [...el].sort((a,b)=>a.x.preco-b.x.preco)){if(!livres)break;const q=Math.min(livres,x.qtd);g[k]=q;livres-=q}
   return {g,n,livres:tot};
@@ -613,7 +616,7 @@ function pixTxt(preco){return PIXP>0?`<span class="pixp"><b>${brl(precoPix(preco
 function perks(p){const l=[];
   if(PIXP>0)l.push(`<li><b>${PIXP}% off no Pix</b> · ${brl(precoPix(p.preco))}</li>`);
   l.push(PSJ>1?`<li>Ou <b>${PSJ}x de ${brl(Math.floor(p.preco/PSJ*100)/100)} sem juros</b> no cartão (ou até 12x)</li>`:`<li>Ou em até <b>12x no cartão</b></li>`);
-  if(PLEVE>=2&&p.categoria===PCAT)l.push(`<li><b>Leve ${PLEVE}, pague ${PLEVE-1}</b> · o ${PLEVE}º ${PCAT==="oculos"?"óculos":"relógio"} sai grátis</li>`);
+  if(PLEVE>=2&&promoVale(p.categoria))l.push(`<li><b>Compre ${PLEVE}, pague ${PLEVE-1}</b> · o ${PLEVE}º ${promoItem()} sai grátis${PCAT==="todos"?" (vale misturar óculos e relógios)":""}</li>`);
   if(FGA>0)l.push(`<li><b>Frete grátis${FGREG?" "+FGREG:""}</b> em compras acima de ${brl(FGA)}</li>`);
   if(MOTO)l.push(`<li><b>🛵 Entrega hoje</b> na Grande SP por ${brl(MOTO)} · pedidos até ${MOTOC}</li>`);
   l.push(`<li>Troca ou devolução em até <b>7 dias</b> · <a href="/trocas.html">ver política</a></li>`);
@@ -625,7 +628,7 @@ function applyLoja(L){
   if(L.promo_leve!=null) PLEVE=Math.floor(Number(L.promo_leve)||0);
   if(L.promo_categoria) PCAT=L.promo_categoria;
   document.querySelectorAll(".js-promo-on").forEach(e=>e.hidden=PLEVE<2);
-  document.querySelectorAll(".js-promo").forEach(e=>e.textContent=`Leve ${PLEVE} ${PCAT_TXT[PCAT]||""}, pague ${PLEVE-1}`);
+  document.querySelectorAll(".js-promo").forEach(e=>e.textContent=PCAT==="todos"?`Compre ${PLEVE}, pague ${PLEVE-1}`:`Leve ${PLEVE} ${PCAT_TXT[PCAT]||""}, pague ${PLEVE-1}`);
   document.querySelectorAll(".js-pixp").forEach(e=>e.textContent=PIXP);
   if(L.parcelas_sem_juros!=null) PSJ=Math.max(1,Math.min(12,parseInt(L.parcelas_sem_juros)||1));
   document.querySelectorAll(".js-parc").forEach(e=>e.textContent=PSJ>1?`${PSJ}x sem juros ou até 12x`:"ou até 12x no cartão");
@@ -657,7 +660,7 @@ function applyLoja(L){
   if(CAT){
     document.getElementById("hero-eyebrow").textContent="Coleção SP Store";
     document.getElementById("hero-titulo").textContent=CATN[CAT]+" por";
-    document.getElementById("hero-texto").textContent=CAT==="oculos"?`Proteção UV400, vários modelos e cores.${PLEVE>=2&&PCAT==="oculos"?` Leve ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`:`Relógios DK Original com máquina quartz. Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`;
+    document.getElementById("hero-texto").textContent=CAT==="oculos"?`Proteção UV400, vários modelos e cores.${PLEVE>=2&&promoVale("oculos")?` Compre ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`:`Relógios DK Original com máquina quartz.${PLEVE>=2&&promoVale("relogios")?` Compre ${PLEVE}, pague ${PLEVE-1}.`:""} Pix com desconto ou ${PSJ>1?PSJ+"x sem juros":"até 12x"} no cartão.`;
   }
   const bd=CAT?(L["banner_"+CAT]||""):(L.banner_imagem||""), bm=CAT?(L["banner_"+CAT+"_celular"]||""):(L.banner_imagem_celular||"");
   if(bd||bm){
@@ -920,7 +923,7 @@ function renderCart(){
     </div></div>`).join("");
   const tot=cartTotal(), ganhou=FGR>0&&tot>=FGR, falta=FGA>0&&!ganhou?Math.max(0.01,FGA-tot):0;
   const faltaPromo=PLEVE>=2&&PR.n>0?PLEVE-(PR.n%PLEVE):0;
-  cartFoot.innerHTML=`${PLEVE>=2&&PR.n>0?`<div class="promo-bar">${PR.livres?`🎁 <b>${PR.livres} ${PCAT_TXT[PCAT]} grátis</b> na promoção leve ${PLEVE}, pague ${PLEVE-1}${faltaPromo===1?` · mais 1 e ganhe outro`:""}`:faltaPromo===1?`🎁 Adicione <b>mais 1 ${PCAT==="oculos"?"óculos":"relógio"}</b> e ele sai <b>grátis</b>!`:`🎁 Leve ${PLEVE} ${PCAT_TXT[PCAT]} e pague ${PLEVE-1}: faltam <b>${faltaPromo}</b>`}</div>`:""}
+  cartFoot.innerHTML=`${PLEVE>=2&&PR.n>0?`<div class="promo-bar">${PR.livres?`🎁 <b>${PR.livres} ${PR.livres===1?promoItem():PCAT_TXT[PCAT]} grátis</b> na promoção compre ${PLEVE}, pague ${PLEVE-1}${faltaPromo===1?` · mais 1 e ganhe outro`:""}`:faltaPromo===1?`🎁 Adicione <b>mais 1 ${promoItem()}</b> e ele sai <b>grátis</b>!`:`🎁 Compre ${PLEVE} ${PCAT_TXT[PCAT]} e pague ${PLEVE-1}: faltam <b>${faltaPromo}</b>`}</div>`:""}
     ${FGA>0?`<div class="fg-bar"><div class="fg-txt">${falta>0?`Faltam <b>${brl(falta)}</b> para ganhar <b>frete grátis</b>${FGREG?` (${FGREG})`:""}`:`<b>Parabéns!</b> Você ganhou <b>frete grátis</b>${FGREG?` para o ${FGREG}`:""}`}</div><div class="fg-track"><span style="width:${ganhou?100:Math.min(100,tot/FGA*100).toFixed(1)}%"></span></div></div>`:""}
     <div class="cart-tot"><span>Total</span><strong>${brl(tot)}</strong></div>
     ${PIXP>0?`<div class="cart-pix">ou <b>${brl(precoPix(tot))}</b> no Pix (${PIXP}% off)</div>`:""}

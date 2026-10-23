@@ -83,13 +83,14 @@ collections:
               - { label: "Sul (PR, SC, RS)", value: sul }
               - { label: "Sudeste (SP, RJ, MG, ES)", value: sudeste }
               - { label: "Demais regiões (Norte, Nordeste, Centro-Oeste)", value: outras }
-          - { label: "Promoção: leve quantos óculos e ganhe 1", name: promo_leve, widget: number, value_type: int, min: 0, max: 10, required: false, default: 4, hint: "4 = leve 4 e pague 3 (o mais barato sai grátis). 0 = promoção desligada." }
+          - { label: "Promoção: compre quantos e ganhe 1", name: promo_leve, widget: number, value_type: int, min: 0, max: 10, required: false, default: 4, hint: "4 = leve 4 e pague 3 (o mais barato sai grátis). 0 = promoção desligada." }
           - label: "Promoção vale para"
             name: promo_categoria
             widget: select
             required: false
-            default: oculos
+            default: todos
             options:
+              - { label: "Todos os produtos (pode misturar)", value: todos }
               - { label: Óculos de sol, value: oculos }
               - { label: Relógios, value: relogios }
           - { label: "Desconto no Pix (%)", name: desconto_pix, widget: number, value_type: int, min: 0, max: 30, required: false, default: 5, hint: "Desconto sobre os produtos (não sobre o frete) quando o cliente paga no Pix. 0 = sem desconto." }
