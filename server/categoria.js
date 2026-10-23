@@ -3,6 +3,7 @@
 import { catalogo } from "./loja.js";
 import { abs } from "./seo.js";
 import { aplicarBanner } from "./banner.js";
+import { embutirDados } from "./dados.js";
 
 const INFO = {
   oculos: { titulo: "Óculos de sol femininos e masculinos | SP Store", desc: "Óculos de sol com proteção UV400 em vários modelos e cores. Compre 4, pague 3, 5% off no Pix e entrega hoje na Grande SP." },
@@ -33,6 +34,6 @@ ${img ? `<meta property="og:image" content="${attr(abs(origem, img))}">` : ""}
 <script>window.__CAT=${JSON.stringify(cat)}</script>`;
   html = html.replace(/<title>[^<]*<\/title>/, "").replace(/<meta name="description"[^>]*>/, "").replace(/<meta property="og:[^>]*>/g, "");
   html = html.replace(/(<meta name="viewport"[^>]*>)/, `$1\n${head}`);
-  html = await aplicarBanner(html, lojaB, cat, origem, env);
+  html = await embutirDados(await aplicarBanner(html, lojaB, cat, origem, env), request, env);
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=120" } });
 }

@@ -4,6 +4,7 @@
 import { catalogo, lerEstoque, chaveEstoque, pronto } from "../../server/loja.js";
 import { resumoPublico } from "../../server/avaliacoes.js";
 import { aplicarBanner } from "../../server/banner.js";
+import { embutirDados } from "../../server/dados.js";
 import { slug, abs, fotosDe, preco2, CAT_NOME, descricao, titulo as tituloDe } from "../../server/seo.js";
 
 const attr = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -75,6 +76,6 @@ export const onRequestGet = async ({ env, request, params }) => {
 
   html = html.replace(/<title>[^<]*<\/title>/, "").replace(/<meta name="description"[^>]*>/, "").replace(/<meta property="og:[^>]*>/g, "");
   html = html.replace(/(<meta name="viewport"[^>]*>)/, `$1\n${head}`);
-  html = await aplicarBanner(html, loja, "", origem, env);
+  html = await embutirDados(await aplicarBanner(html, loja, "", origem, env), request, env);
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
 };
