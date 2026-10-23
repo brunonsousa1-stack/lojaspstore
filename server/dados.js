@@ -14,13 +14,13 @@ function fotosLocais(produtos, env) {
 
 export async function embutirDados(html, request, env) {
   try {
-    if (!html.includes("</head>") || html.includes("window.__DADOS=")) return html;
+    if (!/<meta name="viewport"[^>]*>/.test(html) || html.includes("window.__DADOS=")) return html;
     const [c, av] = await Promise.all([
       catalogo(request, env),
       pronto(env) ? resumoPublico(env).catch(() => null) : Promise.resolve(null),
     ]);
     const dados = { produtos: fotosLocais(c.produtos || [], env), loja: c.loja || {}, av };
     const js = JSON.stringify(dados).replace(/</g, "\\u003c").split(String.fromCharCode(8232)).join("\\u2028").split(String.fromCharCode(8233)).join("\\u2029");
-    return html.replace("</head>", () => `<script>window.__DADOS=${js}</script>\n</head>`);
+    return html.replace(/(<meta name="viewport"[^>]*>)/, m => `${m}\n<script>window.__DADOS=${js}</script>`);
   } catch { return html; }
 }
