@@ -62,7 +62,7 @@ const corTxt=c=>c&&c!=="Padrão"?c:"";
 const lerJSON=(k,store=localStorage)=>{try{return JSON.parse(store.getItem(k)||"null")}catch(e){return null}};
 const gravarJSON=(k,v,store=localStorage)=>{try{v==null?store.removeItem(k):store.setItem(k,JSON.stringify(v))}catch(e){}};
 
-let metodo=null, CFG={}, LOJA={}, PRODUTOS=[], cart=[], pedido=null, aba="criar", brick=null, pollT=null, freteOps=null, freteSel=null, freteCep="", exigeCpf=true, freteSeq=0;
+let PRIM={primeira:false,pct:0}, metodo=null, CFG={}, LOJA={}, PRODUTOS=[], cart=[], pedido=null, aba="criar", brick=null, pollT=null, freteOps=null, freteSel=null, freteCep="", exigeCpf=true, freteSeq=0;
 const qs=new URLSearchParams(location.search);
 
 function sincronizar(){ // preço atual e itens que ainda existem
@@ -79,12 +79,24 @@ function promo(itens){
   for(const i of [...el].sort((a,b)=>a.preco-b.preco)){if(!livres)break;const g=Math.min(livres,i.qtd);i.gratis=g;livres-=g}
   return itens;
 }
+// cupom de 1ª compra (mesma regra do servidor): vale o que der mais desconto entre ele e o "leve N, pague N-1"
+function desconto(itens){
+  const pr=promo(itens.map(i=>({...i}))), pct=PRIM.primeira?PRIM.pct:0;
+  if(!pct) return pr;
+  const sb=l=>l.reduce((a,x)=>a+cents(x.preco)*(x.qtd-(x.gratis||0)),0);
+  const cup=itens.map(i=>{const c={...i};delete c.gratis;return {...c,preco_de:i.preco,preco:Math.round(cents(i.preco)*(100-pct)/100)/100,cupom:pct}});
+  return sb(cup)<sb(pr)?cup:pr;
+}
+async function checarPrimeira(){
+  try{ if(!Conta.usuario()) return; const d=await Conta.api("/api/primeira"); const n={primeira:!!d.primeira,pct:Number(d.pct)||0};
+    if(n.primeira!==PRIM.primeira||n.pct!==PRIM.pct){PRIM=n; if(!pedido) atualizarResumo();} }catch(e){}
+}
 function totais(){
   if(pedido){
     const cheio=r2(Number(pedido.subtotal)+Number(pedido.frete)), desc=metodo==="pix"?r2(pedido.subtotal*pctPix()/100):metodo==="cartao"?0:Math.max(0,r2(cheio-pedido.total));
     return {sub:pedido.subtotal,frete:pedido.frete,total:r2(cheio-desc),desconto:desc,cheio,itens:pedido.itens};
   }
-  const itens=promo(cart.map(x=>({...x})));
+  const itens=desconto(cart.map(x=>({...x})));
   const sub=itens.reduce((a,x)=>a+cents(x.preco)*(x.qtd-(x.gratis||0)),0)/100, frete=freteSel?freteSel.preco:null, total=r2(sub+(frete||0));
   return {sub,frete,total,desconto:0,cheio:total,pix:pctPix()?r2(total-r2(sub*pctPix()/100)):null,itens};
 }
@@ -95,11 +107,13 @@ function resumoHTML(){
   const regCep=c=>{const d=String(c||"").replace(/\D/g,"")[0];return "0123".includes(d)?"sudeste":"89".includes(d)?"sul":d?"outras":""};
   const nomeReg=regs.length&&!regs.includes("outras")?regs.map(x=>({sul:"Sul",sudeste:"Sudeste"}[x])).join(" e "):"";
   const cepOk=!freteCep||!regs.length||regs.includes(regCep(freteCep));
-  const falta=fgr>0&&!pedido&&cepOk&&t.sub<fgr?Math.max(0.01,fga-t.sub):0;
+  const base=t.itens.reduce((a,x)=>a+cents(x.preco_de||x.preco)*(x.qtd-(x.gratis||0)),0)/100, cupDesc=r2(t.itens.reduce((a,x)=>a+(x.preco_de?cents(x.preco_de-x.preco)*x.qtd:0),0)/100), cupPct=(t.itens.find(x=>x.cupom)||{}).cupom;
+  const falta=fgr>0&&!pedido&&cepOk&&base<fgr?Math.max(0.01,fga-base):0;
   return `<details class="card resumo" open><summary><span>Resumo · ${n} ${n===1?"item":"itens"} · ${brl(t.total)}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></summary>
-    <ul class="itens" style="margin-top:12px">${t.itens.map(x=>`<li><div class="th">${x.foto?`<img src="${esc(x.foto)}" alt="">`:""}</div><div><b>${esc(x.nome)}</b><span>${corTxt(x.cor)?esc(x.cor)+" · ":""}${x.qtd}×</span>${x.gratis?`<span style="display:block;color:#17703c;font-weight:600">🎁 ${x.gratis} grátis na promoção</span>`:""}</div><div class="v">${x.gratis?`<s class="muted" style="font-weight:400;font-size:12px;display:block">${brl(cents(x.preco)*x.qtd/100)}</s>`:""}${brl(cents(x.preco)*(x.qtd-(x.gratis||0))/100)}</div></li>`).join("")}</ul>
-    <div class="tot"><div><span class="muted">Subtotal</span><span>${brl(t.sub)}</span></div><div><span class="muted">Frete${pedido&&pedido.envio&&pedido.envio.nome?` · ${esc(pedido.envio.nome)}`:freteSel&&freteSel.nome?` · ${esc(freteSel.nome)}`:""}</span><span>${t.frete==null?`<span class="muted">${CFG.pronto?"informe o CEP":"a combinar"}</span>`:t.frete>0?brl(t.frete):"Grátis"}</span></div>
+    <ul class="itens" style="margin-top:12px">${t.itens.map(x=>`<li><div class="th">${x.foto?`<img src="${esc(x.foto)}" alt="">`:""}</div><div><b>${esc(x.nome)}</b><span>${corTxt(x.cor)?esc(x.cor)+" · ":""}${x.qtd}×</span>${x.gratis?`<span style="display:block;color:#17703c;font-weight:600">🎁 ${x.gratis} grátis na promoção</span>`:""}${x.cupom?`<span style="display:block;color:#17703c;font-weight:600">🎉 ${x.cupom}% off na 1ª compra</span>`:""}</div><div class="v">${x.gratis?`<s class="muted" style="font-weight:400;font-size:12px;display:block">${brl(cents(x.preco)*x.qtd/100)}</s>`:x.preco_de?`<s class="muted" style="font-weight:400;font-size:12px;display:block">${brl(cents(x.preco_de)*x.qtd/100)}</s>`:""}${brl(cents(x.preco)*(x.qtd-(x.gratis||0))/100)}</div></li>`).join("")}</ul>
+    <div class="tot"><div><span class="muted">Subtotal</span><span>${brl(cupDesc>0?r2(base):t.sub)}</span></div><div><span class="muted">Frete${pedido&&pedido.envio&&pedido.envio.nome?` · ${esc(pedido.envio.nome)}`:freteSel&&freteSel.nome?` · ${esc(freteSel.nome)}`:""}</span><span>${t.frete==null?`<span class="muted">${CFG.pronto?"informe o CEP":"a combinar"}</span>`:t.frete>0?brl(t.frete):"Grátis"}</span></div>
     ${falta>0?`<div style="font-size:13px;color:var(--gold)">Faltam ${brl(falta)} para frete grátis${nomeReg&&!freteCep?` (${nomeReg})`:""}</div>`:""}
+    ${cupDesc>0?`<div style="color:#17703c"><span>🎉 ${cupPct}% off na 1ª compra</span><span>− ${brl(cupDesc)}</span></div>`:""}
     ${t.desconto>0?`<div style="color:#17703c"><span>Desconto no Pix (${pctPix()}%)</span><span>− ${brl(t.desconto)}</span></div>`:""}
     <div class="grand"><span>Total${t.desconto>0?" no Pix":""}</span><strong>${brl(t.total)}</strong></div>
     ${t.pix!=null&&t.pix<t.total?`<div style="font-size:13px;color:#17703c;justify-content:flex-end">ou <b style="margin:0 4px">${brl(t.pix)}</b> no Pix (${pctPix()}% off)</div>`:""}</div>
@@ -218,7 +232,7 @@ async function enviarConta(e){
         <p style="margin:14px 0 0"><button class="link" type="button" id="ja-confirmei">Já confirmei, quero entrar</button></p>`;
         $("#ja-confirmei").addEventListener("click",()=>{aba="entrar";render()}); return }
     }else await Conta.entrar(email,senha);
-    await Conta.carregarUsuario(); render(); const n=document.querySelector("#f-entrega [name=nome]"); if(n&&!n.value) n.focus();
+    await Conta.carregarUsuario(); render(); const n=document.querySelector("#f-entrega [name=nome]"); if(n&&!n.value) n.focus(); checarPrimeira();
   }catch(err){carregando(btn,false);m.textContent=err.message}
 }
 async function buscarCep(f){
@@ -393,7 +407,7 @@ const lerProdutos=()=>fetch("/api/produtos",{cache:"no-store"}).then(r=>r.ok?r.j
   if(!ref&&aberto&&aberto.sig===assinatura()) ref=aberto;
   if(ref){try{const d=await Conta.api(`/api/pedido?id=${encodeURIComponent(ref.id)}&t=${encodeURIComponent(ref.t)}`);pedido=d.pedido;if(pedido.status!=="aguardando_pagamento"){sucesso();return}}catch(e){pedido=null;gravarJSON(ABERTO_KEY,null,sessionStorage)}}
   if(!pedido&&!cart.length){telaSimples(`<div class="card" style="text-align:center"><h2>Seu carrinho está vazio</h2><p class="muted">Escolha um óculos ou relógio e toque em "Adicionar ao carrinho".</p><a class="btn btn-dark" href="/#vitrine">Ver produtos</a></div>`);return}
-  render();
+  render(); checarPrimeira();
   if(link&&link.erro){const m=$("#c-msg");if(m)m.textContent=link.erro}
   if(link&&link.tipo==="signup"&&Conta.usuario()){const w=document.querySelector("#s-conta .who");if(w)w.insertAdjacentHTML("beforebegin",`<div class="msg ok" style="margin-bottom:10px">E-mail confirmado! Sua conta está pronta.</div>`)}
 })();

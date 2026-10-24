@@ -400,6 +400,7 @@ body.pag-site .so-wa{display:none}
 <div class="topo-fixo">
 <div class="ticker"><div class="wrap">
   <span class="js-promo-on"><b class="js-promo">Compre 4, pague 3</b></span>
+  <span><b>10% off</b> na sua 1ª compra</span>
   <span class="js-fg-on"><b>Frete grátis</b><span class="js-fg-reg"> Sul e Sudeste</span> acima de <span class="js-fg">R$ 120,00</span></span>
   <span class="js-pix-on"><b><span class="js-pixp">5</span>% de desconto</b> no Pix</span>
   <span class="js-parc-on"><b class="js-parc3">4x sem juros</b> no cartão</span>
@@ -493,6 +494,7 @@ body.pag-site .so-wa{display:none}
     <details><summary>Posso escolher a cor?</summary><p>Sim. Toque nas bolinhas de cor no produto e a cor escolhida vai junto para o carrinho e para a mensagem do WhatsApp.</p></details>
     <details><summary>Posso comprar mais de um produto?</summary><p>Sim. Adicione tudo ao carrinho, ajuste as quantidades e finalize o pedido de uma vez pelo WhatsApp.</p></details>
     <details><summary>Tem frete grátis?</summary><p>Sim! Para entregas<span class="js-fg-reg"> no <b>Sul e Sudeste</b></span>, o frete é grátis em compras acima de <span class="js-fg">R$ 120,00</span>. Nos outros casos, o valor é calculado pelo seu CEP na finalização, com Correios ou Jadlog.</p></details>
+    <details><summary>Tem desconto na primeira compra?</summary><p>Sim, 10% de desconto em todos os produtos na sua primeira compra no site. É automático: o desconto aparece no resumo do pedido assim que você entra na sua conta, sem precisar de cupom. Soma com o desconto do Pix, mas não vale junto com o Compre 4, pague 3 (fica o que der mais desconto para você).</p></details>
     <details class="js-pix-on"><summary>Tem desconto no Pix?</summary><p>Sim, <span class="js-pixp">5</span>% de desconto nos produtos pagando com Pix. O desconto já aparece na hora do pagamento.</p></details>
     <details><summary>Como o produto chega?</summary><p>Cada item vai em caixa protegida, pelos Correios ou Jadlog. Você escolhe a entrega na finalização e recebe o código de rastreio por e-mail e em "Minha conta".</p></details>
     <details><summary>Posso trocar ou devolver?</summary><p>Sim. Você tem até 7 dias depois de receber para trocar ou devolver, e 90 dias em caso de defeito. Veja a <a href="/trocas.html">política de trocas e devoluções</a>.</p></details>
@@ -654,6 +656,7 @@ function perks(p){const l=[];
   if(PIXP>0)l.push(`<li><b>${PIXP}% off no Pix</b> · ${brl(precoPix(p.preco))}</li>`);
   l.push(PSJ>1?`<li>Ou <b>${PSJ}x de ${brl(Math.floor(p.preco/PSJ*100)/100)} sem juros</b> no cartão (ou até 12x)</li>`:`<li>Ou em até <b>12x no cartão</b></li>`);
   if(PLEVE>=2&&promoVale(p.categoria))l.push(`<li><b>Compre ${PLEVE}, pague ${PLEVE-1}</b> · o ${PLEVE}º ${promoItem()} sai grátis${PCAT==="todos"?" (vale misturar óculos e relógios)":""}</li>`);
+  l.push(`<li><b>10% off na 1ª compra</b> · desconto automático no pagamento${PLEVE>=2&&promoVale(p.categoria)?` (não soma com o Compre ${PLEVE}, pague ${PLEVE-1})`:""}</li>`);
   if(FGA>0)l.push(`<li><b>Frete grátis${FGREG?" "+FGREG:""}</b> em compras acima de ${brl(FGA)}</li>`);
   if(MOTO)l.push(`<li><b>🛵 Entrega hoje</b> na Grande SP por ${brl(MOTO)} · pedidos até ${MOTOC}</li>`);
   l.push(`<li>Troca ou devolução em até <b>7 dias</b> · <a href="/trocas.html">ver política</a></li>`);

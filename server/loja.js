@@ -212,6 +212,27 @@ export function aplicarPromo(itens, produtos, loja) {
   for (const i of [...eleg].sort((a, b) => a.preco - b.preco)) { if (!livres) break; const g = Math.min(livres, i.qtd); i.gratis = g; livres -= g; }
   return itens;
 }
+// Cupom de 1ª compra: desconto automático (padrão 10%) para quem ainda não tem pedido pago.
+// Soma com o desconto do Pix, mas não com o "leve N, pague N-1": vale o que der mais desconto ao cliente.
+export const pctPrimeira = loja => { const v = loja && loja.cupom_primeira; return v == null || v === "" ? 10 : Math.min(50, Math.max(0, Number(v) || 0)); };
+export async function primeiraCompra(env, u, cpf) {
+  const pagos = "status=in.(pago,enviado,entregue)&select=id&limit=1";
+  const get = q => sb(env, `pedidos?${q}&${pagos}`, { method: "GET" });
+  if (u.id && (await get(`user_id=eq.${u.id}`)).length) return false;
+  const em = String(u.email || "").toLowerCase();
+  if (em && (await get(`email=eq.${encodeURIComponent(em)}`)).length) return false;
+  const c = digitos(cpf);
+  if (c.length === 11 && (await get(`cpf=eq.${c}`)).length) return false;
+  return true;
+}
+export function escolherDesconto(itens, produtos, loja, primeira) {
+  const promo = aplicarPromo(itens.map(i => ({ ...i })), produtos, loja);
+  const pct = primeira ? pctPrimeira(loja) : 0;
+  if (!pct) return promo;
+  const cup = itens.map(i => { const c = { ...i }; delete c.gratis; return { ...c, preco_de: i.preco, preco: Math.round(cents(i.preco) * (100 - pct) / 100) / 100, cupom: pct }; });
+  return subtotalItens(cup) < subtotalItens(promo) ? cup : promo;
+}
+export const temCupom = p => (p.itens || []).some(i => i.cupom);
 export const subtotalItens = itens => itens.reduce((a, i) => a + cents(i.preco) * (i.qtd - (i.gratis || 0)), 0) / 100;
 export function montarItens(produtos, pedidos) {
   if (!Array.isArray(pedidos) || !pedidos.length) throw new Error("Seu carrinho está vazio.");
@@ -440,7 +461,7 @@ function moldura(titulo, corpo, origem) {
 </div></div></body></html>`;
 }
 function tabelaItens(p) {
-  const linhas = (p.itens || []).map(i => `<tr><td style="padding:8px 0;border-bottom:1px solid #e6e3dc">${i.qtd}× ${esc(i.nome)}${i.cor && i.cor !== "Padrão" ? `<br><span style="color:#6a675f;font-size:13px">${esc(i.cor)}</span>` : ""}${i.gratis ? `<br><span style="color:#17703c;font-size:13px">${i.gratis} grátis na promoção</span>` : ""}</td><td style="padding:8px 0;border-bottom:1px solid #e6e3dc;text-align:right;white-space:nowrap">${reais(i.preco * (i.qtd - (i.gratis || 0)))}</td></tr>`).join("");
+  const linhas = (p.itens || []).map(i => `<tr><td style="padding:8px 0;border-bottom:1px solid #e6e3dc">${i.qtd}× ${esc(i.nome)}${i.cor && i.cor !== "Padrão" ? `<br><span style="color:#6a675f;font-size:13px">${esc(i.cor)}</span>` : ""}${i.gratis ? `<br><span style="color:#17703c;font-size:13px">${i.gratis} grátis na promoção</span>` : ""}${i.cupom ? `<br><span style="color:#17703c;font-size:13px">${i.cupom}% off na 1ª compra</span>` : ""}</td><td style="padding:8px 0;border-bottom:1px solid #e6e3dc;text-align:right;white-space:nowrap">${reais(i.preco * (i.qtd - (i.gratis || 0)))}</td></tr>`).join("");
   return `<table style="width:100%;border-collapse:collapse;font-size:15px;margin:14px 0">${linhas}
 <tr><td style="padding:8px 0;color:#6a675f">Frete</td><td style="padding:8px 0;text-align:right">${Number(p.frete) > 0 ? reais(p.frete) : "Grátis"}</td></tr>
 ${Number(p.subtotal) + Number(p.frete) - Number(p.total) > 0.004 ? `<tr><td style="padding:8px 0;color:#17703c">Desconto no Pix</td><td style="padding:8px 0;text-align:right;color:#17703c">- ${reais(Number(p.subtotal) + Number(p.frete) - Number(p.total))}</td></tr>` : ""}
@@ -502,11 +523,14 @@ export async function checkout(env, request) {
   try {
     entrega = validarEntrega(b, meAtivo(env));
     const { produtos, loja } = await catalogo(request, env);
-    itens = aplicarPromo(montarItens(produtos, b.itens), produtos, loja);
+    const base = montarItens(produtos, b.itens);
+    const subSemCupom = subtotalItens(aplicarPromo(base.map(i => ({ ...i })), produtos, loja));
+    const prim = pctPrimeira(loja) > 0 ? await primeiraCompra(env, u, entrega.cpf).catch(() => false) : false;
+    itens = escolherDesconto(base, produtos, loja, prim);
     conferirEstoque(await lerEstoque(env), itens);
     sub = subtotalItens(itens);
     const rem = await lerConfig(env, "remetente");
-    const ops = await cotar(env, { cepOrigem: rem && rem.cep, cepDestino: entrega.endereco.cep, itens, produtos, loja, subtotal: sub });
+    const ops = await cotar(env, { cepOrigem: rem && rem.cep, cepDestino: entrega.endereco.cep, itens, produtos, loja, subtotal: subSemCupom });
     const op = ops.find(o => o.id === String(b.frete_id || "")) || (ops.length === 1 ? ops[0] : null);
     if (!op) throw new Error("Escolha a forma de entrega.");
     frete = op.preco;
@@ -539,6 +563,7 @@ export async function pagar(env, request) {
   if (p.status !== "aguardando_pagamento") return json({ ok: true, status: p.status, pedido: publico(p) });
   const ehPix = String((b.formData || {}).payment_method_id || "") === "pix";
   const { loja } = await catalogo(request, env);
+  if (temCupom(p) && !(await primeiraCompra(env, { id: p.user_id, email: p.email }, p.cpf).catch(() => true))) return erro("O desconto de primeira compra já foi usado em outro pedido. Volte ao carrinho e finalize de novo.", 409);
   const certo = ehPix ? totalComPix(p, loja) : totalCheio(p);
   if (Number(p.total) !== certo) {
     const x = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ total: certo, ...(ehPix ? {} : { forma_pagamento: null }) }) }).catch(() => null);
@@ -611,6 +636,7 @@ export async function pixDireto(env, request) {
   const { loja } = await catalogo(request, env);
   if (!pixAtivo(loja)) return erro("Pix indisponível no momento.", 503);
   if (p.status !== "aguardando_pagamento") return json({ ok: true, status: p.status, pedido: publico(p) });
+  if (temCupom(p) && !(await primeiraCompra(env, { id: p.user_id, email: p.email }, p.cpf).catch(() => true))) return erro("O desconto de primeira compra já foi usado em outro pedido. Volte ao carrinho e finalize de novo.", 409);
   const valor = totalComPix(p, loja);
   const codigo = brCode({ chave: loja.pix_chave, nome: loja.pix_nome || "SP STORE", cidade: loja.pix_cidade || "SAO PAULO", valor, txid: `SPSTORE${p.id}`, mensagem: `Pedido ${p.id}` });
   let n = p;
