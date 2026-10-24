@@ -341,7 +341,7 @@ function renderEditor(){
     </div></section>
 
     <section class="card" aria-labelledby="h-preco"><h3 id="h-preco">Preço</h3><div class="row">
-      <label class="f">Preço de venda<span class="money"><span>R$</span><input class="in" id="preco" inputmode="decimal" value="${d.preco===""?"":Number(d.preco).toFixed(2).replace(".",",")}" placeholder="29,99"></span></label>
+      <label class="f">Preço de venda<span class="money"><span>R$</span><input class="in" id="preco" inputmode="decimal" value="${d.preco===""?"":Number(d.preco).toFixed(2).replace(".",",")}" placeholder="39,99"></span></label>
       <label class="f">Preço antigo <small>Opcional. Aparece riscado ("de R$ X por…"). Use só se o produto já foi vendido por esse preço.</small><span class="money"><span>R$</span><input class="in" id="preco_de" inputmode="decimal" value="${d.preco_de?Number(d.preco_de).toFixed(2).replace(".",","):""}" placeholder="49,99"></span></label>
     </div><p class="hint" id="dc-txt" style="margin-top:10px">${dc?`<span class="desc">-${dc}%</span> de desconto no site`:""}</p></section>
 
