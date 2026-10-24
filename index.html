@@ -226,8 +226,14 @@ footer a{text-decoration:none}
 .faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
 .faq summary{cursor:pointer;font-weight:700}
 .faq p{margin:8px 0 0;color:var(--muted)}
-.trust{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:12px}
-.trust span{border:1px solid rgba(243,241,236,.3);border-radius:6px;padding:4px 8px;opacity:.85}
+.selos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px;max-width:420px}
+.selo{display:flex;gap:10px;align-items:center;border:1px solid rgba(209,171,94,.45);border-radius:12px;padding:10px 12px;color:#d1ab5e}
+.selo div{display:grid;line-height:1.25}.selo b{font-size:13px;color:var(--on-dark)}.selo span{font-size:11.5px;color:var(--on-dark);opacity:.7}
+footer h3.pg-t{margin:18px 0 8px}
+.pagtos{display:flex!important;flex-wrap:wrap;gap:6px!important;opacity:1!important}
+.pagtos li{background:#fff;color:#1b1a17;border-radius:6px;padding:4px 9px;font-size:12px;font-weight:700;letter-spacing:.01em}
+.pagtos .pg-pix{color:#1d8a7a}.pagtos .pg-mp{color:#0a6fb0}
+@media (max-width:380px){.selos{grid-template-columns:1fr}}
 .stock{font-size:12px;font-weight:600;color:#17703c}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stock{color:var(--wa)}}
 :root[data-theme="dark"] .stock{color:var(--wa)}
@@ -504,7 +510,14 @@ body.pag-site .so-wa{display:none}
     <div>
       <a class="logo logo-foot" href="/"><img class="logo-img" src="/img/logo-site.webp" width="400" height="175" alt="SP Store"></a>
       <p style="opacity:.75;max-width:36ch">Óculos de sol e relógios por <span class="js-preco">R$ 29,99</span>. Atendimento pelo WhatsApp.</p>
-      <div class="trust"><span>Mercado Pago</span><span>Pix</span><span>Cartão de crédito</span><span>Compra segura</span></div>
+      <div class="selos">
+        <div class="selo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><div><b>Site seguro</b><span>Conexão criptografada SSL</span></div></div>
+        <div class="selo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><div><b>Compra protegida</b><span>Pagamento pelo Mercado Pago</span></div></div>
+      </div>
+      <h3 class="pg-t">Formas de pagamento</h3>
+      <ul class="pagtos" aria-label="Formas de pagamento">
+        <li class="pg-pix">Pix</li><li>Visa</li><li>Mastercard</li><li>Elo</li><li>Amex</li><li>Hipercard</li><li class="pg-mp">Mercado Pago</li>
+      </ul>
       <div class="wa-num"><span id="wa-text">(11) 94752-3834</span><button class="copy" id="copy-wa" type="button">Copiar número</button></div>
     </div>
     <div><h3>Produtos</h3><ul>
@@ -515,6 +528,8 @@ body.pag-site .so-wa{display:none}
       <li><a href="#como-comprar">Como comprar</a></li>
       <li><a href="/trocas.html">Trocas e devoluções</a></li>
       <li><a href="/privacidade.html">Política de privacidade</a></li>
+      <li><a href="/termos.html">Termos de uso</a></li>
+      <li><a href="/?cookies=1">Preferências de cookies</a></li>
       <li><a href="/conta.html">Meus pedidos</a></li>
       <li><a href="https://wa.me/5511947523834" target="_blank" rel="noopener">WhatsApp</a></li>
       <li class="js-ig-on" hidden><a class="js-ig-link" href="#" target="_blank" rel="noopener">Instagram <span class="js-ig-user"></span></a></li>

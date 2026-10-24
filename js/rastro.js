@@ -55,8 +55,10 @@
     try { if (px.fb && FB[nome]) window.fbq("track", FB[nome], { content_ids: ids, contents, content_name: d.p, content_type: "product", value: val, currency: "BRL", ...(d.id ? { order_id: String(d.id) } : {}) }, d.id ? { eventID: "pedido-" + d.id } : undefined); } catch (e) {}
     try { if (px.ga && GA[nome]) window.gtag("event", GA[nome], { currency: "BRL", value: val, items: item, ...(d.id ? { transaction_id: String(d.id) } : {}) }); } catch (e) {}
   }
-  function px_(nome, d) { if (px.pronto) pxEnviar(nome, d); else px.fila.push([nome, d]); }
-  fetch("/data/loja.json").then(r => r.ok ? r.json() : {}).then(L => {
+  function px_(nome, d) { if (px.pronto) pxEnviar(nome, d); else if (px.fila.length < 60) px.fila.push([nome, d]); }
+  // ---- Aviso de cookies (LGPD): Pixel do Meta e Google Analytics só carregam depois do "Aceitar" ----
+  const CK = "spstore_cookies";
+  function ligarPixels(L) {
     const fbId = String(L.meta_pixel_id || "").replace(/\D/g, ""), gaId = String(L.ga4_id || "").trim().toUpperCase();
     if (fbId) {
       !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments) }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s) }(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
@@ -68,6 +70,27 @@
       window.gtag("js", new Date()); window.gtag("config", gaId); px.ga = true;
     }
     px.pronto = true; px.fila.splice(0).forEach(([n, d]) => pxEnviar(n, d));
+  }
+  function avisoCookies(L) {
+    if (document.getElementById("ck-aviso")) return;
+    const st = document.createElement("style");
+    st.textContent = "#ck-aviso{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;max-width:560px;margin:0 auto;background:#1b1a17;color:#f3f1ec;border-radius:16px;padding:16px 18px;box-shadow:0 12px 36px rgba(0,0,0,.35);font:14px/1.5 Figtree,system-ui,sans-serif}#ck-aviso p{margin:0 0 12px}#ck-aviso a{color:#d1ab5e}#ck-aviso .ck-b{display:flex;gap:10px;flex-wrap:wrap}#ck-aviso button{flex:1;min-width:130px;border-radius:10px;padding:10px 14px;font:700 14px Figtree,system-ui,sans-serif;cursor:pointer}#ck-aviso .ck-ok{background:#d1ab5e;color:#1b1a17;border:0}#ck-aviso .ck-nao{background:transparent;color:#f3f1ec;border:1px solid rgba(243,241,236,.4)}";
+    document.head.appendChild(st);
+    const d = document.createElement("div"); d.id = "ck-aviso"; d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "Aviso de cookies");
+    d.innerHTML = '<p>Usamos cookies para melhorar sua experiência e mostrar ofertas do seu interesse. Veja a <a href="/privacidade.html">política de privacidade</a>.</p><div class="ck-b"><button type="button" class="ck-ok">Aceitar</button><button type="button" class="ck-nao">Recusar</button></div>';
+    const fim = ok => { L(CK, ok ? "ok" : "nao"); d.remove(); if (ok) ligarPixels(LJ); else { px.fila.length = 0; px.pronto = true; } };
+    d.querySelector(".ck-ok").onclick = () => fim(true);
+    d.querySelector(".ck-nao").onclick = () => fim(false);
+    (document.body || document.documentElement).appendChild(d);
+  }
+  let LJ = {};
+  fetch("/data/loja.json").then(r => r.ok ? r.json() : {}).then(J => {
+    LJ = J || {};
+    const tem = String(LJ.meta_pixel_id || "").replace(/\D/g, "") || String(LJ.ga4_id || "").trim();
+    const esc = L(CK), rever = /[?&]cookies=1/.test(location.search);
+    if (!tem) { px.pronto = true; return; }
+    if (esc === "ok" && !rever) ligarPixels(LJ);
+    else { if (esc === "nao" && !rever) { px.pronto = true; px.fila.length = 0; } else { const mostra = () => avisoCookies(L); if (document.body) mostra(); else addEventListener("DOMContentLoaded", mostra); } }
   }).catch(() => { px.pronto = true; });
 
   function ev(t, d) {
