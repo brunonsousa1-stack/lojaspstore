@@ -521,7 +521,6 @@ body.pag-site .so-wa{display:none}
       <ul class="pagtos" aria-label="Formas de pagamento">
         <li class="pg-pix">Pix</li><li>Visa</li><li>Mastercard</li><li>Elo</li><li>Amex</li><li>Hipercard</li><li class="pg-mp">Mercado Pago</li>
       </ul>
-      <div class="wa-num"><span id="wa-text">(11) 94752-3834</span><button class="copy" id="copy-wa" type="button">Copiar número</button></div>
     </div>
     <div><h3>Produtos</h3><ul>
       <li><a href="/oculos">Óculos de sol</a></li>
@@ -711,7 +710,6 @@ function applyLoja(L){
     document.getElementById("hero-img-m").srcset=bm||bd;
     document.getElementById("hero-img").hidden=false; document.querySelector("section.hero").hidden=true;
   }
-  if(L.whatsapp_exibicao) document.getElementById("wa-text").textContent=L.whatsapp_exibicao;
   document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a=>{a.href=a.href.replace(/wa\.me\/\d+/,"wa.me/"+WA)});
 }
 let LOJA_CAT={}, AV={produtos:{},loja:null}, LOJA_ML={};
@@ -901,10 +899,6 @@ function fromHash(){
 }
 window.addEventListener("popstate",fromHash);
 window.addEventListener("hashchange",fromHash);
-document.getElementById("copy-wa").addEventListener("click",function(){
-  const t=document.getElementById("wa-text").textContent, btn=this;
-  navigator.clipboard.writeText(t).then(()=>{btn.textContent="Copiado"}).catch(()=>{const r=document.createRange();r.selectNodeContents(document.getElementById("wa-text"));const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Selecionado"});
-});
 
 // ---------- carrinho ----------
 const CART_KEY="spstore_carrinho";
