@@ -267,6 +267,12 @@ dialog.pd::backdrop{background:rgba(12,12,11,.6)}
 .pd-desc-box{border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
 .pd-desc-box h3{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .pd-desc{margin:0;color:var(--muted);font-size:15px;white-space:pre-line}
+.med{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:0}
+.med div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.med dt{font-size:12px;color:var(--muted)}
+.med dd{margin:2px 0 0;font-weight:700;font-size:16px}
+.med-veste{margin:10px 0 0;font-size:14px}
+.med-obs{margin:6px 0 0;font-size:12px;color:var(--muted)}
 .pd-label{font-size:13px;font-weight:700}
 .pd-label span{font-weight:400;color:var(--muted)}
 .pd-lt{grid-column:1/-1;border-top:1px solid var(--line);padding:20px 26px 26px}
@@ -653,6 +659,17 @@ function promoCart(){
 }
 const precoPix=n=>Math.round(Math.round(Number(n)*100)*(100-PIXP)/100)/100;
 function pixTxt(preco){return PIXP>0?`<span class="pixp"><b>${brl(precoPix(preco))}</b> no Pix</span>`:`<span>no Pix ou cartão</span>`}
+// medidas do óculos (preenchidas no painel › Produtos); só aparece o que tiver valor
+function medidasHTML(p){
+  const m=(p.avancado&&p.avancado.medidas)||{}; if(p.categoria!=="oculos") return "";
+  const n=k=>Number(m[k])>0?Number(m[k]):0, mm=k=>String(n(k)).replace(".",",")+" mm";
+  const it=[["largura_mm","Largura total"],["lente_mm","Largura da lente"],["altura_lente_mm","Altura da lente"],["ponte_mm","Ponte"],["haste_mm","Haste"]].filter(([k])=>n(k));
+  if(!it.length) return "";
+  const L=n("largura_mm"), rosto=!L?"":L<135?"rostos menores":L<=145?"rostos médios":"rostos maiores";
+  return `<div class="pd-desc-box pd-med"><h3>Medidas</h3>
+    <dl class="med">${it.map(([k,t])=>`<div><dt>${t}</dt><dd>${mm(k)}</dd></div>`).join("")}</dl>
+    ${rosto?`<p class="med-veste">Veste melhor <b>${rosto}</b>. Dica: compare com a largura de um óculos que você já usa.</p>`:""}
+    <p class="med-obs">Medidas aproximadas, podem variar cerca de 2 mm.</p></div>`}
 function perks(p){const l=[];
   if(PIXP>0)l.push(`<li><b>${PIXP}% off no Pix</b> · ${brl(precoPix(p.preco))}</li>`);
   l.push(PSJ>1?`<li>Ou <b>${PSJ}x de ${brl(Math.floor(p.preco/PSJ*100)/100)} sem juros</b> no cartão (ou até 12x)</li>`:`<li>Ou em até <b>12x no cartão</b></li>`);
@@ -796,6 +813,7 @@ function fillProduct(p){
     ${esgotado(p,v)?`<button class="btn add" type="button" disabled>Esgotado</button><a class="btn buy buy-alt" href="${aviseLink(p,v)}" target="_blank" rel="noopener">Avise-me quando chegar</a>`:`<button class="btn add" type="button" data-add="${p.id}">Adicionar ao carrinho</button>
     <button class="btn buy-now" type="button" data-buy="${p.id}">Comprar</button>`}
     ${freteBox(p,v)}
+    ${medidasHTML(p)}
     ${avaliacoesHTML(p.nome)}
     ${p.descricao?`<div class="pd-desc-box"><h3>Descrição</h3><div class="pd-desc">${fmtDesc(p.descricao)}</div></div>`:""}
   </div>${leveTambem(p)}`;

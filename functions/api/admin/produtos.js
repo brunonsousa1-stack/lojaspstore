@@ -55,6 +55,12 @@ function limpaProduto(p, i, baseFotos) {
     const v = num(av[k], 0, mx);
     if (v) a[k] = k === "peso_g" ? Math.round(v) : Math.round(v * 10) / 10;
   }
+  const md = av.medidas && typeof av.medidas === "object" ? av.medidas : {}, m = {};
+  for (const k of ["largura_mm", "lente_mm", "altura_lente_mm", "ponte_mm", "haste_mm"]) {
+    const v = num(md[k], 0, 300);
+    if (v) m[k] = Math.round(v * 10) / 10;
+  }
+  if (Object.keys(m).length) a.medidas = m;
   if (Object.keys(a).length) out.avancado = a;
   return out;
 }

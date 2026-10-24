@@ -203,6 +203,17 @@ export async function gerarEtiqueta(env, { pedido, remetente, produtos, nfe }) {
   return { me_ids: ids, etiqueta_url: imp.url || "", rastreio: codigos.join(", ") };
 }
 
+// situação das etiquetas no Melhor Envio: código real da transportadora (aparece depois da postagem) e se já foi entregue
+export async function situacaoEnvio(env, ids) {
+  const codigos = [], st = [];
+  for (const id of ids) {
+    const o = await me(env, `/orders/${encodeURIComponent(id)}`);
+    if (o && o.tracking) codigos.push(String(o.tracking));
+    st.push(String((o && o.status) || ""));
+  }
+  return { rastreio: codigos.join(", "), entregue: st.length > 0 && st.every(s => s === "delivered") };
+}
+
 export async function saldo(env) {
   if (!meAtivo(env)) return null;
   try { const d = await me(env, "/balance"); return Number(d.balance ?? d.saldo ?? 0); } catch { return null; }

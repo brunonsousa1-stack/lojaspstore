@@ -10,7 +10,7 @@
 //   EMAIL_REMETENTE       opcional. Padrão: SP Store <pedidos@lojaspstore.com.br>
 //   MP_WEBHOOK_SECRET     opcional. Assinatura secreta das notificações do Mercado Pago
 
-import { cotar, meAtivo, gerarEtiqueta, validarRemetente, saldo } from "./frete.js";
+import { cotar, meAtivo, gerarEtiqueta, validarRemetente, saldo, situacaoEnvio } from "./frete.js";
 import { brCode, pixAtivo } from "./pix.js";
 import { distanciaBase } from "./geo.js";
 
@@ -497,7 +497,7 @@ export async function emails(env, request, p, evento) {
     if (c.lojaEmail) await enviarEmail(env, c.lojaEmail, `Nova venda! Pedido ${n} · ${reais(p.total)}`, moldura(`Nova venda paga · ${n}`,
       `<p><b>${esc(p.nome)}</b> · ${esc(p.email)} · ${esc(p.telefone)}</p>${tabelaItens(p)}<p style="font-size:14px"><b>Entregar em:</b><br>${enderecoTxt(p.endereco)}</p>${botao(origem + "/admin/pedidos.html", "Abrir painel de pedidos")}`, origem));
   } else if (evento === "enviado") {
-    ok = await enviarEmail(env, p.email, p.envio && p.envio.id === "motoboy" ? `Seu pedido ${n} saiu para entrega` : `Seu pedido ${n} foi enviado`, moldura(p.envio && p.envio.id === "motoboy" ? `Saiu com o motoboy 🛵` : `Pedido enviado 📦`,
+    ok = await enviarEmail(env, p.email, p._novoCodigo ? `Código de rastreio do pedido ${n}` : p.envio && p.envio.id === "motoboy" ? `Seu pedido ${n} saiu para entrega` : `Seu pedido ${n} foi enviado`, moldura(p.envio && p.envio.id === "motoboy" ? `Saiu com o motoboy 🛵` : `Pedido enviado 📦`,
       `<p>Olá, ${esc(p.nome.split(" ")[0])}! Seu pedido <b>${n}</b> saiu para entrega.</p>${p.envio && p.envio.id === "motoboy" ? `<p style="font-size:16px">🛵 Seu pedido está com o <b>motoboy</b> e chega <b>hoje</b>. Fique de olho no seu WhatsApp.</p>` : p.envio && p.envio.carro_proprio ? `<p style="font-size:16px">🚗 Seu pedido saiu com a <b>nossa equipe de entrega</b> e chega em breve. Fique de olho no seu WhatsApp.</p>` : ""}${p.envio && p.envio.empresa && p.envio.id !== "motoboy" && !p.envio.carro_proprio ? `<p style="font-size:14px">Transportadora: <b>${esc(p.envio.empresa)} ${esc(p.envio.nome)}</b>${p.envio.prazo ? ` · prazo estimado de ${p.envio.prazo} dias úteis` : ""}</p>` : ""}${p.rastreio ? `<p style="font-size:16px">Código de rastreio:<br><b style="font-size:20px;letter-spacing:.05em">${esc(p.rastreio)}</b></p>${botao("https://www.melhorrastreio.com.br/rastreio/" + encodeURIComponent(p.rastreio.split(",")[0].trim()), "Rastrear entrega")}` : ""}${tabelaItens(p)}${botao(link, "Acompanhar pedido")}`, origem), c.lojaEmail);
   } else if (evento === "entregue") {
     marcados.pedir_avaliacao = new Date().toISOString(); // o e-mail de entregue já pede a avaliação
@@ -625,6 +625,34 @@ export async function etiqueta(env, request, p, b) {
   if (p.status === "pago" && (r.rastreio || p.rastreio)) { n = await mudarStatus(env, p, "enviado", extra); await emails(env, request, n, "enviado"); }
   else n = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify(extra) }).then(x => x[0]);
   return { pedido: n, etiqueta_url: r.etiqueta_url };
+}
+
+// De hora em hora (pelos lembretes): confere no Melhor Envio os pedidos com etiqueta.
+//  - apareceu o código da transportadora (depois da postagem) → grava, marca "enviado" e manda o e-mail com o rastreio
+//  - o Melhor Envio diz que foi entregue → marca "entregue" (o e-mail de entregue já pede a avaliação)
+export async function atualizarRastreios(env, request) {
+  const r = { rastreio: 0, entregue: 0 };
+  if (!meAtivo(env)) return r;
+  const desde = new Date(Date.now() - 45 * 864e5).toISOString();
+  const lista = await sb(env, `pedidos?select=*&status=in.(pago,enviado)&criado_em=gt.${desde}&order=criado_em.desc&limit=100`, { method: "GET" });
+  for (const p of lista || []) {
+    const ids = p.envio && Array.isArray(p.envio.me_ids) ? p.envio.me_ids : [];
+    if (!ids.length) continue;
+    try {
+      const s = await situacaoEnvio(env, ids);
+      let n = p;
+      if (s.rastreio && s.rastreio !== p.rastreio) {
+        if (p.status === "pago") { n = await mudarStatus(env, p, "enviado", { rastreio: s.rastreio }); await emails(env, request, n, "enviado"); }
+        else {
+          n = await sb(env, `pedidos?id=eq.${p.id}`, { method: "PATCH", body: JSON.stringify({ rastreio: s.rastreio }) }).then(x => x[0] || { ...p, rastreio: s.rastreio });
+          await emails(env, request, { ...n, emails: { ...(n.emails || {}), enviado: null }, _novoCodigo: true }, "enviado");
+        }
+        r.rastreio++;
+      }
+      if (s.entregue && n.status === "enviado") { n = await mudarStatus(env, n, "entregue"); await emails(env, request, n, "entregue"); r.entregue++; }
+    } catch {}
+  }
+  return r;
 }
 
 // ---------- Pix direto na chave da loja ----------

@@ -2,8 +2,9 @@
 // cada e-mail sai uma única vez por pedido).
 //  - Pedido feito e não pago há 1 a 48 horas → "Faltou só o pagamento"
 //  - Pedido enviado há 7 a 30 dias, sem avaliação pedida → "O que você achou?"
+//  - Pedido com etiqueta do Melhor Envio → busca o código da transportadora (e-mail com rastreio) e marca entregue
 //  - Conta com itens no carrinho há 1 a 48 horas e sem pedido depois → "Seus itens ainda estão no carrinho"
-import { json, pronto, sb, emails, lembrarCarrinhos } from "../../server/loja.js";
+import { json, pronto, sb, emails, lembrarCarrinhos, atualizarRastreios } from "../../server/loja.js";
 
 const hrs = h => new Date(Date.now() - h * 3600e3).toISOString();
 
@@ -19,6 +20,7 @@ async function rodar(env, request) {
     for (const p of env7) if (!(p.emails && p.emails.pedir_avaliacao)) { await emails(env, request, p, "pedir_avaliacao"); r.avaliacao++; }
   } catch {}
   try { r.carrinho = await lembrarCarrinhos(env, request); } catch {}
+  try { Object.assign(r, await atualizarRastreios(env, request)); } catch {}
   return json({ ok: true, enviados: r });
 }
 export const onRequestGet = ({ env, request }) => rodar(env, request);

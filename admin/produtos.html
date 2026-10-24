@@ -152,6 +152,7 @@ const CAT={oculos:"Óculos de sol",relogios:"Relógios"};
 const CAT1={oculos:"Óculos de sol",relogios:"Relógio"};
 const SELOS=["Novo","Mais vendido","Promoção","Lançamento","Últimas unidades","Frete grátis"];
 const PADRAO_ENVIO={peso_g:400,comprimento_cm:16,largura_cm:11,altura_cm:4};
+const MEDIDAS_OC=[["largura_mm","Largura total","140"],["lente_mm","Largura da lente","55"],["altura_lente_mm","Altura da lente","45"],["ponte_mm","Ponte (nariz)","18"],["haste_mm","Haste","140"]];
 let PRODS=[], VERSAO="", EST={}, FONTE="", filtro="todos", busca="";
 let tela="lista", ed=null, edIdx=-1, orig=null, sujo=false, enviando=0, salvando=false, dragInfo=null;
 
@@ -355,6 +356,11 @@ function renderEditor(){
       <p class="hint" style="margin:-6px 0 12px">Usado no cálculo do frete. Em branco, vale o padrão da loja (400 g, 16 × 11 × 4 cm).</p>
       <div class="dims">${[["peso_g","Peso (g)"],["comprimento_cm","Comprimento (cm)"],["largura_cm","Largura (cm)"],["altura_cm","Altura (cm)"]].map(([k,t])=>`<label class="f">${t}<input class="in" data-dim="${k}" inputmode="decimal" value="${d.avancado[k]??""}" placeholder="${PADRAO_ENVIO[k]}"></label>`).join("")}</div>
     </section>
+
+    <section class="card" id="sec-medidas" aria-labelledby="h-medidas" ${d.categoria==="oculos"?"":"hidden"}><h3 id="h-medidas">Medidas do óculos</h3>
+      <p class="hint" style="margin:-6px 0 12px">Aparecem na página do produto, em milímetros. Meça com régua o óculos aberto. Deixe em branco o que não souber.</p>
+      <div class="dims">${MEDIDAS_OC.map(([k,t,ex])=>`<label class="f">${t}<input class="in" data-med="${k}" inputmode="decimal" value="${(d.avancado.medidas||{})[k]??""}" placeholder="ex.: ${ex}"></label>`).join("")}</div>
+    </section>
    </div>
 
    <aside class="side">
@@ -372,7 +378,8 @@ function renderEditor(){
   if($("#dup-ed")) $("#dup-ed").onclick=()=>{if(sujo&&!confirm("Duplicar sem salvar as mudanças deste produto?"))return;duplicar(edIdx)};
   $("#nome").addEventListener("input",e=>{d.nome=e.target.value;marcar()});
   $("#descricao").addEventListener("input",e=>{d.descricao=e.target.value;$("#cnt").textContent=`${d.descricao.length}/2000`;marcar()});
-  app.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{d.categoria=b.dataset.cat;app.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed",x===b));marcar()});
+  app.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{d.categoria=b.dataset.cat;app.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed",x===b));const sm=document.getElementById("sec-medidas");if(sm)sm.hidden=d.categoria!=="oculos";marcar()});
+  app.querySelectorAll("[data-med]").forEach(i=>i.addEventListener("input",()=>{const v=pr(i.value),m={...(d.avancado.medidas||{})};if(v===""||!(Number(v)>0))delete m[i.dataset.med];else m[i.dataset.med]=Number(v);if(Object.keys(m).length)d.avancado.medidas=m;else delete d.avancado.medidas;sujo=true}));
   const pr=v=>{v=String(v).trim().replace(/\s|R\$/g,"");if(/,\d{1,2}$/.test(v))v=v.replace(/\./g,"").replace(",",".");else v=v.replace(",",".");const n=parseFloat(v);return Number.isFinite(n)?n:""};
   $("#preco").addEventListener("input",e=>{d.preco=pr(e.target.value);marcar();dcTxt()});
   $("#preco_de").addEventListener("input",e=>{d.preco_de=pr(e.target.value);marcar();dcTxt()});
